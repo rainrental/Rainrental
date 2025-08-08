@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">RainRental RFID</string>
+    <string name="base_url" translatable="false">https://europe-west2-universal-pixels.cloudfunctions.net/apiV1/api/v1/</string>
+    <string name="base_url_unified">blank</string>
+    <string name="api_key" translatable="false">apiKeyHere</string>
+    <string name="base_url_rain_rental">https://rainrental.org</string>
+    <string name="api_key_rain_rental">rainapikeyhere</string>
+    <string name="base_url_firebase_functions" translatable="false">https://europe-west2-universal-pixels.cloudfunctions.net/</string>
+    <string name="company_id">W5sUM5XnJfDUkMAu1AHe</string>
+</resources>

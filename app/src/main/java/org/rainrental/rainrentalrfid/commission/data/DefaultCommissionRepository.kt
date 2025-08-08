@@ -1,0 +1,73 @@
+package org.rainrental.rainrentalrfid.commission.data
+
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import org.rainrental.rainrentalrfid.apis.ApiCaller
+import org.rainrental.rainrentalrfid.commission.presentation.model.CommissionUiState
+import org.rainrental.rainrentalrfid.commission.presentation.model.CommissionUiFlow
+import org.rainrental.rainrentalrfid.rainrental.data.RainRentalApi
+import org.rainrental.rainrentalrfid.rainrental.data.model.EncodeEpcRequestDto
+import org.rainrental.rainrentalrfid.rainrental.data.model.EncodeEpcResponseDto
+import org.rainrental.rainrentalrfid.result.ApiError
+import org.rainrental.rainrentalrfid.result.Result
+import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
+import javax.inject.Inject
+import javax.inject.Named
+
+class DefaultCommissionRepository @Inject constructor(
+    override val commissionApi: CommissionApi,
+    private val rainRentalApi: RainRentalApi,
+    @Named("company_id") private val companyId: String,
+) : CommissionRepository {
+    private val _uiState: MutableStateFlow<CommissionUiState> = MutableStateFlow(CommissionUiState())
+    override val uiState: StateFlow<CommissionUiState> = _uiState.asStateFlow()
+
+    private val _uiFlow: MutableSharedFlow<CommissionUiFlow> = MutableSharedFlow()
+    override val uiFlow: SharedFlow<CommissionUiFlow> = _uiFlow.asSharedFlow()
+
+    override suspend fun updateUiFlow(uiFlow: CommissionUiFlow) {
+        _uiFlow.emit(uiFlow)
+    }
+
+    override suspend fun setSaving(saving: Boolean) {
+        _uiState.update { it.copy(saving = saving) }
+    }
+
+    override suspend fun getAsset(barcode: String): Result<AssetDetailsResponseDto, ApiError> {
+        val request = GetAssetRequestDto(barcode = barcode, companyId = companyId)
+        return when (val result = ApiCaller()<AssetDetailsResponseDto>{ commissionApi.getAssetDetails(request)}){
+            is Result.Error -> Result.Error(result.error.apiErrorType)
+            is Result.Success -> Result.Success(result.data)
+            else -> Result.Error(ApiError.UnknownException)
+        }
+    }
+
+    override suspend fun getEpc(encodeEpcRequestDto: EncodeEpcRequestDto): Result<String, ApiError> {
+        return when (val result = ApiCaller()<EncodeEpcResponseDto>{ rainRentalApi.encodeEpc(encodeEpcRequestDto) }){
+            is Result.Error -> Result.Error(result.error.apiErrorType)
+            is Result.Success -> Result.Success(result.data.epcHexString)
+            else -> Result.Error(ApiError.UnknownException)
+        }
+    }
+
+    override suspend fun commissionTag(requestDto: CommissionTagRequestDto): Result<CommissionTagResponseDto,ApiError> {
+        return when (val result = ApiCaller()<CommissionTagResponseDto> { commissionApi.commissionTag(requestDto) }){
+            is Result.Error -> Result.Error(result.error.apiErrorType)
+            is Result.Success -> Result.Success(result.data)
+            else -> Result.Error(ApiError.UnknownException)
+        }
+    }
+
+    override suspend fun isTagAvailable(tidHex: String): Result<Boolean, ApiError> {
+        return when (val result = ApiCaller()<IsTagAvailableResponseDto> { commissionApi.isTagAvailable(IsTagAvailableRequestDto(tidHex = tidHex, companyId = companyId)) }){ //TODO get from settings
+            is Result.Error -> Result.Error(result.error.apiErrorType)
+            is Result.Success -> Result.Success(result.data.success)
+        }
+    }
+
+}
