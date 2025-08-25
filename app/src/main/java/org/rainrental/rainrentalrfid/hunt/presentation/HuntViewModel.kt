@@ -11,6 +11,7 @@ import org.rainrental.rainrentalrfid.hunt.data.HuntEvent
 import org.rainrental.rainrentalrfid.hunt.data.HuntFlow
 import org.rainrental.rainrentalrfid.hunt.data.HuntRepository
 import org.rainrental.rainrentalrfid.hunt.domain.GetBarcodeAndLookupAssetUseCase
+import org.rainrental.rainrentalrfid.hunt.domain.LookupAssetUseCase
 import org.rainrental.rainrentalrfid.hunt.domain.StartTagHuntUseCase
 import org.rainrental.rainrentalrfid.hunt.domain.StopHuntUseCase
 import javax.inject.Inject
@@ -19,6 +20,7 @@ import javax.inject.Inject
 class HuntViewModel @Inject constructor(
     private val huntRepository: HuntRepository,
     private val getBarcodeAndLookupAssetUseCase: GetBarcodeAndLookupAssetUseCase,
+    private val lookupAssetUseCase: LookupAssetUseCase,
     private val startTagHuntUseCase: StartTagHuntUseCase,
     private val stopHuntUseCase: StopHuntUseCase,
     dependencies: BaseViewModelDependencies,
@@ -51,8 +53,10 @@ class HuntViewModel @Inject constructor(
                     is HuntFlow.Hunting -> viewModelScope.launch{
                         stopHuntUseCase(asset = (uiFlow.value as HuntFlow.Hunting).asset)
                     }
-                    is HuntFlow.FinishedHunting -> {}
                 }
+            }
+            is HuntEvent.OnManualBarcodeEntry -> {
+                viewModelScope.launch { lookupAssetUseCase(event.barcode) }
             }
         }
     }

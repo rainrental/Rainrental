@@ -57,13 +57,38 @@ fun HuntScreen(
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         when (uiFlow) {
             is HuntFlow.WaitingForBarcode -> {
                 Text(
                     text = "Scan barcode to start hunt",
                     style = MaterialTheme.typography.headlineSmall
+                )
+                
+                // Show previous hunt results if available
+                uiFlow.previousHuntResults?.let { results ->
+                    Text(
+                        text = "Detected $results times",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                
+                // Show error if present
+                uiFlow.withError?.let { error ->
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+                
+                ManualBarcodeEntry(
+                    onLookup = { barcode ->
+                        onEvent(HuntEvent.OnManualBarcodeEntry(barcode))
+                    }
                 )
             }
             HuntFlow.ScanningBarcode -> {
@@ -79,10 +104,6 @@ fun HuntScreen(
                 )
             }
             is HuntFlow.LoadedAsset -> {
-                Text(
-                    text = "Asset loaded: ${uiFlow.asset.epc}",
-                    style = MaterialTheme.typography.headlineSmall
-                )
                 AssetView(asset = uiFlow.asset)
                 Text(
                     text = "Press trigger to start hunting",
@@ -92,87 +113,20 @@ fun HuntScreen(
             }
             is HuntFlow.Hunting -> {
                 Text(
-                    text = "Hunting for: ${uiFlow.asset.epc}",
+                    text = "Hunting for: ${uiFlow.asset.barcode}",
                     style = MaterialTheme.typography.headlineSmall
                 )
-//                Text(
-//                    text = "Found ${huntResults.size} tags",
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    modifier = Modifier.padding(top = 8.dp)
-//                )
                 if (huntResults.isNotEmpty()) {
                     val lastRssi = huntResults.lastOrNull()?.tag?.rssi?.toDouble() ?: 0.0
-                    DBMeter(lastRssi = lastRssi)
+                    DBMeter(lastRssi = lastRssi, width = 440.dp, height = 80.dp)
                 }
             }
-            is HuntFlow.FinishedHunting -> {
-                Text(
-                    text = "Hunt finished",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = "Found ${huntResults.size} tags",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
+
         }
     }
 }
 
-//@Composable
-//fun LoadedHuntAssetView(asset:AssetDetailsResponseDto) {
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center
-//    ) {
-//        AssetView(asset)
-//        HintText(text = "Press trigger to start hunting".uppercase())
-//    }
-//}
-//
-//@Composable
-//fun HuntingView(
-//    huntResults: List<TagWithOrientation>
-//) {
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center
-//    ) {
-//        if (huntResults.isNotEmpty()){
-//            Column {
-//                val lastRssi = huntResults.last().tag.rssi
-//                DBMeter(
-//                    lastRssi = lastRssi.toDoubleOrNull()?:Double.NEGATIVE_INFINITY,
-//                    width = 400.dp,
-//                    height = 40.dp
-//                )
-//            }
-//            Text(huntResults.size.toString())
-//            Text(huntResults.last().tag.tid)
-//            Text(huntResults.last().tag.epc)
-//            Text("${huntResults.last().tag.rssi} dB")
-//        }else{
-//            // This part of the code is no longer directly used in HuntScreen,
-//            // but keeping it as it was not explicitly removed by the new_code.
-//            // It might be intended for a different context or removed later.
-//            // For now, it will be replaced by the new HuntScreen's logic.
-//        }
-//    }
-//}
-//
-//@Composable
-//fun FinishedHuntingView(modifier: Modifier = Modifier) {
-//    Column(
-//        modifier = Modifier.fillMaxSize(),
-//        horizontalAlignment = Alignment.CenterHorizontally,
-//        verticalArrangement = Arrangement.Center
-//    ) {
-//        Text("Finished Hunting View")
-//    }
-//}
+
 
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
@@ -180,5 +134,14 @@ fun HuntScreenPreview() {
     HuntScreen(
         modifier = Modifier,
         uiFlow = HuntFlow.WaitingForBarcode()
+    )
+}
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HuntScreenPreviewWithResults() {
+    HuntScreen(
+        modifier = Modifier,
+        uiFlow = HuntFlow.WaitingForBarcode(previousHuntResults = 5)
     )
 }
