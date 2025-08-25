@@ -47,9 +47,9 @@ fun InventoryScreen() {
     val isInventoryEmpty by inventoryViewModel.isInventoryEmpty.collectAsState()
     
     // Handle back navigation and lifecycle events
-    BackHandler {
-        inventoryViewModel.onBackPressed()
-    }
+//    BackHandler {
+//        inventoryViewModel.onBackPressed()
+//    }
     
     LifecycleAware(
         onPause = { inventoryViewModel.onScreenPaused() },
