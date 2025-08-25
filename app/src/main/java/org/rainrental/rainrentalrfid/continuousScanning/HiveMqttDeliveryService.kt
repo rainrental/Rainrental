@@ -225,7 +225,7 @@ class HiveMqttDeliveryService @Inject constructor(
         logd("Re-detecting MQTT server...")
         cleanup()
         
-        val newServerIp = appConfig.getBestMqttServer(context)
+        val newServerIp = appConfig.getMqttServerIp(context)
         logd("Re-detected MQTT server: $newServerIp")
         
         if (::lifecycle.isInitialized) {

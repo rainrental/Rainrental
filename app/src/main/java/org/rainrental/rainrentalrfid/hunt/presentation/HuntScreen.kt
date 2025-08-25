@@ -4,8 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -15,10 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.rainrental.rainrentalrfid.R
+import org.rainrental.rainrentalrfid.app.BackHandler
+import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.chainway.data.TagWithOrientation
 import org.rainrental.rainrentalrfid.commission.presentation.composable.AssetView
+import org.rainrental.rainrentalrfid.hunt.data.HuntEvent
 import org.rainrental.rainrentalrfid.hunt.data.HuntFlow
+import org.rainrental.rainrentalrfid.hunt.presentation.DBMeter
 import org.rainrental.rainrentalrfid.inventory.presentation.HintText
 import org.rainrental.rainrentalrfid.shared.presentation.composables.LoadingWithText
 import org.rainrental.rainrentalrfid.shared.presentation.composables.InputWithIcon
@@ -26,24 +29,100 @@ import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
 
 @Composable
 fun HuntScreen() {
-    val huntViewModel : HuntViewModel = hiltViewModel()
+    val huntViewModel: HuntViewModel = hiltViewModel()
     val uiFlow by huntViewModel.uiFlow.collectAsState()
     val huntResults by huntViewModel.huntResults.collectAsState()
+    
+    // Handle back navigation and lifecycle events
+    BackHandler {
+        huntViewModel.onBackPressed()
+    }
+    
+    LifecycleAware(
+        onPause = { huntViewModel.onScreenPaused() },
+        onResume = { huntViewModel.onScreenResumed() },
+        onDestroy = { huntViewModel.onBackPressed() }
+    )
+    
     HuntScreen(
+        modifier = Modifier,
         uiFlow = uiFlow,
-        huntResults = huntResults
+        huntResults = huntResults,
+        onEvent = huntViewModel::onEvent
     )
 }
 
 @Composable
-fun HuntScreen(uiFlow:HuntFlow, huntResults: List<TagWithOrientation>) {
-    when (uiFlow){
-        is HuntFlow.WaitingForBarcode -> InputWithIcon(text = "Scan a barcode to lookup asset EPC", withError = uiFlow.withError ,withResourceIcon = R.drawable.barcode)
-        HuntFlow.ScanningBarcode -> LoadingWithText(text = "Scanning barcode")
-        is HuntFlow.LookingUpAsset -> LoadingWithText(text = "Looking up ${uiFlow.barcode}")
-        is HuntFlow.LoadedAsset -> LoadedHuntAssetView(asset = uiFlow.asset)
-        is HuntFlow.Hunting -> HuntingView(huntResults)
-        is HuntFlow.FinishedHunting -> FinishedHuntingView()
+fun HuntScreen(
+    modifier: Modifier = Modifier,
+    uiFlow: HuntFlow,
+    huntResults: List<TagWithOrientation> = emptyList(),
+    onEvent: (HuntEvent) -> Unit = {}
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        when (uiFlow) {
+            is HuntFlow.WaitingForBarcode -> {
+                Text(
+                    text = "Scan barcode to start hunt",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            }
+            HuntFlow.ScanningBarcode -> {
+                Text(
+                    text = "Scanning barcode...",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            }
+            is HuntFlow.LookingUpAsset -> {
+                Text(
+                    text = "Looking up asset: ${uiFlow.barcode}",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+            }
+            is HuntFlow.LoadedAsset -> {
+                Text(
+                    text = "Asset loaded: ${uiFlow.asset.epc}",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Text(
+                    text = "Press trigger to start hunting",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+            is HuntFlow.Hunting -> {
+                Text(
+                    text = "Hunting for: ${uiFlow.asset.epc}",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Text(
+                    text = "Found ${huntResults.size} tags",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+                if (huntResults.isNotEmpty()) {
+                    val lastRssi = huntResults.lastOrNull()?.tag?.rssi?.toDouble() ?: 0.0
+                    DBMeter(lastRssi = lastRssi)
+                }
+            }
+            is HuntFlow.FinishedHunting -> {
+                Text(
+                    text = "Hunt finished",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Text(
+                    text = "Found ${huntResults.size} tags",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        }
     }
 }
 
@@ -82,7 +161,10 @@ fun HuntingView(
             Text(huntResults.last().tag.epc)
             Text("${huntResults.last().tag.rssi} dB")
         }else{
-            CircularProgressIndicator(modifier = Modifier.size(40.dp))
+            // This part of the code is no longer directly used in HuntScreen,
+            // but keeping it as it was not explicitly removed by the new_code.
+            // It might be intended for a different context or removed later.
+            // For now, it will be replaced by the new HuntScreen's logic.
         }
     }
 }
@@ -102,7 +184,7 @@ fun FinishedHuntingView(modifier: Modifier = Modifier) {
 @Composable
 fun HuntScreenPreview() {
     HuntScreen(
-        uiFlow = HuntFlow.LoadedAsset(asset = AssetDetailsResponseDto.example()),
-        huntResults = emptyList()
+        modifier = Modifier,
+        uiFlow = HuntFlow.WaitingForBarcode()
     )
 }

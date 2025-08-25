@@ -22,6 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import org.rainrental.rainrentalrfid.app.BackHandler
+import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
 import org.rainrental.rainrentalrfid.continuousScanning.data.DeliveryConnectionState
 import org.rainrental.rainrentalrfid.continuousScanning.data.ContinuousScanningState
@@ -35,6 +37,17 @@ fun ContinuousScanningScreen() {
     val currentServer by continuousScanningViewModel.currentServer.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     
+    // Handle back navigation and lifecycle events
+    BackHandler {
+        continuousScanningViewModel.onBackPressed()
+    }
+    
+    LifecycleAware(
+        onPause = { continuousScanningViewModel.onScreenPaused() },
+        onResume = { continuousScanningViewModel.onScreenResumed() },
+        onDestroy = { continuousScanningViewModel.onBackPressed() }
+    )
+    
     ContinuousScanningScreen(
         modifier = Modifier,
         state = state,
@@ -43,7 +56,7 @@ fun ContinuousScanningScreen() {
         currentServer = currentServer,
         onStatusClick = {
             coroutineScope.launch {
-                continuousScanningViewModel.reDetectMqttServer()
+                continuousScanningViewModel.restartMqttConnection()
             }
         }
     )

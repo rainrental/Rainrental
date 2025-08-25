@@ -61,6 +61,10 @@ class MainActivity : ComponentActivity() {
     @Singleton
     lateinit var hardwareEventBus: HardwareEventBus
 
+    @Inject
+    @Singleton
+    lateinit var scanningLifecycleManager: ScanningLifecycleManager
+
     private val orientationManager = OrientationManager
 
 
@@ -81,12 +85,10 @@ class MainActivity : ComponentActivity() {
         lifecycle.addObserver(scannerManager)
         lifecycle.addObserver(rfidManager)
 
-        // Auto-detect MQTT server IP with fallback and connectivity testing
-        lifecycleScope.launch {
-            val mqttServerIp = appConfig.getBestMqttServer(this@MainActivity)
-            Log.i("MainActivity", "Using MQTT server: $mqttServerIp")
-            mqttService.initialiseClient(listOf(mqttServerIp), this@MainActivity)
-        }
+        // Use configured MQTT server IP
+        val mqttServerIp = appConfig.getMqttServerIp(this@MainActivity)
+        Log.i("MainActivity", "Using MQTT server: $mqttServerIp")
+        mqttService.initialiseClient(listOf(mqttServerIp), this@MainActivity)
         lifecycle.addObserver(mqttService)
 
         setContent {
@@ -123,9 +125,19 @@ class MainActivity : ComponentActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
+    @Deprecated("Deprecated in favor of the new back handling system")
+    override fun onBackPressed() {
+        Log.i("MainActivity", "Back button pressed - cancelling all scanning")
+        // Cancel all scanning operations when back is pressed
+        scanningLifecycleManager.cancelAllScanning()
+        super.onBackPressed()
+    }
+
     override fun onPause() {
         super.onPause()
-        Log.i("MainActivity","On Pause")
+        Log.i("MainActivity","On Pause - cancelling all scanning")
+        // Cancel all scanning operations when app is paused
+        scanningLifecycleManager.cancelAllScanning()
     }
 
     override fun onResume() {

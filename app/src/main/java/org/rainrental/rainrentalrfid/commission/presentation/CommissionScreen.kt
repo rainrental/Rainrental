@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.rainrental.rainrentalrfid.R
+import org.rainrental.rainrentalrfid.app.BackHandler
+import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.chainway.data.BarcodeHardwareState
 import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
 import org.rainrental.rainrentalrfid.commission.presentation.composable.CommissionedTagsView
@@ -32,22 +34,34 @@ import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
 @Composable
 fun CommissionScreen() {
     val commissionTagsViewModel: CommissionTagsViewModel = hiltViewModel()
+    val uiFlow by commissionTagsViewModel.uiFlow.collectAsState()
     val uiState by commissionTagsViewModel.uiState.collectAsState()
-    val uiFlow by commissionTagsViewModel.uiFlow.collectAsState(CommissionUiFlow.WaitingForBarcodeInput())
     val rfidState by commissionTagsViewModel.hardwareState.collectAsState()
     val scannerState by commissionTagsViewModel.scannerState.collectAsState()
-    CommissionScreen(
-        Modifier,
-        uiState,
-        uiFlow,
-        rfidState,
-        scannerState,
+    
+    // Handle back navigation and lifecycle events
+    BackHandler {
+        commissionTagsViewModel.onBackPressed()
+    }
+    
+    LifecycleAware(
+        onPause = { commissionTagsViewModel.onScreenPaused() },
+        onResume = { commissionTagsViewModel.onScreenResumed() },
+        onDestroy = { commissionTagsViewModel.onBackPressed() }
+    )
+    
+    CommissionScreenContent(
+        modifier = Modifier,
+        uiFlow = uiFlow,
+        uiState = uiState,
+        rfidState = rfidState,
+        scannerState = scannerState,
         onEvent = commissionTagsViewModel::onEvent
     )
 }
 
 @Composable
-private fun CommissionScreen(
+private fun CommissionScreenContent(
     modifier: Modifier = Modifier,
     uiState: CommissionUiState,
     uiFlow: CommissionUiFlow,
@@ -103,7 +117,7 @@ private fun CommissionScreen(
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun CommissionScreenPreview(modifier: Modifier = Modifier) {
-    CommissionScreen(
+    CommissionScreenContent(
         uiState = CommissionUiState(),
         uiFlow = CommissionUiFlow.LoadedAsset(asset = AssetDetailsResponseDto.example(), scannedTags = listOf(
             ScanningTagData(tidHex = "E2BBCCDDEEFF112233221144", epcHex = "E2BBCCDDEEFF112233221144", epcData = "F00081000300000000000001")

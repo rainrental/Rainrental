@@ -1,31 +1,31 @@
 package org.rainrental.rainrentalrfid.chainway.presentation
 
-
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient.Mqtt3SubscribeAndCallbackBuilder.Call.Ex
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.rainrental.rainrentalrfid.app.BaseViewModel
+import org.rainrental.rainrentalrfid.app.BaseViewModelDependencies
 import org.rainrental.rainrentalrfid.chainway.data.BarcodeHardwareState
 import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
 import org.rainrental.rainrentalrfid.chainway.data.RfidManager
 import org.rainrental.rainrentalrfid.chainway.data.ScannerManager
-import org.rainrental.rainrentalrfid.commission.presentation.model.CommissionUiFlow
 import org.rainrental.rainrentalrfid.logging.Logger
 import javax.inject.Inject
 
 @HiltViewModel
 class RfidViewModel @Inject constructor(
-    private val rfidManager: RfidManager,
-    private val scannerManager: ScannerManager,
-) : ViewModel(), LifecycleEventObserver, Logger {
+    dependencies: BaseViewModelDependencies
+) : BaseViewModel(dependencies), LifecycleEventObserver, Logger {
+
+    private val rfidManager = dependencies.rfidManager
+    private val scannerManager = dependencies.scannerManager
 
     init {
         initializeHardware()
@@ -33,17 +33,6 @@ class RfidViewModel @Inject constructor(
 
     private val _connectionStatus = rfidManager.getConnectionStatus()
     val connectionStatus: StateFlow<Boolean> = _connectionStatus
-
-    val hardwareState = rfidManager.hardwareState.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = RfidHardwareState.Init
-    )
-    val scannerState = scannerManager.barcodeHardwareState.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = BarcodeHardwareState.Initialising
-    )
 
     val scannedTags = rfidManager.scannedTags
     val huntResults = rfidManager.huntResults
@@ -60,7 +49,6 @@ class RfidViewModel @Inject constructor(
             }catch (e:Exception){
                 loge("Error getting tag: ${e.message}")
             }
-
         }
     }
 

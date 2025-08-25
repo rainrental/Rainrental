@@ -1,6 +1,7 @@
 package org.rainrental.rainrentalrfid.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,18 +29,27 @@ class AppConfig @Inject constructor() {
     // UI Configuration
     val UI = UiConfig()
     
-    /**
-     * Gets the MQTT server IP using auto-detection with fallback
-     */
-    fun getMqttServerIp(context: Context): String {
-        return NetworkUtils.getMqttServerIp(context)
+    private var sharedPreferences: SharedPreferences? = null
+    
+    private fun getSharedPreferences(context: Context): SharedPreferences {
+        if (sharedPreferences == null) {
+            sharedPreferences = context.getSharedPreferences("RainRentalPrefs", Context.MODE_PRIVATE)
+        }
+        return sharedPreferences!!
     }
     
     /**
-     * Gets the best available MQTT server by testing connectivity
+     * Gets the MQTT server IP from persistent storage
      */
-    suspend fun getBestMqttServer(context: Context): String {
-        return NetworkUtils.getBestMqttServer(context)
+    fun getMqttServerIp(context: Context): String {
+        return getSharedPreferences(context).getString("mqtt_server_ip", "192.168.1.100") ?: "192.168.1.100"
+    }
+    
+    /**
+     * Sets the MQTT server IP in persistent storage
+     */
+    fun setMqttServerIp(context: Context, serverIp: String) {
+        getSharedPreferences(context).edit().putString("mqtt_server_ip", serverIp).apply()
     }
     
     /**
@@ -91,7 +101,7 @@ data class HardwareKeysConfig(
     val TRIGGER_KEY_CODE: Int = 293,
     val SIDE_KEY_CODE: Int = 139,
     val AUX_KEY_CODE: Int = 142,
-    var IGNORE_RIGHT_SIDE_KEY: Boolean = true
+    var IGNORE_RIGHT_SIDE_KEY: Boolean = false
 )
 
 data class NetworkConfig(

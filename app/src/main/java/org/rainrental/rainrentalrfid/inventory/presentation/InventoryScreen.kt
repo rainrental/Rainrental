@@ -28,6 +28,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.rainrental.rainrentalrfid.R
+import org.rainrental.rainrentalrfid.app.BackHandler
+import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.commission.presentation.composable.AssetView
 import org.rainrental.rainrentalrfid.inventory.data.InventoryEvent
 import org.rainrental.rainrentalrfid.inventory.data.InventoryFlow
@@ -43,6 +45,18 @@ fun InventoryScreen() {
     val inventory by inventoryViewModel.inventory.collectAsState()
     val saving by inventoryViewModel.saving.collectAsState()
     val isInventoryEmpty by inventoryViewModel.isInventoryEmpty.collectAsState()
+    
+    // Handle back navigation and lifecycle events
+    BackHandler {
+        inventoryViewModel.onBackPressed()
+    }
+    
+    LifecycleAware(
+        onPause = { inventoryViewModel.onScreenPaused() },
+        onResume = { inventoryViewModel.onScreenResumed() },
+        onDestroy = { inventoryViewModel.onBackPressed() }
+    )
+    
     InventoryScreen(
         modifier = Modifier,
         uiFlow = uiFlow,
@@ -51,11 +65,6 @@ fun InventoryScreen() {
         isInventoryEmpty = isInventoryEmpty,
         onEvent = inventoryViewModel::onEvent
     )
-//    LaunchedEffect(inventory) {
-//        if (inventory != 0){
-//            inventoryViewModel.onEvent(InventoryEvent.Beep)
-//        }
-//    }
 }
 
 @Composable

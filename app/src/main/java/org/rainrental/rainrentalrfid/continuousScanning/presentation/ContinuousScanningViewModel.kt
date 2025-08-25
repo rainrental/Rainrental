@@ -161,6 +161,7 @@ class ContinuousScanningViewModel @Inject constructor(
         if (!isScanning) {
             logd("Continuous Scanning Trigger Down - Starting continuous scanning")
             isScanning = true
+            dependencies.scanningLifecycleManager.setScanningState(true)
             dependencies.rfidManager.startContinuousScanning()
         }
     }
@@ -169,6 +170,7 @@ class ContinuousScanningViewModel @Inject constructor(
         if (isScanning) {
             logd("Continuous Scanning Trigger Up - Stopping continuous scanning")
             isScanning = false
+            dependencies.scanningLifecycleManager.setScanningState(false)
             dependencies.rfidManager.stopContinuousScanning()
         }
     }
@@ -177,6 +179,7 @@ class ContinuousScanningViewModel @Inject constructor(
         if (!isScanning) {
             logd("Continuous Scanning Side Key Down - Starting continuous scanning")
             isScanning = true
+            dependencies.scanningLifecycleManager.setScanningState(true)
             dependencies.rfidManager.startContinuousScanning()
         }
     }
@@ -185,6 +188,7 @@ class ContinuousScanningViewModel @Inject constructor(
         if (isScanning) {
             logd("Continuous Scanning Side Key Up - Stopping continuous scanning")
             isScanning = false
+            dependencies.scanningLifecycleManager.setScanningState(false)
             dependencies.rfidManager.stopContinuousScanning()
         }
     }
@@ -195,16 +199,18 @@ class ContinuousScanningViewModel @Inject constructor(
         // Ensure scanning is stopped when ViewModel is cleared
         if (isScanning) {
             isScanning = false
+            dependencies.scanningLifecycleManager.setScanningState(false)
             dependencies.rfidManager.stopContinuousScanning()
         }
         super.onCleared()
     }
     
     /**
-     * Triggers re-detection of MQTT server
+     * Restarts MQTT connection with the configured server
      */
-    suspend fun reDetectMqttServer() {
-        logd("Triggering MQTT server re-detection")
-        mqttDeliveryService.reDetectAndConnect(context, appConfig)
+    suspend fun restartMqttConnection() {
+        logd("Restarting MQTT connection")
+        val serverIp = appConfig.getMqttServerIp(context)
+        mqttDeliveryService.restartWithNewServer(serverIp)
     }
 } 
