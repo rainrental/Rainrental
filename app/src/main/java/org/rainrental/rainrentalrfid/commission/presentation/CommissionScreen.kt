@@ -95,7 +95,7 @@ private fun CommissionScreenContent(
         ) {
             when (rfidState){
                 RfidHardwareState.Init -> LoadingWithText(text = "Initialising RFID...")
-                RfidHardwareState.Configuring -> LoadingWithText(text = "Scanning barcode...")
+                RfidHardwareState.Configuring -> LoadingWithText(text = "Configuring RFID...")
                 RfidHardwareState.Scanning -> LoadingWithText(text = "Scanning RFID...")
                 RfidHardwareState.ShuttingDown -> LoadingWithText(text = "Shutting down RFID...")
                 else -> {}
