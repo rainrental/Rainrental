@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import org.rainrental.rainrentalrfid.app.BackHandler
+import org.rainrental.rainrentalrfid.app.BackHandlerWithCleanup
 import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
 import org.rainrental.rainrentalrfid.continuousScanning.data.DeliveryConnectionState
@@ -38,9 +39,7 @@ fun ContinuousScanningScreen() {
     val coroutineScope = rememberCoroutineScope()
     
     // Handle back navigation and lifecycle events
-    BackHandler {
-        continuousScanningViewModel.onBackPressed()
-    }
+    BackHandlerWithCleanup(continuousScanningViewModel,preventDefaultNavigation = false)
     
     LifecycleAware(
         onPause = { continuousScanningViewModel.onScreenPaused() },

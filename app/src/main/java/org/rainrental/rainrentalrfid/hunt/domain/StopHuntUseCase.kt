@@ -16,7 +16,9 @@ class StopHuntUseCase @Inject constructor(
         when (rfidManager.stopTagHunt()){
             false -> toastUseCase("Error stopping rfid")
             true -> {
-                huntRepository.updateUiFlow(HuntFlow.FinishedHunting(asset = asset))
+                // Get the current hunt results count before stopping
+                val huntResultsCount = rfidManager.huntResults.value.size
+                huntRepository.updateUiFlow(HuntFlow.WaitingForBarcode(previousHuntResults = huntResultsCount))
             }
         }
     }

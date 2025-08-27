@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.rscja.deviceapi.entity.UHFTAGInfo
 import org.rainrental.rainrentalrfid.app.BackHandler
+import org.rainrental.rainrentalrfid.app.BackHandlerWithCleanup
 import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.chainway.data.TagWithOrientation
 import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
@@ -49,14 +50,15 @@ fun RfidScreen() {
     }
     
     // Handle back navigation and lifecycle events
-    BackHandler {
-        rfidViewModel.onBackPressed()
-    }
+    BackHandlerWithCleanup(
+        viewModel = rfidViewModel,
+        preventDefaultNavigation = false // Allow normal back navigation
+    )
     
     LifecycleAware(
         onPause = { rfidViewModel.onScreenPaused() },
-        onResume = { rfidViewModel.onScreenResumed() },
-        onDestroy = { rfidViewModel.onBackPressed() }
+        onResume = { rfidViewModel.onScreenResumed() }
+        // onDestroy is now handled by BackHandlerWithCleanup
     )
     
     RfidScreen(

@@ -17,6 +17,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.app.BackHandler
+import org.rainrental.rainrentalrfid.app.BackHandlerWithCleanup
 import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.chainway.data.BarcodeHardwareState
 import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
@@ -40,9 +41,7 @@ fun CommissionScreen() {
     val scannerState by commissionTagsViewModel.scannerState.collectAsState()
     
     // Handle back navigation and lifecycle events
-    BackHandler {
-        commissionTagsViewModel.onBackPressed()
-    }
+    BackHandlerWithCleanup(commissionTagsViewModel,preventDefaultNavigation = false)
     
     LifecycleAware(
         onPause = { commissionTagsViewModel.onScreenPaused() },
@@ -96,7 +95,7 @@ private fun CommissionScreenContent(
         ) {
             when (rfidState){
                 RfidHardwareState.Init -> LoadingWithText(text = "Initialising RFID...")
-                RfidHardwareState.Configuring -> LoadingWithText(text = "Scanning barcode...")
+                RfidHardwareState.Configuring -> LoadingWithText(text = "Configuring RFID...")
                 RfidHardwareState.Scanning -> LoadingWithText(text = "Scanning RFID...")
                 RfidHardwareState.ShuttingDown -> LoadingWithText(text = "Shutting down RFID...")
                 else -> {}

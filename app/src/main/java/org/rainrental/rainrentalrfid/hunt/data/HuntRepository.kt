@@ -42,14 +42,17 @@ class DefaultHuntRepository @Inject constructor(
 }
 
 sealed interface HuntFlow{
-    data class WaitingForBarcode(val withError:String? = null) : HuntFlow
+    data class WaitingForBarcode(
+        val withError: String? = null,
+        val previousHuntResults: Int? = null
+    ) : HuntFlow
     data object ScanningBarcode : HuntFlow
     data class LookingUpAsset(val barcode:String) : HuntFlow
     data class LoadedAsset(val asset: AssetDetailsResponseDto, val withError: String? = null) : HuntFlow
     data class Hunting(val asset: AssetDetailsResponseDto, val lastRssi: Double? = null) : HuntFlow
-    data class FinishedHunting(val asset: AssetDetailsResponseDto,val lastRssi: Double? = null) : HuntFlow
 }
 
 sealed interface HuntEvent{
     data object OnKeyUp : HuntEvent
+    data class OnManualBarcodeEntry(val barcode: String) : HuntEvent
 }

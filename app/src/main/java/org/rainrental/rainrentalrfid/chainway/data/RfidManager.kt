@@ -550,6 +550,7 @@ object ChainwayRfidManager: RfidManager, Logger {
                 val startBit = 2 * 16
                 val numBits = epc.length * 4
                 val didSetEpc = rf.setFilter(IUHF.Bank_EPC,startBit,numBits,epc)
+                logd("EPC filter configured successfully with EPC: $epc")
                 rf.setFastID(true)
                 updateHardwareState(RfidHardwareState.Ready)
                 return@async true
