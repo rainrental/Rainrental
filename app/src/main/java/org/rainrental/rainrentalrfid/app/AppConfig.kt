@@ -105,7 +105,8 @@ data class HardwareKeysConfig(
 )
 
 data class NetworkConfig(
-    val MQTT_PORT: Int = 1883
+    val MQTT_PORT: Int = 1883,
+    val API_BASE_URL: String = "https://europe-west2-rainrental-org.cloudfunctions.net"
 )
 
 data class UiConfig(
