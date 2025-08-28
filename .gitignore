@@ -15,6 +15,22 @@ captures/
 *.apk
 output.json
 
+# Build artifacts and generated files
+app/release/
+app/build/
+*.aab
+*.ap_
+*.dex
+*.class
+# Don't ignore JAR files in libs/ as they are dependencies
+# *.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
 # IntelliJ
 *.iml
 .idea/
