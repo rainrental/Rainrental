@@ -2,6 +2,9 @@
 .gradle/
 build/
 
+# Kotlin build cache
+.kotlin/
+
 # Local configuration file (sdk path, etc)
 local.properties
 
@@ -41,6 +44,7 @@ render.experimental.xml
 # Keystore files
 *.jks
 *.keystore
+keystore.jks
 
 # Google Services (e.g. APIs or Firebase)
 google-services.json
