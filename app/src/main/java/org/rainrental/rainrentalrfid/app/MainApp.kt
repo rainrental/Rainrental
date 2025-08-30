@@ -25,8 +25,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.rainrental.rainrentalrfid.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -67,7 +69,7 @@ fun MainApp(modifier: Modifier = Modifier) {
             ) {
                 CircularProgressIndicator()
                 Text(
-                    text = "Checking authentication...",
+                    text = stringResource(R.string.checking_authentication),
                     modifier = Modifier.padding(top = 16.dp)
                 )
             }
@@ -129,7 +131,7 @@ fun MainApp(modifier: Modifier = Modifier) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Authentication Error",
+                    text = stringResource(R.string.authentication_error),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
@@ -141,7 +143,7 @@ fun MainApp(modifier: Modifier = Modifier) {
                 Button(
                     onClick = { authViewModel.clearError() }
                 ) {
-                    Text("Retry")
+                    Text(stringResource(R.string.retry))
                 }
             }
         }
@@ -158,13 +160,13 @@ fun BottomBar(modifier: Modifier = Modifier) {
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.weight(0.5f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text("BARCODE", style = MaterialTheme.typography.labelSmall)
+                Text(stringResource(R.string.barcode), style = MaterialTheme.typography.labelSmall)
                 AnimatedVisibility(scannerState != BarcodeHardwareState.Ready) {
                     Text(rfidHardwareState.name, style = MaterialTheme.typography.labelSmall)
                 }
             }
             Column(modifier = Modifier.weight(0.5f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text("RFID", style = MaterialTheme.typography.labelSmall)
+                Text(stringResource(R.string.rfid), style = MaterialTheme.typography.labelSmall)
                 AnimatedVisibility(rfidHardwareState != RfidHardwareState.Ready) {
                     Text(rfidHardwareState.name, style = MaterialTheme.typography.labelSmall)
                 }

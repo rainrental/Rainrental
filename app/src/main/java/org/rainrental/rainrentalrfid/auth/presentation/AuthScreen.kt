@@ -9,7 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
 import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.ScanInvitationCodeUseCase
@@ -53,7 +55,7 @@ fun AuthScreen(
     ) {
         // App Logo/Title
         Text(
-            text = "RainRental RFID",
+            text = stringResource(R.string.app_name),
             style = MaterialTheme.typography.headlineLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 32.dp)

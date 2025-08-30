@@ -7,4 +7,9 @@
     <string name="api_key_rain_rental">rainapikeyhere</string>
     <string name="base_url_firebase_functions" translatable="false">https://europe-west2-universal-pixels.cloudfunctions.net/</string>
     <string name="company_id">W5sUM5XnJfDUkMAu1AHe</string>
+    <string name="authentication_error">Authentication Error</string>
+    <string name="retry">Retry</string>
+    <string name="checking_authentication">Checking authentication...</string>
+    <string name="barcode">BARCODE</string>
+    <string name="rfid">RFID</string>
 </resources>
