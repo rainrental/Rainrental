@@ -29,10 +29,6 @@ enum class NavigationRoutes(val route: String, val title: String){
         route = "route_lookup",
         title = "Lookup"
     ),
-    ButtonTest(
-        route = "route_button_test",
-        title = "Button Test"
-    ),
     Settings(
         route = "route_settings",
         title = "Settings"

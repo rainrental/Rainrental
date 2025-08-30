@@ -11,6 +11,7 @@ import org.rainrental.rainrentalrfid.app.BaseViewModelDependencies
 import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.update.UpdateManager
 import org.rainrental.rainrentalrfid.update.UpdateInfo
+import org.rainrental.rainrentalrfid.settings.presentation.ButtonState
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,6 +35,16 @@ class SettingsViewModel @Inject constructor(
 
     private val _isUpdateInProgress = MutableStateFlow(false)
     val isUpdateInProgress: StateFlow<Boolean> = _isUpdateInProgress.asStateFlow()
+
+    // Button test states
+    private val _triggerState = MutableStateFlow(ButtonState.UP)
+    val triggerState: StateFlow<ButtonState> = _triggerState.asStateFlow()
+
+    private val _sideState = MutableStateFlow(ButtonState.UP)
+    val sideState: StateFlow<ButtonState> = _sideState.asStateFlow()
+
+    private val _auxState = MutableStateFlow(ButtonState.UP)
+    val auxState: StateFlow<ButtonState> = _auxState.asStateFlow()
 
     init {
         loadSettings()
@@ -105,5 +116,36 @@ class SettingsViewModel @Inject constructor(
         _updateStatus.value = null
         _updateProgress.value = 0f
         _isUpdateInProgress.value = false
+    }
+
+    // Button test event handlers
+    override fun onTriggerDown() {
+        logd("SettingsViewModel: onTriggerDown called")
+        _triggerState.value = ButtonState.DOWN
+    }
+
+    override fun onTriggerUp() {
+        logd("SettingsViewModel: onTriggerUp called")
+        _triggerState.value = ButtonState.UP
+    }
+
+    override fun onSideKeyDown() {
+        logd("SettingsViewModel: onSideKeyDown called")
+        _sideState.value = ButtonState.DOWN
+    }
+
+    override fun onSideKeyUp() {
+        logd("SettingsViewModel: onSideKeyUp called")
+        _sideState.value = ButtonState.UP
+    }
+
+    override fun onAuxKeyDown() {
+        logd("SettingsViewModel: onAuxKeyDown called")
+        _auxState.value = ButtonState.DOWN
+    }
+
+    override fun onAuxKeyUp() {
+        logd("SettingsViewModel: onAuxKeyUp called")
+        _auxState.value = ButtonState.UP
     }
 }

@@ -10,6 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -25,6 +28,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
@@ -35,6 +41,11 @@ fun SettingsScreen() {
     val updateStatus by settingsViewModel.updateStatus.collectAsState()
     val updateProgress by settingsViewModel.updateProgress.collectAsState()
     val isUpdateInProgress by settingsViewModel.isUpdateInProgress.collectAsState()
+    
+    // Button test states
+    val triggerState by settingsViewModel.triggerState.collectAsState()
+    val sideState by settingsViewModel.sideState.collectAsState()
+    val auxState by settingsViewModel.auxState.collectAsState()
     
     SettingsScreen(
         modifier = Modifier,
@@ -48,7 +59,10 @@ fun SettingsScreen() {
         onCheckForUpdates = { companyId, forceCheck ->
             settingsViewModel.checkForUpdates(companyId, forceCheck)
         },
-        onClearUpdateStatus = settingsViewModel::clearUpdateStatus
+        onClearUpdateStatus = settingsViewModel::clearUpdateStatus,
+        triggerState = triggerState,
+        sideState = sideState,
+        auxState = auxState
     )
 }
 
@@ -63,7 +77,10 @@ fun SettingsScreen(
     onMqttServerIpChange: (String) -> Unit = {},
     onIgnoreRightSideKeyChange: (Boolean) -> Unit = {},
     onCheckForUpdates: (String, Boolean) -> Unit = { _, _ -> },
-    onClearUpdateStatus: () -> Unit = {}
+    onClearUpdateStatus: () -> Unit = {},
+    triggerState: ButtonState = ButtonState.UP,
+    sideState: ButtonState = ButtonState.UP,
+    auxState: ButtonState = ButtonState.UP
 ) {
     Column(
         modifier = modifier
@@ -207,8 +224,113 @@ fun SettingsScreen(
             }
         }
         
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Button Test Section
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Button Test",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                // Trigger Button
+                ButtonBox(
+                    title = "Trigger Button",
+                    state = triggerState,
+                    color = Color.Red
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Side Button
+                ButtonBox(
+                    title = "Side Button",
+                    state = sideState,
+                    color = Color.Blue
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Aux Button
+                ButtonBox(
+                    title = "Aux Button",
+                    state = auxState,
+                    color = Color.Green
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Text(
+                    text = "Press the hardware buttons to see visual feedback",
+                    fontSize = 14.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+        }
+        
         Spacer(modifier = Modifier.weight(1f))
     }
+}
+
+@Composable
+private fun ButtonBox(
+    title: String,
+    state: ButtonState,
+    color: Color
+) {
+    val backgroundColor = when (state) {
+        ButtonState.UP -> Color.LightGray
+        ButtonState.DOWN -> color
+    }
+
+    val borderColor = when (state) {
+        ButtonState.UP -> Color.Gray
+        ButtonState.DOWN -> color
+    }
+
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp)
+            .background(
+                color = backgroundColor,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .border(
+                width = 2.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(12.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = if (state == ButtonState.DOWN) Color.White else Color.Black
+        )
+        
+        Spacer(modifier = Modifier.height(4.dp))
+        
+        Text(
+            text = state.name,
+            fontSize = 12.sp,
+            color = if (state == ButtonState.DOWN) Color.White else Color.Black
+        )
+    }
+}
+
+enum class ButtonState {
+    UP, DOWN
 }
 
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)

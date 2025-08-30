@@ -65,9 +65,7 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
         Spacer(modifier = Modifier.height(buttonSpacing))
         AppButton(text = NavigationRoutes.ContinuousScanning.title.uppercase(), icon = Icons.Default.Search ) { onTap(NavigationRoutes.ContinuousScanning) }
         Spacer(modifier = Modifier.height(buttonSpacing))
-        AppButton(text = NavigationRoutes.ButtonTest.title.uppercase(), icon = Icons.Default.SmartButton ) { onTap(NavigationRoutes.ButtonTest) }
-//        Spacer(modifier = Modifier.height(buttonSpacing))
-//        AppButton(text = NavigationRoutes.Settings.title.uppercase(), icon = Icons.Default.Settings ) { onTap(NavigationRoutes.Settings) }
+        AppButton(text = NavigationRoutes.Settings.title.uppercase(), icon = Icons.Default.Settings ) { onTap(NavigationRoutes.Settings) }
 
         Spacer(modifier = Modifier.weight(1f))
     }

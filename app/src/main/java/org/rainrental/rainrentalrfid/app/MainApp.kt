@@ -41,7 +41,6 @@ import org.rainrental.rainrentalrfid.home.presentation.HomeScreen
 import org.rainrental.rainrentalrfid.hunt.presentation.HuntScreen
 import org.rainrental.rainrentalrfid.inventory.presentation.InventoryScreen
 import org.rainrental.rainrentalrfid.continuousScanning.presentation.ContinuousScanningScreen
-import org.rainrental.rainrentalrfid.test.presentation.ButtonTestScreen
 import org.rainrental.rainrentalrfid.settings.presentation.SettingsScreen
 import org.rainrental.rainrentalrfid.toast.presentation.Toaster
 import org.rainrental.rainrentalrfid.auth.presentation.AuthScreen
@@ -115,7 +114,6 @@ fun MainApp(modifier: Modifier = Modifier) {
                             composable(NavigationRoutes.Radar.route) { RfidScreen() }
                             composable(NavigationRoutes.ContinuousScanning.route) { ContinuousScanningScreen() }
                             composable(NavigationRoutes.Inventory.route) { InventoryScreen() }
-                            composable(NavigationRoutes.ButtonTest.route) { ButtonTestScreen() }
                             composable(NavigationRoutes.Settings.route) { SettingsScreen() }
                         }
                     }
