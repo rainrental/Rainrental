@@ -12,6 +12,8 @@ import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.update.UpdateManager
 import org.rainrental.rainrentalrfid.update.UpdateInfo
 import org.rainrental.rainrentalrfid.settings.presentation.ButtonState
+import org.rainrental.rainrentalrfid.auth.AuthState
+import org.rainrental.rainrentalrfid.auth.AuthViewModel
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,6 +47,14 @@ class SettingsViewModel @Inject constructor(
 
     private val _auxState = MutableStateFlow(ButtonState.UP)
     val auxState: StateFlow<ButtonState> = _auxState.asStateFlow()
+
+    // Authentication state - will be set from outside
+    private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
+    val authState: StateFlow<AuthState> = _authState.asStateFlow()
+
+    // Confirmation dialog state
+    private val _showRevokeConfirmation = MutableStateFlow(false)
+    val showRevokeConfirmation: StateFlow<Boolean> = _showRevokeConfirmation.asStateFlow()
 
     init {
         loadSettings()
@@ -147,5 +157,23 @@ class SettingsViewModel @Inject constructor(
     override fun onAuxKeyUp() {
         logd("SettingsViewModel: onAuxKeyUp called")
         _auxState.value = ButtonState.UP
+    }
+
+    // Authentication functions
+    fun showRevokeConfirmation() {
+        _showRevokeConfirmation.value = true
+    }
+
+    fun hideRevokeConfirmation() {
+        _showRevokeConfirmation.value = false
+    }
+
+    fun setAuthState(authState: AuthState) {
+        _authState.value = authState
+    }
+
+    fun revokeAuthentication() {
+        // This will be handled by the MainApp
+        _showRevokeConfirmation.value = false
     }
 }

@@ -12,4 +12,19 @@
     <string name="checking_authentication">Checking authentication...</string>
     <string name="barcode">BARCODE</string>
     <string name="rfid">RFID</string>
+    <string name="settings_general">General</string>
+    <string name="settings_authentication">Authentication</string>
+    <string name="settings_hardware">Hardware</string>
+    <string name="settings_updates">Updates</string>
+    <string name="auth_current_user">Current User</string>
+    <string name="auth_location">Location</string>
+    <string name="auth_company_id">Company ID</string>
+    <string name="auth_revoke_authentication">Revoke Authentication</string>
+    <string name="auth_revoke_confirmation_title">Revoke Authentication</string>
+    <string name="auth_revoke_confirmation_message">Are you sure you want to revoke your authentication? You will need to scan a new invitation code to continue using the app.</string>
+    <string name="auth_revoke_confirm">Revoke</string>
+    <string name="auth_revoke_cancel">Cancel</string>
+    <string name="auth_not_authenticated">Not authenticated</string>
+    <string name="auth_unknown">Unknown</string>
+    <string name="settings">Settings</string>
 </resources>
