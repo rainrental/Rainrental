@@ -125,13 +125,6 @@ fun SettingsScreen(
     Column(
         modifier = modifier.fillMaxSize()
     ) {
-        // Header
-        Text(
-            text = stringResource(R.string.settings),
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(16.dp)
-        )
-        
         // Tab Row
         TabRow(
             selectedTabIndex = selectedTab.ordinal,
@@ -218,31 +211,31 @@ private fun ButtonBox(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp)
+            .height(60.dp)
             .background(
                 color = backgroundColor,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(6.dp)
             )
             .border(
-                width = 2.dp,
+                width = 1.dp,
                 color = borderColor,
-                shape = RoundedCornerShape(8.dp)
+                shape = RoundedCornerShape(6.dp)
             )
-            .padding(12.dp),
+            .padding(8.dp),
         verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = title,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
             color = if (state == ButtonState.DOWN) Color.White else Color.Black
         )
         
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         
         Text(
             text = state.name,
-            fontSize = 12.sp,
+            fontSize = 10.sp,
             color = if (state == ButtonState.DOWN) Color.White else Color.Black
         )
     }
@@ -302,7 +295,7 @@ fun AuthenticationTab(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.settings_authentication),
+                    text = stringResource(R.string.settings_auth),
                     style = MaterialTheme.typography.titleMedium
                 )
                 
@@ -444,7 +437,7 @@ fun HardwareTab(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(12.dp)
             ) {
                 Text(
                     text = "Button Test",
@@ -459,7 +452,7 @@ fun HardwareTab(
                     color = Color.Red
                 )
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 // Side Button
                 ButtonBox(
@@ -468,7 +461,7 @@ fun HardwareTab(
                     color = Color.Blue
                 )
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 // Aux Button
                 ButtonBox(
@@ -477,7 +470,7 @@ fun HardwareTab(
                     color = Color.Green
                 )
                 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
                     text = "Press the hardware buttons to see visual feedback",
