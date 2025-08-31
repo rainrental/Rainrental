@@ -42,88 +42,121 @@ class UpdateManager @Inject constructor(
         onUpdateAvailable: (UpdateInfo) -> Unit = {},
         onUpdateProgress: (Float) -> Unit = {},
         onUpdateComplete: () -> Unit = {},
-        onUpdateError: (String) -> Unit = {}
+        onUpdateError: (String) -> Unit = {},
+        onNoUpdateAvailable: () -> Unit = {}
     ) {
+        logd("=== UPDATE MANAGER: checkForUpdates called ===")
+        logd("Company ID: $companyId")
+        logd("Force check: $forceCheck")
+        logd("Update in progress: $isUpdateInProgress")
+        
         if (isUpdateInProgress) {
-            logd("Update already in progress, skipping")
+            logd("UPDATE MANAGER: Update already in progress, skipping")
             return
         }
 
         val currentTime = System.currentTimeMillis()
-        if (!forceCheck && currentTime - lastUpdateCheck < updateCheckInterval) {
-            logd("Update check skipped, too recent")
+        val timeSinceLastCheck = currentTime - lastUpdateCheck
+        logd("Time since last check: ${timeSinceLastCheck}ms (interval: ${updateCheckInterval}ms)")
+        
+        if (!forceCheck && timeSinceLastCheck < updateCheckInterval) {
+            logd("UPDATE MANAGER: Update check skipped, too recent")
             return
         }
 
         lastUpdateCheck = currentTime
         isUpdateInProgress = true
+        logd("UPDATE MANAGER: Starting update check process")
 
         updateScope.launch {
             try {
-                logd("Starting update check")
+                logd("UPDATE MANAGER: Starting update check in coroutine")
                 
                 // Check for available updates
+                logd("UPDATE MANAGER: Calling updateRepository.checkForUpdates")
                 val updateInfo = updateRepository.checkForUpdates(companyId)
                 
                 if (updateInfo == null) {
-                    logd("No update available")
+                    logd("UPDATE MANAGER: No update available from repository")
+                    onNoUpdateAvailable()
                     isUpdateInProgress = false
                     return@launch
                 }
+
+                logd("UPDATE MANAGER: Update info received from repository")
+                logd("UPDATE MANAGER: Available version: ${updateInfo.version} (code: ${updateInfo.versionCode})")
 
                 // Check if this version is newer than current
                 val currentVersionCode = getCurrentVersionCode(context)
+                logd("UPDATE MANAGER: Current app version code: $currentVersionCode")
+                logd("UPDATE MANAGER: Available version code: ${updateInfo.versionCode}")
+                
                 if (updateInfo.versionCode <= currentVersionCode) {
-                    logd("Update version is not newer than current version")
+                    logd("UPDATE MANAGER: Update version is not newer than current version")
+                    logd("UPDATE MANAGER: Current: $currentVersionCode, Available: ${updateInfo.versionCode}")
+                    onNoUpdateAvailable()
                     isUpdateInProgress = false
                     return@launch
                 }
 
-                logd("Update available: ${updateInfo.version}")
+                logd("UPDATE MANAGER: Update is newer, proceeding with download")
+                logd("UPDATE MANAGER: Update available: ${updateInfo.version}")
                 onUpdateAvailable(updateInfo)
 
                 // Download the APK
+                logd("UPDATE MANAGER: Starting APK download")
                 val apkFile = updateRepository.downloadApk(
                     updateInfo.downloadUrl,
                     updateInfo.fileSize
                 ) { progress ->
+                    logd("UPDATE MANAGER: Download progress: ${progress.toInt()}%")
                     onUpdateProgress(progress)
                 }
 
                 if (apkFile == null) {
-                    loge("Failed to download APK")
+                    loge("UPDATE MANAGER: Failed to download APK")
                     onUpdateError("Failed to download update")
                     isUpdateInProgress = false
                     return@launch
                 }
 
+                logd("UPDATE MANAGER: APK downloaded successfully: ${apkFile.absolutePath}")
+
                 // Verify the downloaded file
+                logd("UPDATE MANAGER: Verifying downloaded APK")
                 if (!verifyApkFile(apkFile, updateInfo.fileSize)) {
-                    loge("APK file verification failed")
+                    loge("UPDATE MANAGER: APK file verification failed")
                     apkFile.delete()
                     onUpdateError("Downloaded file is invalid")
                     isUpdateInProgress = false
                     return@launch
                 }
 
+                logd("UPDATE MANAGER: APK verification successful")
+
                 // Install the APK
+                logd("UPDATE MANAGER: Starting APK installation")
                 val installSuccess = installApk(context, apkFile)
                 
                 if (installSuccess) {
-                    logd("APK installation initiated successfully")
+                    logd("UPDATE MANAGER: APK installation initiated successfully")
                     onUpdateComplete()
                     
                     // Clean up old files after successful installation
                     cleanupOldFiles()
                 } else {
-                    loge("Failed to initiate APK installation")
+                    loge("UPDATE MANAGER: Failed to initiate APK installation")
                     onUpdateError("Failed to install update")
                 }
 
             } catch (e: Exception) {
+                loge("=== UPDATE MANAGER ERROR ===")
                 loge("Update process failed: ${e.message}")
+                loge("Exception type: ${e.javaClass.simpleName}")
+                e.printStackTrace()
                 onUpdateError("Update failed: ${e.message}")
             } finally {
+                logd("UPDATE MANAGER: Update process completed, setting isUpdateInProgress = false")
                 isUpdateInProgress = false
             }
         }

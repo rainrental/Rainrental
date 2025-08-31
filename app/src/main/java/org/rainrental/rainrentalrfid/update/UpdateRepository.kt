@@ -28,7 +28,9 @@ class UpdateRepository @Inject constructor(
      */
     suspend fun checkForUpdates(companyId: String): UpdateInfo? = withContext(Dispatchers.IO) {
         try {
+            logd("=== UPDATE CHECK START ===")
             logd("Checking for updates for company: $companyId")
+            logd("API URL: ${appConfig.Network.API_BASE_URL}/api/v1/appVersions/$companyId")
             
             val request = Request.Builder()
                 .url("${appConfig.Network.API_BASE_URL}/api/v1/appVersions/$companyId")
@@ -36,51 +38,88 @@ class UpdateRepository @Inject constructor(
                 .get()
                 .build()
 
+            logd("Making HTTP request...")
             val response = client.newCall(request).execute()
             
+            logd("Response received - Status: ${response.code}, Headers: ${response.headers}")
+            
             if (!response.isSuccessful) {
-                loge("Update check failed with status: ${response.code}")
+                loge("UPDATE CHECK FAILED: HTTP ${response.code}")
+                loge("Response body: ${response.body?.string()}")
                 return@withContext null
             }
 
-            val responseBody = response.body?.string() ?: return@withContext null
+            val responseBody = response.body?.string() ?: run {
+                loge("UPDATE CHECK FAILED: Empty response body")
+                return@withContext null
+            }
+            
+            logd("UPDATE API RESPONSE: $responseBody")
+            
             val jsonResponse = JSONObject(responseBody)
             
-            val currentVersion = jsonResponse.optString("currentVersion")
-            val versions = jsonResponse.getJSONArray("versions")
+            if (!jsonResponse.has("versions")) {
+                loge("UPDATE CHECK FAILED: No 'versions' field in response")
+                return@withContext null
+            }
             
-            if (currentVersion.isBlank()) {
-                logd("No current version set")
+            val versions = jsonResponse.getJSONArray("versions")
+            logd("Found ${versions.length()} versions in response")
+            
+            if (versions.length() == 0) {
+                logd("No versions available in response")
                 return@withContext null
             }
 
-            // Find the current version in the versions array
+            // Find the version with the highest versionCode (latest version)
+            var latestVersion: UpdateInfo? = null
+            var highestVersionCode = 0
+            
+            logd("Analyzing versions...")
             for (i in 0 until versions.length()) {
                 val version = versions.getJSONObject(i)
-                if (version.getString("version") == currentVersion) {
-                    val updateInfo = UpdateInfo(
-                        version = version.getString("version"),
-                        versionCode = version.getInt("versionCode"),
+                val versionCode = version.getInt("versionCode")
+                val versionName = version.getString("version")
+                
+                logd("Version $i: $versionName (code: $versionCode)")
+                
+                if (versionCode > highestVersionCode) {
+                    highestVersionCode = versionCode
+                    latestVersion = UpdateInfo(
+                        version = versionName,
+                        versionCode = versionCode,
                         downloadUrl = version.getString("downloadUrl"),
                         fileSize = version.getLong("fileSize"),
                         releaseNotes = version.optString("releaseNotes", ""),
                         minSdkVersion = version.optInt("minSdkVersion", 30),
                         targetSdkVersion = version.optInt("targetSdkVersion", 34)
                     )
-                    
-                    logd("Found update info: ${updateInfo.version}")
-                    return@withContext updateInfo
+                    logd("New highest version found: $versionName (code: $versionCode)")
                 }
             }
             
-            logd("No update found")
-            return@withContext null
+            if (latestVersion != null) {
+                logd("=== UPDATE CHECK SUCCESS ===")
+                logd("Latest version available: ${latestVersion.version} (code: ${latestVersion.versionCode})")
+                logd("Download URL: ${latestVersion.downloadUrl}")
+                logd("File size: ${latestVersion.fileSize} bytes")
+                return@withContext latestVersion
+            } else {
+                loge("UPDATE CHECK FAILED: No valid version found after analysis")
+                return@withContext null
+            }
             
         } catch (e: IOException) {
+            loge("=== UPDATE CHECK NETWORK ERROR ===")
             loge("Network error during update check: ${e.message}")
+            loge("Exception type: ${e.javaClass.simpleName}")
+            e.printStackTrace()
             return@withContext null
         } catch (e: Exception) {
+            loge("=== UPDATE CHECK GENERAL ERROR ===")
             loge("Error checking for updates: ${e.message}")
+            loge("Exception type: ${e.javaClass.simpleName}")
+            e.printStackTrace()
             return@withContext null
         }
     }

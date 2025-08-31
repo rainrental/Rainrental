@@ -47,6 +47,21 @@ import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.settings.presentation.SettingsTab
 import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
+import org.rainrental.rainrentalrfid.auth.presentation.AuthScreen
+import org.rainrental.rainrentalrfid.chainway.data.BarcodeHardwareState
+import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
+import org.rainrental.rainrentalrfid.chainway.presentation.RfidViewModel
+import org.rainrental.rainrentalrfid.inputmanager.data.manager.InputManager
+import org.rainrental.rainrentalrfid.inputmanager.data.model.InputFlowState
+import org.rainrental.rainrentalrfid.inputmanager.domain.model.InputPanelState
+import org.rainrental.rainrentalrfid.result.ApiError
+import org.rainrental.rainrentalrfid.result.Result
+import org.rainrental.rainrentalrfid.shared.presentation.composables.AppButton
+import org.rainrental.rainrentalrfid.shared.presentation.composables.LoadingWithText
+import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
+import org.rainrental.rainrentalrfid.update.UpdateManager
+import androidx.compose.ui.platform.LocalContext
+import android.os.Build
 
 @Composable
 fun SettingsScreen() {
@@ -58,6 +73,7 @@ fun SettingsScreen() {
     val updateStatus by settingsViewModel.updateStatus.collectAsState()
     val updateProgress by settingsViewModel.updateProgress.collectAsState()
     val isUpdateInProgress by settingsViewModel.isUpdateInProgress.collectAsState()
+    val installedVersion by settingsViewModel.installedVersion.collectAsState()
     
     // Button test states
     val triggerState by settingsViewModel.triggerState.collectAsState()
@@ -80,6 +96,7 @@ fun SettingsScreen() {
         updateStatus = updateStatus,
         updateProgress = updateProgress,
         isUpdateInProgress = isUpdateInProgress,
+        installedVersion = installedVersion,
         onMqttServerIpChange = settingsViewModel::setMqttServerIp,
         onIgnoreRightSideKeyChange = settingsViewModel::setIgnoreRightSideKey,
         onCheckForUpdates = { forceCheck ->
@@ -108,6 +125,7 @@ fun SettingsScreen(
     updateStatus: String? = null,
     updateProgress: Float = 0f,
     isUpdateInProgress: Boolean = false,
+    installedVersion: String = "",
     onMqttServerIpChange: (String) -> Unit = {},
     onIgnoreRightSideKeyChange: (Boolean) -> Unit = {},
     onCheckForUpdates: (Boolean) -> Unit = { _ -> },
@@ -161,6 +179,7 @@ fun SettingsScreen(
                 updateStatus = updateStatus,
                 updateProgress = updateProgress,
                 isUpdateInProgress = isUpdateInProgress,
+                installedVersion = installedVersion,
                 onCheckForUpdates = onCheckForUpdates,
                 onClearUpdateStatus = onClearUpdateStatus
             )
@@ -489,6 +508,7 @@ fun UpdatesTab(
     updateStatus: String?,
     updateProgress: Float,
     isUpdateInProgress: Boolean,
+    installedVersion: String,
     onCheckForUpdates: (Boolean) -> Unit,
     onClearUpdateStatus: () -> Unit
 ) {
@@ -521,7 +541,7 @@ fun UpdatesTab(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = BuildConfig.VERSION_NAME,
+                        text = installedVersion,
                         style = MaterialTheme.typography.bodyMedium,
                         fontFamily = FontFamily.Monospace
                     )

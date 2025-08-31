@@ -57,8 +57,13 @@ class SettingsViewModel @Inject constructor(
     private val _showRevokeConfirmation = MutableStateFlow(false)
     val showRevokeConfirmation: StateFlow<Boolean> = _showRevokeConfirmation.asStateFlow()
 
+    // Installed app version
+    private val _installedVersion = MutableStateFlow("Unknown")
+    val installedVersion: StateFlow<String> = _installedVersion.asStateFlow()
+
     init {
         loadSettings()
+        loadInstalledVersion()
     }
 
     private fun loadSettings() {
@@ -70,6 +75,25 @@ class SettingsViewModel @Inject constructor(
             // Load right side key setting
             val ignoreRightSide = dependencies.appConfig.isRightSideKeyIgnored()
             _ignoreRightSideKey.value = ignoreRightSide
+        }
+    }
+
+    private fun loadInstalledVersion() {
+        viewModelScope.launch {
+            try {
+                val packageInfo = dependencies.context.packageManager.getPackageInfo(dependencies.context.packageName, 0)
+                val versionName = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                    packageInfo.versionName
+                } else {
+                    @Suppress("DEPRECATION")
+                    packageInfo.versionName
+                }
+                _installedVersion.value = versionName
+                logd("Loaded installed version: $versionName")
+            } catch (e: Exception) {
+                _installedVersion.value = "Error"
+                loge("Failed to load installed version: ${e.message}")
+            }
         }
     }
 
@@ -120,6 +144,12 @@ class SettingsViewModel @Inject constructor(
                 _updateProgress.value = 0f
                 _isUpdateInProgress.value = false
                 loge("Update error: $error")
+            },
+            onNoUpdateAvailable = {
+                _updateStatus.value = "No updates available. You have the latest version."
+                _updateProgress.value = 0f
+                _isUpdateInProgress.value = false
+                logd("No updates available")
             }
         )
     }
