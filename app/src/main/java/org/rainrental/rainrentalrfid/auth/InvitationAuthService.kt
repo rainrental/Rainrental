@@ -1,10 +1,13 @@
 package org.rainrental.rainrentalrfid.auth
 
+import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.app.deviceSerial
 import retrofit2.Response
 import retrofit2.http.*
@@ -14,7 +17,9 @@ import javax.inject.Singleton
 // API Response Models
 data class ValidateInvitationRequest(
     val invitationCode: String,
-    val hostname: String
+    val hostname: String,
+    val deviceType: String,
+    val companyId: String
 )
 
 data class ValidateInvitationResponse(
@@ -65,7 +70,8 @@ sealed class TokenRefreshResult {
 @Singleton
 class InvitationAuthService @Inject constructor(
     private val apiService: InvitationApiService,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    @ApplicationContext private val context: Context
 ) {
     
     /**
@@ -76,7 +82,9 @@ class InvitationAuthService @Inject constructor(
             try {
                 val request = ValidateInvitationRequest(
                     invitationCode = invitationCode,
-                    hostname = deviceSerial.ifEmpty { "unknown" }
+                    hostname = deviceSerial.ifEmpty { "unknown" },
+                    deviceType = "mobile",
+                    companyId = context.getString(R.string.company_id)
                 )
                 val response = apiService.validateInvitation(request)
                 
