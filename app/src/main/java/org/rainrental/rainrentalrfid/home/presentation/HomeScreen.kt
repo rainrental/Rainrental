@@ -64,6 +64,8 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
         AppButton(text = NavigationRoutes.Hunt.title.uppercase(), icon = Icons.Default.Radar ) { onTap(NavigationRoutes.Hunt) }
         Spacer(modifier = Modifier.height(buttonSpacing))
         AppButton(text = NavigationRoutes.ContinuousScanning.title.uppercase(), icon = Icons.Default.Search ) { onTap(NavigationRoutes.ContinuousScanning) }
+        Spacer(modifier = Modifier.height(buttonSpacing))
+        AppButton(text = NavigationRoutes.Lookup.title.uppercase(), icon = Icons.Default.Search ) { onTap(NavigationRoutes.Lookup) }
 
         Spacer(modifier = Modifier.weight(1f))
     }

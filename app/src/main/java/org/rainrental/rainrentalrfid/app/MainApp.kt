@@ -59,6 +59,7 @@ import org.rainrental.rainrentalrfid.hunt.presentation.HuntScreen
 import org.rainrental.rainrentalrfid.inventory.presentation.InventoryScreen
 import org.rainrental.rainrentalrfid.continuousScanning.presentation.ContinuousScanningScreen
 import org.rainrental.rainrentalrfid.settings.presentation.SettingsScreen
+import org.rainrental.rainrentalrfid.taglookup.presentation.TagLookupScreen
 import org.rainrental.rainrentalrfid.toast.presentation.Toaster
 import org.rainrental.rainrentalrfid.auth.presentation.AuthScreen
 import org.rainrental.rainrentalrfid.auth.AuthState
@@ -219,6 +220,7 @@ fun MainApp(modifier: Modifier = Modifier) {
                             composable(NavigationRoutes.Radar.route) { RfidScreen() }
                             composable(NavigationRoutes.ContinuousScanning.route) { ContinuousScanningScreen() }
                             composable(NavigationRoutes.Inventory.route) { InventoryScreen() }
+                            composable(NavigationRoutes.Lookup.route) { TagLookupScreen() }
                             composable(NavigationRoutes.Settings.route) { SettingsScreen() }
                         }
                     }

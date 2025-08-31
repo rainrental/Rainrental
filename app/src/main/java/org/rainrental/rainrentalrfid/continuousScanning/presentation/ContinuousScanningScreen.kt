@@ -28,6 +28,7 @@ import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
 import org.rainrental.rainrentalrfid.continuousScanning.data.DeliveryConnectionState
 import org.rainrental.rainrentalrfid.continuousScanning.data.ContinuousScanningState
+import org.rainrental.rainrentalrfid.continuousScanning.presentation.RfidScanningAnimation
 
 @Composable
 fun ContinuousScanningScreen() {
@@ -78,7 +79,12 @@ fun ContinuousScanningScreen(
         }
         AnimatedVisibility(state == RfidHardwareState.Scanning) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                PulsatingCircles(text = continuousScanningState.uniqueCount.toString(), rssi = 0.0, completion = 0f)
+                RfidScanningAnimation(
+                    text = continuousScanningState.uniqueCount.toString(), 
+                    rssi = continuousScanningState.lastRssi, 
+                    completion = 0f,
+                    tid = continuousScanningState.lastTagEvent?.tid
+                )
             }
         }
         Box(modifier = Modifier.fillMaxSize().padding(bottom = 16.dp), contentAlignment = Alignment.BottomCenter){

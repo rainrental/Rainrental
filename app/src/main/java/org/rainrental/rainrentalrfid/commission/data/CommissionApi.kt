@@ -26,10 +26,18 @@ interface CommissionApi {
 
     @POST("logInventory")
     suspend fun logInventory(@Body logInventoryRequestDto: LogInventoryRequestDto) : Response<LogInventoryResponseDto>
+
+    @POST("getAssetByTid")
+    suspend fun getAssetByTid(@Body getAssetByTidRequest: GetAssetByTidRequestDto) : Response<AssetDetailsResponseDto>
 }
 
 data class GetAssetRequestDto(
     val barcode: String,
+    val companyId: String
+)
+
+data class GetAssetByTidRequestDto(
+    val tidHex: String,
     val companyId: String
 )
 
