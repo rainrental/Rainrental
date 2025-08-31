@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.app.BaseViewModel
 import org.rainrental.rainrentalrfid.app.BaseViewModelDependencies
 import org.rainrental.rainrentalrfid.logging.Logger
@@ -86,7 +87,7 @@ class SettingsViewModel @Inject constructor(
         logd("Right side key ignore setting updated to: $ignore")
     }
 
-    fun checkForUpdates(companyId: String, forceCheck: Boolean = false) {
+    fun checkForUpdates(forceCheck: Boolean = false) {
         if (_isUpdateInProgress.value) {
             logd("Update already in progress")
             return
@@ -96,6 +97,7 @@ class SettingsViewModel @Inject constructor(
         _updateStatus.value = "Checking for updates..."
         _updateProgress.value = 0f
 
+        val companyId = dependencies.context.getString(R.string.company_id)
         updateManager.checkForUpdates(
             context = dependencies.context,
             companyId = companyId,

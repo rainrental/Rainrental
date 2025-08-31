@@ -42,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.rainrental.rainrentalrfid.BuildConfig
 import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.settings.presentation.SettingsTab
 import org.rainrental.rainrentalrfid.auth.AuthState
@@ -81,8 +82,8 @@ fun SettingsScreen() {
         isUpdateInProgress = isUpdateInProgress,
         onMqttServerIpChange = settingsViewModel::setMqttServerIp,
         onIgnoreRightSideKeyChange = settingsViewModel::setIgnoreRightSideKey,
-        onCheckForUpdates = { companyId, forceCheck ->
-            settingsViewModel.checkForUpdates(companyId, forceCheck)
+        onCheckForUpdates = { forceCheck ->
+            settingsViewModel.checkForUpdates(forceCheck)
         },
         onClearUpdateStatus = settingsViewModel::clearUpdateStatus,
         triggerState = triggerState,
@@ -109,7 +110,7 @@ fun SettingsScreen(
     isUpdateInProgress: Boolean = false,
     onMqttServerIpChange: (String) -> Unit = {},
     onIgnoreRightSideKeyChange: (Boolean) -> Unit = {},
-    onCheckForUpdates: (String, Boolean) -> Unit = { _, _ -> },
+    onCheckForUpdates: (Boolean) -> Unit = { _ -> },
     onClearUpdateStatus: () -> Unit = {},
     triggerState: ButtonState = ButtonState.UP,
     sideState: ButtonState = ButtonState.UP,
@@ -488,7 +489,7 @@ fun UpdatesTab(
     updateStatus: String?,
     updateProgress: Float,
     isUpdateInProgress: Boolean,
-    onCheckForUpdates: (String, Boolean) -> Unit,
+    onCheckForUpdates: (Boolean) -> Unit,
     onClearUpdateStatus: () -> Unit
 ) {
     Column(
@@ -520,7 +521,7 @@ fun UpdatesTab(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        text = "1.0.0", // This should come from BuildConfig
+                        text = BuildConfig.VERSION_NAME,
                         style = MaterialTheme.typography.bodyMedium,
                         fontFamily = FontFamily.Monospace
                     )
@@ -548,7 +549,7 @@ fun UpdatesTab(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Button(
-                        onClick = { onCheckForUpdates("default", false) },
+                        onClick = { onCheckForUpdates(false) },
                         enabled = !isUpdateInProgress,
                         modifier = Modifier.weight(1f)
                     ) {
@@ -556,7 +557,7 @@ fun UpdatesTab(
                     }
                     
                     Button(
-                        onClick = { onCheckForUpdates("default", true) },
+                        onClick = { onCheckForUpdates(true) },
                         enabled = !isUpdateInProgress,
                         modifier = Modifier.weight(1f)
                     ) {
