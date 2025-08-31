@@ -6,7 +6,12 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
 import org.rainrental.rainrentalrfid.app.AppConfig
+import org.rainrental.rainrentalrfid.app.NetworkUtils
 import org.rainrental.rainrentalrfid.logging.Logger
+import org.rainrental.rainrentalrfid.result.ApiError
+import org.rainrental.rainrentalrfid.result.Result
+import org.rainrental.rainrentalrfid.update.UpdateInfo
+import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -30,10 +35,12 @@ class UpdateRepository @Inject constructor(
         try {
             logd("=== UPDATE CHECK START ===")
             logd("Checking for updates for company: $companyId")
-            logd("API URL: ${appConfig.Network.API_BASE_URL}/api/v1/appVersions/$companyId")
+            
+            val apiUrl = NetworkUtils.constructUrl(appConfig.Network.API_BASE_URL, "api/v1/appVersions/$companyId")
+            logd("API URL: $apiUrl")
             
             val request = Request.Builder()
-                .url("${appConfig.Network.API_BASE_URL}/api/v1/appVersions/$companyId")
+                .url(apiUrl)
                 .addHeader("companyid", companyId)
                 .get()
                 .build()

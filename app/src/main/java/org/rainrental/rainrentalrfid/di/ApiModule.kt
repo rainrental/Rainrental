@@ -38,7 +38,9 @@ object ApiModule {
     @Named("UnifiedConfig")
     fun provideConfiguration(@ApplicationContext context: Context): Configuration {
         val res = context.resources
-        val baseUrl = res.getString(R.string.base_url)
+        val baseUrl = res.getString(R.string.base_url).let { url ->
+            if (url.endsWith("/")) url else "$url/"
+        }
         val apiKey = res.getString(R.string.api_key)
         return Configuration(baseUrl, apiKey)
     }
@@ -49,7 +51,9 @@ object ApiModule {
     @Named("RainRentalConfig")
     fun provideRainRentalConfiguration(@ApplicationContext context: Context): Configuration {
         val res = context.resources
-        val baseUrl = res.getString(R.string.base_url_rain_rental)
+        val baseUrl = res.getString(R.string.base_url_rain_rental).let { url ->
+            if (url.endsWith("/")) url else "$url/"
+        }
         val apiKey = res.getString(R.string.api_key_rain_rental)
         return Configuration(baseUrl, apiKey)
     }
@@ -124,7 +128,9 @@ object ApiModule {
     @Provides
     @Singleton
     fun providesInvitationApiService(@ApplicationContext context: Context, gson: Gson) : InvitationApiService {
-        val baseUrl = context.getString(R.string.base_url_firebase_functions)
+        val baseUrl = context.getString(R.string.base_url_firebase_functions).let { url ->
+            if (url.endsWith("/")) url else "$url/"
+        }
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val timeZone: String = TimeZone.getDefault().id
