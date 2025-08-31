@@ -9,8 +9,13 @@ A comprehensive Android RFID application built with Kotlin, Jetpack Compose, and
 - **Inventory Management**: Track and manage inventory items
 - **Real-time Sync**: MQTT-based real-time data synchronization
 - **Commission Management**: Tag commissioning and asset tracking
+- **Tag Hunting**: Locate specific RFID tags with signal strength indication
+- **Continuous Scanning**: Real-time RFID scanning with MQTT delivery
+- **Authentication**: QR code-based device authentication system
+- **Auto-updates**: Built-in app update checking and installation
 - **Modern UI**: Built with Jetpack Compose for a modern user experience
 - **Hilt DI**: Clean architecture with dependency injection
+- **Settings Management**: Comprehensive settings with hardware testing
 
 ## Quick Start
 
@@ -148,21 +153,25 @@ app/src/main/java/org/rainrental/rainrentalrfid/
 ├── apis/                    # API and network layer
 ├── app/                     # Main application classes
 ├── audio/                   # Audio service implementation
+├── auth/                    # Authentication system
 ├── chainway/                # Chainway device integration
 ├── commission/              # Commission management
+├── continuousScanning/      # MQTT real-time sync
 ├── di/                      # Dependency injection modules
 ├── home/                    # Home screen
 ├── hunt/                    # Tag hunting functionality
 ├── inputmanager/            # Input handling
 ├── inventory/               # Inventory management
-├── continuousScanning/      # MQTT real-time sync
+├── logging/                 # Logging utilities
 ├── rainrental/              # RainRental specific APIs
 ├── regex/                   # Regex utilities
 ├── result/                  # Result handling
+├── settings/                # Settings management
 ├── shared/                  # Shared components
 ├── toast/                   # Toast notifications
 ├── ui/                      # UI theme and components
-└── unified/                 # Unified API layer
+├── unified/                 # Unified API layer
+└── update/                  # Auto-update system
 ```
 
 ## Configuration Options
@@ -245,6 +254,30 @@ To support other RFID devices:
 2. **Google Services**: Update `app/google-services.json` with your Firebase project
 3. **API Keys**: Configure your API endpoints and keys in `app/src/main/res/values/strings.xml`
 
+### Version Code Encoding
+
+The app uses a specific version code encoding system:
+- **Version Code**: Numeric identifier for app stores (must increase with each release)
+- **Version Name**: Human-readable version string
+
+**Encoding Rules**:
+- `1.0.7` → `versionCode = 10007`
+- `1.12.7` → `versionCode = 11207`
+- `13.1.1` → `versionCode = 130101`
+
+**Format**: `MMmmpp` where:
+- `MM` = Major version (2 digits)
+- `mm` = Minor version (2 digits) 
+- `pp` = Patch version (2 digits)
+
+Example in `build.gradle.kts`:
+```kotlin
+defaultConfig {
+    versionCode = 10001  // For version 1.0.1
+    versionName = "1.0.1"
+}
+```
+
 ### ProGuard Rules
 
 The app includes ProGuard rules for release builds. Update `app/proguard-rules.pro` if needed.
@@ -284,6 +317,40 @@ For support and questions:
 
 ## Changelog
 
+### Version 1.0.1
+- Improved main layout with compact status icons
+- Added proper top navigation bar with settings integration
+- Enhanced hardware status indicators with color coding
+- Removed large text indicators for better UX
+- Fixed auto-update system with proper version display
+- Added authentication API improvements with device type and company ID
+
+### Version 1.0.7
+- Added device type and company ID to authentication requests
+- Enhanced settings UI with tab-based navigation
+- Integrated button test functionality into settings
+- Added authentication details and revoke functionality
+- Improved string resource localization
+
+### Version 1.0.6
+- Refactored settings page with tab-style sub-navigation
+- Removed "Button Test" menu option and integrated into settings
+- Added authentication section with current user details
+- Added revoke authentication functionality with confirmation dialog
+- Improved UI layout and spacing
+
+### Version 1.0.5
+- Localized login screen to use company name from string resources
+- Improved UI consistency and maintainability
+
+### Version 1.0.4
+- Added MIT License to the repository
+- Improved project documentation
+
+### Version 1.0.3
+- Enhanced .gitignore to exclude build artifacts and caches
+- Improved repository structure for better maintainability
+
 ### Version 1.0.0
 - Initial release
 - RFID tag reading and writing
@@ -291,4 +358,7 @@ For support and questions:
 - Inventory management
 - Real-time MQTT synchronization
 - Commission management
+- Tag hunting functionality
+- Continuous scanning with MQTT delivery
+- Authentication system
 - Modern Jetpack Compose UI
