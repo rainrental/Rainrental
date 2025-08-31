@@ -317,48 +317,4 @@ For support and questions:
 
 ## Changelog
 
-### Version 1.0.1
-- Improved main layout with compact status icons
-- Added proper top navigation bar with settings integration
-- Enhanced hardware status indicators with color coding
-- Removed large text indicators for better UX
-- Fixed auto-update system with proper version display
-- Added authentication API improvements with device type and company ID
-
-### Version 1.0.7
-- Added device type and company ID to authentication requests
-- Enhanced settings UI with tab-based navigation
-- Integrated button test functionality into settings
-- Added authentication details and revoke functionality
-- Improved string resource localization
-
-### Version 1.0.6
-- Refactored settings page with tab-style sub-navigation
-- Removed "Button Test" menu option and integrated into settings
-- Added authentication section with current user details
-- Added revoke authentication functionality with confirmation dialog
-- Improved UI layout and spacing
-
-### Version 1.0.5
-- Localized login screen to use company name from string resources
-- Improved UI consistency and maintainability
-
-### Version 1.0.4
-- Added MIT License to the repository
-- Improved project documentation
-
-### Version 1.0.3
-- Enhanced .gitignore to exclude build artifacts and caches
-- Improved repository structure for better maintainability
-
-### Version 1.0.0
-- Initial release
-- RFID tag reading and writing
-- Barcode scanning
-- Inventory management
-- Real-time MQTT synchronization
-- Commission management
-- Tag hunting functionality
-- Continuous scanning with MQTT delivery
-- Authentication system
-- Modern Jetpack Compose UI
+See [CHANGELOG.md](CHANGELOG.md) for a complete list of changes and version history.
