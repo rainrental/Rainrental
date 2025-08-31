@@ -45,18 +45,26 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp)
-
-        ,
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
-        val buttonSpacing = 26.dp
-        Spacer(modifier = Modifier.height(16.dp))
-        Image( painter = painterResource(R.drawable.companylogo), contentDescription = null,modifier = Modifier.size(width = 240.dp, height = 80.dp))
+        // Top spacing to account for navigation bar
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Company logo
+        Image( 
+            painter = painterResource(R.drawable.companylogo), 
+            contentDescription = null,
+            modifier = Modifier.size(width = 240.dp, height = 80.dp)
+        )
 
-        Spacer(modifier = Modifier.weight(1f))
+        // Space between logo and buttons
+        Spacer(modifier = Modifier.height(48.dp))
 
+        // Menu buttons with better spacing
+        val buttonSpacing = 20.dp
+        
         AppButton(text = NavigationRoutes.Commission.title.uppercase(), icon = Icons.Default.Tag ) { onTap(NavigationRoutes.Commission) }
         Spacer(modifier = Modifier.height(buttonSpacing))
         AppButton(text = NavigationRoutes.Inventory.title.uppercase(), icon = Icons.Default.Numbers ) { onTap(NavigationRoutes.Inventory) }
@@ -67,6 +75,7 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
         Spacer(modifier = Modifier.height(buttonSpacing))
         AppButton(text = NavigationRoutes.Lookup.title.uppercase(), icon = Icons.Default.Search ) { onTap(NavigationRoutes.Lookup) }
 
+        // Bottom spacing
         Spacer(modifier = Modifier.weight(1f))
     }
 }
