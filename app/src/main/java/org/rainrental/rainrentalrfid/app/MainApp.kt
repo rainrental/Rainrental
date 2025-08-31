@@ -38,17 +38,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.rainrental.rainrentalrfid.R
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import org.rainrental.rainrentalrfid.chainway.data.BarcodeHardwareState
 import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
 import org.rainrental.rainrentalrfid.chainway.presentation.RfidScreen
@@ -110,21 +116,37 @@ fun MainApp(modifier: Modifier = Modifier) {
                         val rfidViewModel: RfidViewModel = hiltViewModel()
                         val scannerState by rfidViewModel.scannerState.collectAsState()
                         val rfidHardwareState by rfidViewModel.hardwareState.collectAsState()
+                        val currentRoute by navController.currentBackStackEntryAsState()
+                        val isSettingsScreen = currentRoute?.destination?.route == NavigationRoutes.Settings.route
                         
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .windowInsetsPadding(WindowInsets.statusBars)
                                 .height(56.dp)
                                 .background(MaterialTheme.colorScheme.surface)
                                 .padding(horizontal = 16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            // App Title
-                            Text(
-                                text = stringResource(R.string.app_name),
-                                style = MaterialTheme.typography.titleMedium
-                            )
+                            // App Title or Back Button
+                            if (isSettingsScreen) {
+                                // Back button for settings screen
+                                IconButton(
+                                    onClick = { navController.popBackStack() }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowBack,
+                                        contentDescription = "Back"
+                                    )
+                                }
+                            } else {
+                                // App Title
+                                Text(
+                                    text = stringResource(R.string.app_name),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
                             
                             // Status Icons and Settings
                             Row(
@@ -188,14 +210,16 @@ fun MainApp(modifier: Modifier = Modifier) {
                                     }
                                 }
                                 
-                                // Settings Button
-                                IconButton(
-                                    onClick = { navController.navigate(NavigationRoutes.Settings.route) }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Settings,
-                                        contentDescription = "Settings"
-                                    )
+                                // Settings Button (only show if not on settings screen)
+                                if (!isSettingsScreen) {
+                                    IconButton(
+                                        onClick = { navController.navigate(NavigationRoutes.Settings.route) }
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Settings,
+                                            contentDescription = "Settings"
+                                        )
+                                    }
                                 }
                             }
                         }
