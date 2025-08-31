@@ -41,24 +41,24 @@ import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
 fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: String? = null) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
     
-    // Animate the scanning pulse
+    // Animate the scanning pulse - made faster (reduced from 1500ms to 800ms)
     val scanPulse by infiniteTransition.animateValue(
         initialValue = 0.3f,
         targetValue = 1.0f,
         typeConverter = Float.VectorConverter,
         animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = FastOutLinearInEasing),
+            animation = tween(800, easing = FastOutLinearInEasing),
             repeatMode = RepeatMode.Reverse
         ), label = "scanPulse"
     )
     
-    // Animate the tag detection pulse
+    // Animate the tag detection pulse - made faster (reduced from 800ms to 400ms)
     val tagPulse by infiniteTransition.animateValue(
         initialValue = 0.5f,
         targetValue = 1.0f,
         typeConverter = Float.VectorConverter,
         animationSpec = infiniteRepeatable(
-            animation = tween(800, easing = FastOutLinearInEasing),
+            animation = tween(400, easing = FastOutLinearInEasing),
             repeatMode = RepeatMode.Reverse
         ), label = "tagPulse"
     )
@@ -71,19 +71,19 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(220.dp),
+            .height(280.dp), // Increased height from 220dp to 280dp
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // Scanning waves
+        // Scanning waves - made larger
         Box(
-            modifier = Modifier.size(160.dp),
+            modifier = Modifier.size(200.dp), // Increased from 160dp to 200dp
             contentAlignment = Alignment.Center
         ) {
-            // Outer scanning ring
+            // Outer scanning ring - made larger
             Box(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(180.dp) // Increased from 140dp to 180dp
                     .background(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f * scanPulse),
                         shape = CircleShape
@@ -91,10 +91,10 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
                     .clip(CircleShape)
             )
             
-            // Middle scanning ring
+            // Middle scanning ring - made larger
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(130.dp) // Increased from 100dp to 130dp
                     .background(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f * scanPulse),
                         shape = CircleShape
@@ -102,10 +102,10 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
                     .clip(CircleShape)
             )
             
-            // Inner scanning ring
+            // Inner scanning ring - made larger
             Box(
                 modifier = Modifier
-                    .size(60.dp)
+                    .size(80.dp) // Increased from 60dp to 80dp
                     .background(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f * scanPulse),
                         shape = CircleShape
@@ -113,10 +113,10 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
                     .clip(CircleShape)
             )
             
-            // Center RFID icon
+            // Center RFID icon - made larger
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(50.dp) // Increased from 40dp to 50dp
                     .background(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f * tagPulse),
                         shape = CircleShape
@@ -128,39 +128,39 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
                     imageVector = Icons.Default.Sensors,
                     contentDescription = "RFID Scanner",
                     tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(30.dp) // Increased from 24dp to 30dp
                 )
             }
         }
         
-        // Tag count display
+        // Tag count display - made larger
         Text(
             text = text,
-            style = MaterialTheme.typography.displaySmall,
+            style = MaterialTheme.typography.displayMedium, // Changed from displaySmall to displayMedium
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier.padding(top = 20.dp) // Increased padding from 16dp to 20dp
         )
         
-        // RSSI indicator
+        // RSSI indicator - made larger
         Text(
             text = "RSSI: ${String.format("%.1f", rssi)} dBm",
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium, // Changed from bodySmall to bodyMedium
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontFamily = FontFamily.Monospace
         )
         
-        // TID display if available
+        // TID display if available - made larger
         tid?.let {
             Text(
                 text = it,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.bodySmall, // Changed from labelSmall to bodySmall
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(top = 8.dp)
+                fontSize = 14.sp, // Increased from 12sp to 14sp
+                modifier = Modifier.padding(top = 10.dp) // Increased padding from 8dp to 10dp
             )
         }
     }
