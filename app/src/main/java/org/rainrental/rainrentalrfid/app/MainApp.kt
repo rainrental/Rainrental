@@ -19,14 +19,31 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.Alignment
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.rainrental.rainrentalrfid.R
 import androidx.navigation.compose.NavHost
@@ -88,11 +105,99 @@ fun MainApp(modifier: Modifier = Modifier) {
                 drawerState = drawerState
             ){
                 Scaffold(
-                    bottomBar = {
-//                        BottomBar(modifier = Modifier.height(60.dp))
-                    },
                     topBar = {
-                        BottomBar(modifier = Modifier.height(60.dp))
+                        val rfidViewModel: RfidViewModel = hiltViewModel()
+                        val scannerState by rfidViewModel.scannerState.collectAsState()
+                        val rfidHardwareState by rfidViewModel.hardwareState.collectAsState()
+                        
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .background(MaterialTheme.colorScheme.surface)
+                                .padding(horizontal = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            // App Title
+                            Text(
+                                text = stringResource(R.string.app_name),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            
+                            // Status Icons and Settings
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // RFID Status Icon
+                                Box {
+                                    Icon(
+                                        imageVector = Icons.Default.Sensors,
+                                        contentDescription = "RFID Status",
+                                        tint = if (rfidHardwareState == RfidHardwareState.Ready) 
+                                            MaterialTheme.colorScheme.onSurface 
+                                        else 
+                                            MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    if (rfidHardwareState != RfidHardwareState.Ready) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .background(
+                                                    color = when (rfidHardwareState) {
+                                                        RfidHardwareState.Init -> Color.Yellow
+                                                        RfidHardwareState.Configuring -> Color.Blue
+                                                        RfidHardwareState.Scanning -> Color.Green
+                                                        RfidHardwareState.ShuttingDown -> Color.Red
+                                                        else -> Color.Gray
+                                                    },
+                                                    shape = CircleShape
+                                                )
+                                                .align(Alignment.TopEnd)
+                                        )
+                                    }
+                                }
+                                
+                                // Barcode Status Icon
+                                Box {
+                                    Icon(
+                                        painter = painterResource(R.drawable.barcode),
+                                        contentDescription = "Barcode Status",
+                                        tint = if (scannerState == BarcodeHardwareState.Ready) 
+                                            MaterialTheme.colorScheme.onSurface 
+                                        else 
+                                            MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    if (scannerState != BarcodeHardwareState.Ready) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .background(
+                                                    color = when (scannerState) {
+                                                        BarcodeHardwareState.Busy -> Color.Green
+                                                        else -> Color.Gray
+                                                    },
+                                                    shape = CircleShape
+                                                )
+                                                .align(Alignment.TopEnd)
+                                        )
+                                    }
+                                }
+                                
+                                // Settings Button
+                                IconButton(
+                                    onClick = { navController.navigate(NavigationRoutes.Settings.route) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = "Settings"
+                                    )
+                                }
+                            }
+                        }
                     },
                     snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
                 ) { paddingValues ->
@@ -148,27 +253,4 @@ fun MainApp(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-fun BottomBar(modifier: Modifier = Modifier) {
-    val rfidViewModel: RfidViewModel = hiltViewModel()
-    val scannerState by rfidViewModel.scannerState.collectAsState()
-    val rfidHardwareState by rfidViewModel.hardwareState.collectAsState()
-    BottomAppBar(
-        modifier = modifier
-    ) {
-        Row(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.weight(0.5f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text(stringResource(R.string.barcode), style = MaterialTheme.typography.labelSmall)
-                AnimatedVisibility(scannerState != BarcodeHardwareState.Ready) {
-                    Text(rfidHardwareState.name, style = MaterialTheme.typography.labelSmall)
-                }
-            }
-            Column(modifier = Modifier.weight(0.5f), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text(stringResource(R.string.rfid), style = MaterialTheme.typography.labelSmall)
-                AnimatedVisibility(rfidHardwareState != RfidHardwareState.Ready) {
-                    Text(rfidHardwareState.name, style = MaterialTheme.typography.labelSmall)
-                }
-            }
-        }
-    }
-}
+
