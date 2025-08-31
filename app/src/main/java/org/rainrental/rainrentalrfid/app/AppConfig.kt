@@ -56,16 +56,19 @@ class AppConfig @Inject constructor() {
      * Sets whether the right side key should be ignored
      * @param ignore true to ignore right side key events, false to process them normally
      */
-    fun setIgnoreRightSideKey(ignore: Boolean) {
+    fun setIgnoreRightSideKey(context: Context, ignore: Boolean) {
         HardwareKeys.IGNORE_RIGHT_SIDE_KEY = ignore
+        getSharedPreferences(context).edit().putBoolean("ignore_right_side_key", ignore).apply()
     }
     
     /**
      * Gets whether the right side key is currently being ignored
      * @return true if right side key events are being ignored, false otherwise
      */
-    fun isRightSideKeyIgnored(): Boolean {
-        return HardwareKeys.IGNORE_RIGHT_SIDE_KEY
+    fun isRightSideKeyIgnored(context: Context): Boolean {
+        val persistedValue = getSharedPreferences(context).getBoolean("ignore_right_side_key", false)
+        HardwareKeys.IGNORE_RIGHT_SIDE_KEY = persistedValue
+        return persistedValue
     }
 }
 

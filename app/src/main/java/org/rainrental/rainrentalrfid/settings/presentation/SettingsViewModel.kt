@@ -73,7 +73,7 @@ class SettingsViewModel @Inject constructor(
             _mqttServerIp.value = serverIp
             
             // Load right side key setting
-            val ignoreRightSide = dependencies.appConfig.isRightSideKeyIgnored()
+            val ignoreRightSide = dependencies.appConfig.isRightSideKeyIgnored(dependencies.context)
             _ignoreRightSideKey.value = ignoreRightSide
         }
     }
@@ -107,7 +107,7 @@ class SettingsViewModel @Inject constructor(
 
     fun setIgnoreRightSideKey(ignore: Boolean) {
         _ignoreRightSideKey.value = ignore
-        dependencies.appConfig.setIgnoreRightSideKey(ignore)
+        dependencies.appConfig.setIgnoreRightSideKey(dependencies.context, ignore)
         logd("Right side key ignore setting updated to: $ignore")
     }
 
