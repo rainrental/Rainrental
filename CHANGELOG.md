@@ -5,6 +5,27 @@ All notable changes to the RainRental RFID project will be documented in this fi
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.17] - 2024-12-19
+
+### Fixed
+- Fixed inventory UI layout to prevent buttons from being cut off
+- Removed `Spacer(modifier = Modifier.weight(1f))` that was pushing buttons below visible area
+- Changed layout to use `Arrangement.spacedBy(16.dp)` for consistent vertical spacing
+- Buttons now appear immediately after barcode prompt instead of at bottom of screen
+- Added debug logging to track UI flow states
+
+### Added
+- Manual barcode entry feature to inventory function
+- "Inventory All" function to capture all company assets
+- New use cases: `StartInventoryAllUseCase`, `StopInventoryAllUseCase`, `LogInventoryAllUseCase`
+- Updated `InventoryFlow` states to support new features
+- Enhanced `InventoryViewModel` to handle manual entry and inventory all events
+
+### Changed
+- Updated `LogInventoryRequestDto` to support flexible inventory logging
+- Enhanced `InventoryRepository` with new UI flow states and events
+- Improved inventory screen layout with better spacing and visibility
+
 ## [1.0.15] - 2024-12-19
 
 ### Fixed
