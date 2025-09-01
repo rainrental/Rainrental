@@ -1,19 +1,19 @@
 package org.rainrental.rainrentalrfid.taglookup.domain
 
-import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.GetSingleRfidTagUseCase
+import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.GetSingleRfidTagForLookupUseCase
 import org.rainrental.rainrentalrfid.taglookup.data.TagLookupRepository
 import org.rainrental.rainrentalrfid.taglookup.data.TagLookupUiFlow
 import org.rainrental.rainrentalrfid.result.Result
 import javax.inject.Inject
 
 class ScanTagAndLookupUseCase @Inject constructor(
-    private val getSingleRfidTagUseCase: GetSingleRfidTagUseCase,
+    private val getSingleRfidTagForLookupUseCase: GetSingleRfidTagForLookupUseCase,
     private val tagLookupRepository: TagLookupRepository
 ) {
     suspend operator fun invoke() {
         tagLookupRepository.updateUiFlow(TagLookupUiFlow.ScanningTag)
         
-        when (val tagResult = getSingleRfidTagUseCase()) {
+        when (val tagResult = getSingleRfidTagForLookupUseCase()) {
             is Result.Error -> {
                 tagLookupRepository.updateUiFlow(
                     TagLookupUiFlow.AssetNotFound(
