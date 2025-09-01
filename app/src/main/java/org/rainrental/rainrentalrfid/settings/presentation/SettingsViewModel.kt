@@ -61,6 +61,9 @@ class SettingsViewModel @Inject constructor(
     private val _installedVersion = MutableStateFlow("Unknown")
     val installedVersion: StateFlow<String> = _installedVersion.asStateFlow()
 
+    private val _backendVersionData = MutableStateFlow<String?>(null)
+    val backendVersionData: StateFlow<String?> = _backendVersionData.asStateFlow()
+
     init {
         loadSettings()
         loadInstalledVersion()
@@ -112,52 +115,118 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun checkForUpdates(forceCheck: Boolean = false) {
+        logd("=== SETTINGS VIEWMODEL: checkForUpdates called ===")
+        logd("Force check: $forceCheck")
+        logd("Current update in progress: ${_isUpdateInProgress.value}")
+        
         if (_isUpdateInProgress.value) {
-            logd("Update already in progress")
+            logd("SETTINGS VIEWMODEL: Update already in progress, returning early")
             return
         }
 
+        logd("SETTINGS VIEWMODEL: Setting update in progress to true")
         _isUpdateInProgress.value = true
         _updateStatus.value = "Checking for updates..."
         _updateProgress.value = 0f
 
         val companyId = dependencies.context.getString(R.string.company_id)
+        logd("SETTINGS VIEWMODEL: Company ID: $companyId")
+        logd("SETTINGS VIEWMODEL: Calling updateManager.checkForUpdates")
+        
         updateManager.checkForUpdates(
             context = dependencies.context,
             companyId = companyId,
             forceCheck = forceCheck,
             onUpdateAvailable = { updateInfo ->
+                logd("SETTINGS VIEWMODEL: onUpdateAvailable callback called")
                 _updateStatus.value = "Update available: ${updateInfo.version}. Downloading..."
+                _backendVersionData.value = "Available: ${updateInfo.version} (code: ${updateInfo.versionCode}), URL: ${updateInfo.downloadUrl}, Size: ${updateInfo.fileSize} bytes"
                 logd("Update available: ${updateInfo.version}")
             },
             onUpdateProgress = { progress ->
+                logd("SETTINGS VIEWMODEL: onUpdateProgress callback called: $progress")
                 _updateProgress.value = progress
                 _updateStatus.value = "Downloading update... ${progress.toInt()}%"
             },
             onUpdateComplete = {
+                logd("SETTINGS VIEWMODEL: onUpdateComplete callback called")
                 _updateStatus.value = "Update downloaded successfully. Installation will begin..."
                 _updateProgress.value = 100f
                 logd("Update download completed")
             },
             onUpdateError = { error ->
+                logd("SETTINGS VIEWMODEL: onUpdateError callback called: $error")
                 _updateStatus.value = "Update failed: $error"
                 _updateProgress.value = 0f
                 _isUpdateInProgress.value = false
+                _backendVersionData.value = "Error: $error"
                 loge("Update error: $error")
             },
             onNoUpdateAvailable = {
+                logd("SETTINGS VIEWMODEL: onNoUpdateAvailable callback called")
                 _updateStatus.value = "No updates available. You have the latest version."
                 _updateProgress.value = 0f
                 _isUpdateInProgress.value = false
+                _backendVersionData.value = "No update available from backend"
                 logd("No updates available")
             }
         )
+        
+        logd("SETTINGS VIEWMODEL: checkForUpdates function completed")
     }
 
     fun clearUpdateStatus() {
         _updateStatus.value = null
         _updateProgress.value = 0f
         _isUpdateInProgress.value = false
+        _backendVersionData.value = null
+    }
+
+    fun debugCurrentVersion() {
+        try {
+            val packageInfo = dependencies.context.packageManager.getPackageInfo(dependencies.context.packageName, 0)
+            val versionName = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                packageInfo.versionName
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionName
+            }
+            val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                packageInfo.longVersionCode.toInt()
+            } else {
+                @Suppress("DEPRECATION")
+                packageInfo.versionCode
+            }
+            
+            logd("=== VERSION DEBUG INFO ===")
+            logd("Installed version name: $versionName")
+            logd("Installed version code: $versionCode")
+            logd("BuildConfig version name: ${org.rainrental.rainrentalrfid.BuildConfig.VERSION_NAME}")
+            logd("BuildConfig version code: ${org.rainrental.rainrentalrfid.BuildConfig.VERSION_CODE}")
+            logd("Company ID: ${dependencies.context.getString(R.string.company_id)}")
+            logd("API Base URL: ${dependencies.appConfig.Network.API_BASE_URL}")
+            
+            val backendInfo = _backendVersionData.value ?: "No backend data available (run 'Check for Updates' first)"
+            
+            val debugInfo = """
+                Local Version Info:
+                - Installed: v$versionName (code: $versionCode)
+                - BuildConfig: v${org.rainrental.rainrentalrfid.BuildConfig.VERSION_NAME} (code: ${org.rainrental.rainrentalrfid.BuildConfig.VERSION_CODE})
+                
+                Configuration:
+                - Company ID: ${dependencies.context.getString(R.string.company_id)}
+                - API Base URL: ${dependencies.appConfig.Network.API_BASE_URL}
+                
+                Backend Version Data:
+                - $backendInfo
+            """.trimIndent()
+            
+            _updateStatus.value = debugInfo
+            logd("Debug info displayed: $debugInfo")
+        } catch (e: Exception) {
+            loge("Error getting version info: ${e.message}")
+            _updateStatus.value = "Debug error: ${e.message}"
+        }
     }
 
     // Button test event handlers
@@ -201,11 +270,12 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setAuthState(authState: AuthState) {
+        logd("SETTINGS VIEWMODEL: setAuthState called with: $authState")
         _authState.value = authState
     }
 
     fun revokeAuthentication() {
-        // This will be handled by the MainApp
+        logd("SETTINGS VIEWMODEL: revokeAuthentication called")
         _showRevokeConfirmation.value = false
     }
 }

@@ -33,11 +33,16 @@ class DefaultInventoryRepository @Inject constructor(
     @Named("company_id") private val companyId: String
 ) : InventoryRepository {
 
-    private val _uiFlow: MutableSharedFlow<InventoryFlow> = MutableSharedFlow()
+    private val _uiFlow: MutableSharedFlow<InventoryFlow> = MutableSharedFlow(replay = 1)
     override val uiFlow: SharedFlow<InventoryFlow> = _uiFlow.asSharedFlow()
 
     private val _saving: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val saving: StateFlow<Boolean> = _saving.asStateFlow()
+
+    init {
+        // Initialize with WaitingForBarcode state
+        _uiFlow.tryEmit(InventoryFlow.WaitingForBarcode())
+    }
 
     override suspend fun getAsset(barcode: String) : Result<AssetDetailsResponseDto,ApiError> {
         val request = GetAssetRequestDto(barcode = barcode, companyId = companyId)
@@ -69,10 +74,14 @@ class DefaultInventoryRepository @Inject constructor(
 
 sealed interface InventoryFlow{
     data class WaitingForBarcode(val withError:String? = null): InventoryFlow
+    data class ManualBarcodeEntry(val withError:String? = null): InventoryFlow
     data class LookingUpAsset(val barcode: String): InventoryFlow
     data class ReadyToCount(val asset: AssetDetailsResponseDto, val withError: String? = null): InventoryFlow
     data class Counting(val asset: AssetDetailsResponseDto, val currentCount: Int): InventoryFlow
     data class FinishedCounting(val asset: AssetDetailsResponseDto, val count: Int): InventoryFlow
+    data class InventoryAll(val withError:String? = null): InventoryFlow
+    data class InventoryAllCounting(val currentCount: Int): InventoryFlow
+    data class InventoryAllFinished(val count: Int): InventoryFlow
 }
 
 sealed interface InventoryEvent{
@@ -80,4 +89,7 @@ sealed interface InventoryEvent{
     data object Save: InventoryEvent
     data object Finish: InventoryEvent
     data object Beep: InventoryEvent
+    data object ManualEntry: InventoryEvent
+    data object InventoryAll: InventoryEvent
+    data class ManualBarcodeSubmitted(val barcode: String): InventoryEvent
 }

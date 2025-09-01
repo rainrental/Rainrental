@@ -4,72 +4,88 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
     
-    <!-- Central RFID Chip -->
+    <!-- Central white dot -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M44,44 L64,44 L64,64 L44,64 Z" />
+        android:pathData="M54,54m-8,0a8,8 0,1 1,16 0a8,8 0,1 1,-16 0"/>
     
-    <!-- RFID Chip inner details -->
-    <path
-        android:fillColor="#000000"
-        android:pathData="M46,46 L62,46 L62,62 L46,62 Z" />
-    
-    <!-- RFID Chip contacts -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M48,48 L50,48 L50,50 L48,50 Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M58,48 L60,48 L60,50 L58,50 Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M48,58 L50,58 L50,60 L48,60 Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M58,58 L60,58 L60,60 L58,60 Z" />
-    
-    <!-- Scanning waves - outer ring -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.2"
-        android:pathData="M28,28 L80,28 L80,80 L28,80 Z" />
-    <path
-        android:fillColor="#000000"
-        android:pathData="M30,30 L78,30 L78,78 L30,78 Z" />
-    
-    <!-- Scanning waves - middle ring -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.4"
-        android:pathData="M36,36 L72,36 L72,72 L36,72 Z" />
-    <path
-        android:fillColor="#000000"
-        android:pathData="M38,38 L70,38 L70,70 L38,70 Z" />
-    
-    <!-- Scanning waves - inner ring -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:fillAlpha="0.6"
-        android:pathData="M44,44 L64,44 L64,64 L44,64 Z" />
-    <path
-        android:fillColor="#000000"
-        android:pathData="M46,46 L62,46 L62,62 L46,62 Z" />
-    
-    <!-- RFID antenna lines -->
+    <!-- Radiating curved lines - thicker near center, thinner at ends -->
+    <!-- Inner arc -->
     <path
         android:strokeColor="#FFFFFF"
         android:strokeWidth="3"
-        android:pathData="M64,54 L80,54" />
+        android:strokeLineCap="round"
+        android:pathData="M54,30 Q70,30 70,54"/>
+    
+    <!-- Middle arc -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="3"
-        android:pathData="M28,54 L44,54" />
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,25 Q75,25 75,54"/>
+    
+    <!-- Outer arc -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="3"
-        android:pathData="M54,64 L54,80" />
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M54,20 Q80,20 80,54"/>
+    
+    <!-- Additional arcs for more complete coverage -->
+    <!-- Right side arcs -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="3"
-        android:pathData="M54,28 L54,44" />
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M70,54 Q70,70 54,70"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M75,54 Q75,75 54,75"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M80,54 Q80,80 54,80"/>
+    
+    <!-- Left side arcs -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M38,54 Q38,70 54,70"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M33,54 Q33,75 54,75"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M28,54 Q28,80 54,80"/>
+    
+    <!-- Bottom arcs -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,78 Q38,78 38,54"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:pathData="M54,83 Q33,83 33,54"/>
+    
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,88 Q28,88 28,54"/>
 </vector>

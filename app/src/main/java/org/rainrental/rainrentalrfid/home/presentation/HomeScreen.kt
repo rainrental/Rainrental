@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Radar
@@ -45,38 +48,77 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Top
     ) {
-        // Top spacing to account for navigation bar
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        // Company logo
-        Image( 
-            painter = painterResource(R.drawable.companylogo), 
-            contentDescription = null,
-            modifier = Modifier.size(width = 240.dp, height = 80.dp)
-        )
+        // Fixed header with logo
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Top spacing to account for navigation bar
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Company logo
+            Image( 
+                painter = painterResource(R.drawable.companylogo), 
+                contentDescription = null,
+                modifier = Modifier.size(width = 240.dp, height = 80.dp)
+            )
 
-        // Space between logo and buttons
-        Spacer(modifier = Modifier.height(48.dp))
+            // Space between logo and scrollable content
+            Spacer(modifier = Modifier.height(24.dp))
+        }
 
-        // Menu buttons with better spacing
-        val buttonSpacing = 20.dp
-        
-        AppButton(text = NavigationRoutes.Commission.title.uppercase(), icon = Icons.Default.Tag ) { onTap(NavigationRoutes.Commission) }
-        Spacer(modifier = Modifier.height(buttonSpacing))
-        AppButton(text = NavigationRoutes.Inventory.title.uppercase(), icon = Icons.Default.Numbers ) { onTap(NavigationRoutes.Inventory) }
-        Spacer(modifier = Modifier.height(buttonSpacing))
-        AppButton(text = NavigationRoutes.Hunt.title.uppercase(), icon = Icons.Default.Radar ) { onTap(NavigationRoutes.Hunt) }
-        Spacer(modifier = Modifier.height(buttonSpacing))
-        AppButton(text = NavigationRoutes.ContinuousScanning.title.uppercase(), icon = Icons.Default.Search ) { onTap(NavigationRoutes.ContinuousScanning) }
-        Spacer(modifier = Modifier.height(buttonSpacing))
-        AppButton(text = NavigationRoutes.Lookup.title.uppercase(), icon = Icons.Default.Search ) { onTap(NavigationRoutes.Lookup) }
+        // Scrollable menu content
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
+        ) {
+            // Menu buttons with reduced spacing
+            val buttonSpacing = 12.dp
+            
+            AppButton(
+                text = NavigationRoutes.Commission.title.uppercase(), 
+                icon = Icons.Default.Tag,
+                modifier = Modifier.height(50.dp)
+            ) { onTap(NavigationRoutes.Commission) }
+            Spacer(modifier = Modifier.height(buttonSpacing))
+            
+            AppButton(
+                text = NavigationRoutes.Inventory.title.uppercase(), 
+                icon = Icons.Default.Numbers,
+                modifier = Modifier.height(50.dp)
+            ) { onTap(NavigationRoutes.Inventory) }
+            Spacer(modifier = Modifier.height(buttonSpacing))
+            
+            AppButton(
+                text = NavigationRoutes.Hunt.title.uppercase(), 
+                icon = Icons.Default.Radar,
+                modifier = Modifier.height(50.dp)
+            ) { onTap(NavigationRoutes.Hunt) }
+            Spacer(modifier = Modifier.height(buttonSpacing))
+            
+            AppButton(
+                text = NavigationRoutes.ContinuousScanning.title.uppercase(), 
+                icon = Icons.Default.Search,
+                modifier = Modifier.height(50.dp)
+            ) { onTap(NavigationRoutes.ContinuousScanning) }
+            Spacer(modifier = Modifier.height(buttonSpacing))
+            
+            AppButton(
+                text = NavigationRoutes.Lookup.title.uppercase(), 
+                icon = Icons.Default.Search,
+                modifier = Modifier.height(50.dp)
+            ) { onTap(NavigationRoutes.Lookup) }
 
-        // Bottom spacing
-        Spacer(modifier = Modifier.weight(1f))
+            // Bottom spacing for scrollable content
+            Spacer(modifier = Modifier.height(32.dp))
+        }
     }
 }
 

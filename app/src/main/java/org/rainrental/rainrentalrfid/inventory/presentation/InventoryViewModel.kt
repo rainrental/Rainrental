@@ -16,7 +16,11 @@ import org.rainrental.rainrentalrfid.inventory.domain.GetBarcodeAndLookupAssetUs
 import org.rainrental.rainrentalrfid.inventory.domain.LogInventoryUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StartInventoryUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StopInventoryUseCase
+import org.rainrental.rainrentalrfid.inventory.domain.StartInventoryAllUseCase
+import org.rainrental.rainrentalrfid.inventory.domain.StopInventoryAllUseCase
+import org.rainrental.rainrentalrfid.inventory.domain.LogInventoryAllUseCase
 import org.rainrental.rainrentalrfid.logging.Logger
+import org.rainrental.rainrentalrfid.result.Result
 import javax.inject.Inject
 
 @HiltViewModel
@@ -26,6 +30,9 @@ class InventoryViewModel @Inject constructor(
     private val startInventoryUseCase: StartInventoryUseCase,
     private val stopInventoryUseCase: StopInventoryUseCase,
     private val logInventoryUseCase: LogInventoryUseCase,
+    private val startInventoryAllUseCase: StartInventoryAllUseCase,
+    private val stopInventoryAllUseCase: StopInventoryAllUseCase,
+    private val logInventoryAllUseCase: LogInventoryAllUseCase,
     dependencies: BaseViewModelDependencies
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -62,6 +69,7 @@ class InventoryViewModel @Inject constructor(
                     is InventoryFlow.WaitingForBarcode -> viewModelScope.launch{
                         getBarcodeAndLookupAssetUseCase()
                     }
+                    is InventoryFlow.ManualBarcodeEntry -> {}
                     is InventoryFlow.LookingUpAsset -> {}
                     is InventoryFlow.ReadyToCount -> viewModelScope.launch{
                         startInventoryUseCase(asset = (uiFlow.value as InventoryFlow.ReadyToCount).asset)
@@ -70,6 +78,54 @@ class InventoryViewModel @Inject constructor(
                         stopInventoryUseCase(asset = (uiFlow.value as InventoryFlow.Counting).asset)
                     }
                     is InventoryFlow.FinishedCounting -> {}
+                    is InventoryFlow.InventoryAll -> viewModelScope.launch{
+                        startInventoryAllUseCase()
+                    }
+                    is InventoryFlow.InventoryAllCounting -> viewModelScope.launch{
+                        stopInventoryAllUseCase()
+                    }
+                    is InventoryFlow.InventoryAllFinished -> {}
+                }
+            }
+
+            InventoryEvent.ManualEntry -> {
+                when (uiFlow.value){
+                    is InventoryFlow.WaitingForBarcode -> viewModelScope.launch{
+                        inventoryRepository.updateUiFlow(InventoryFlow.ManualBarcodeEntry())
+                    }
+                    else -> {}
+                }
+            }
+
+            InventoryEvent.InventoryAll -> {
+                when (uiFlow.value){
+                    is InventoryFlow.WaitingForBarcode -> viewModelScope.launch{
+                        inventoryRepository.updateUiFlow(InventoryFlow.InventoryAll())
+                    }
+                    else -> {}
+                }
+            }
+
+            is InventoryEvent.ManualBarcodeSubmitted -> {
+                when (uiFlow.value){
+                    is InventoryFlow.ManualBarcodeEntry -> viewModelScope.launch{
+                        val barcode = event.barcode
+                        if (barcode.isNotBlank()) {
+                            inventoryRepository.updateUiFlow(InventoryFlow.LookingUpAsset(barcode = barcode))
+                            val assetResult = inventoryRepository.getAsset(barcode)
+                            when (assetResult) {
+                                is Result.Success -> {
+                                    inventoryRepository.updateUiFlow(InventoryFlow.ReadyToCount(asset = assetResult.data))
+                                }
+                                is Result.Error -> {
+                                    inventoryRepository.updateUiFlow(InventoryFlow.WaitingForBarcode(withError = assetResult.error.name))
+                                }
+                            }
+                        } else {
+                            inventoryRepository.updateUiFlow(InventoryFlow.WaitingForBarcode(withError = "Barcode cannot be empty"))
+                        }
+                    }
+                    else -> {}
                 }
             }
 
@@ -79,6 +135,11 @@ class InventoryViewModel @Inject constructor(
                         val flow = (uiFlow.value as InventoryFlow.FinishedCounting)
                         logd("Saving inventory with ${dependencies.rfidManager.inventory.value.size} items")
                         logInventoryUseCase(asset = flow.asset, inventory = dependencies.rfidManager.inventory.value.map { InventoryRecord(tidHex = it.value.tid, epcHex = it.value.epc) })
+                    }
+                    is InventoryFlow.InventoryAllFinished -> viewModelScope.launch {
+                        val flow = (uiFlow.value as InventoryFlow.InventoryAllFinished)
+                        logd("Saving inventory all with ${dependencies.rfidManager.inventory.value.size} items")
+                        logInventoryAllUseCase(inventory = dependencies.rfidManager.inventory.value.map { InventoryRecord(tidHex = it.value.tid, epcHex = it.value.epc) })
                     }
                     else -> {}
                 }
@@ -90,6 +151,11 @@ class InventoryViewModel @Inject constructor(
                     is InventoryFlow.FinishedCounting -> viewModelScope.launch {
                         // Return to waiting state without saving
                         logd("Finishing inventory without saving - inventory was empty")
+                        inventoryRepository.updateUiFlow(InventoryFlow.WaitingForBarcode())
+                    }
+                    is InventoryFlow.InventoryAllFinished -> viewModelScope.launch {
+                        // Return to waiting state without saving
+                        logd("Finishing inventory all without saving - inventory was empty")
                         inventoryRepository.updateUiFlow(InventoryFlow.WaitingForBarcode())
                     }
                     else -> {}

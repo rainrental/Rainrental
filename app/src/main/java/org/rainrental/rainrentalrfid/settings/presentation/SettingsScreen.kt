@@ -103,6 +103,7 @@ fun SettingsScreen() {
             settingsViewModel.checkForUpdates(forceCheck)
         },
         onClearUpdateStatus = settingsViewModel::clearUpdateStatus,
+        onDebugVersion = settingsViewModel::debugCurrentVersion,
         triggerState = triggerState,
         sideState = sideState,
         auxState = auxState,
@@ -130,6 +131,7 @@ fun SettingsScreen(
     onIgnoreRightSideKeyChange: (Boolean) -> Unit = {},
     onCheckForUpdates: (Boolean) -> Unit = { _ -> },
     onClearUpdateStatus: () -> Unit = {},
+    onDebugVersion: () -> Unit = {},
     triggerState: ButtonState = ButtonState.UP,
     sideState: ButtonState = ButtonState.UP,
     auxState: ButtonState = ButtonState.UP,
@@ -181,7 +183,8 @@ fun SettingsScreen(
                 isUpdateInProgress = isUpdateInProgress,
                 installedVersion = installedVersion,
                 onCheckForUpdates = onCheckForUpdates,
-                onClearUpdateStatus = onClearUpdateStatus
+                onClearUpdateStatus = onClearUpdateStatus,
+                onDebugVersion = onDebugVersion
             )
         }
     }
@@ -510,7 +513,8 @@ fun UpdatesTab(
     isUpdateInProgress: Boolean,
     installedVersion: String,
     onCheckForUpdates: (Boolean) -> Unit,
-    onClearUpdateStatus: () -> Unit
+    onClearUpdateStatus: () -> Unit,
+    onDebugVersion: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -583,6 +587,14 @@ fun UpdatesTab(
                     ) {
                         Text("Force Check")
                     }
+                }
+                
+                // Debug button
+                Button(
+                    onClick = onDebugVersion,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Debug Version Info")
                 }
                 
                 if (updateStatus != null && !isUpdateInProgress) {

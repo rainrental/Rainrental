@@ -16,6 +16,7 @@ import org.rainrental.rainrentalrfid.result.Result
 import org.rainrental.rainrentalrfid.auth.TokenRefreshScheduler
 import org.rainrental.rainrentalrfid.hardware.HardwareEventListener
 import org.rainrental.rainrentalrfid.hardware.HardwareEventBus
+import org.rainrental.rainrentalrfid.logging.Logger
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,7 +26,7 @@ class AuthViewModel @Inject constructor(
     private val scanInvitationCodeUseCase: ScanInvitationCodeUseCase,
     private val tokenRefreshScheduler: TokenRefreshScheduler,
     private val hardwareEventBus: HardwareEventBus
-) : ViewModel(), HardwareEventListener {
+) : ViewModel(), HardwareEventListener, Logger {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
     val authState: StateFlow<AuthState> = _authState.asStateFlow()
@@ -128,12 +129,15 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signOut() {
+        logd("AUTH VIEWMODEL: signOut called")
         viewModelScope.launch {
             // Stop automatic token refresh
             tokenRefreshScheduler.stopAutoRefresh()
             authService.signOut()
+            logd("AUTH VIEWMODEL: Setting auth state to NotAuthenticated")
             _authState.value = AuthState.NotAuthenticated
             _errorMessage.value = null
+            logd("AUTH VIEWMODEL: Sign out completed")
         }
     }
 
