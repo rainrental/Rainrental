@@ -206,6 +206,10 @@ object ChainwayRfidManager: RfidManager, Logger {
                     rf.setEPCAndTIDMode()
                 }
 
+                // Set power to HUNT_POWER (30dB) for continuous scanning
+                rf.setPower(Config.HUNT_POWER)
+                logd("Set RFID power to ${Config.HUNT_POWER}dB for continuous scanning")
+
                 rf.setInventoryCallback { tagData ->
                     scope.launch { onTagEvent(tagData) }
                 }
@@ -434,16 +438,26 @@ object ChainwayRfidManager: RfidManager, Logger {
                 
                 _scannedTags.value = emptyList()
                 
+                // Store original power to restore later
+                val originalPower = rfid?.power ?: Config.DEFAULT_POWER
+                
                 withPower?.let { power ->
                     updateHardwareState(RfidHardwareState.Configuring)
                     rfid?.setEPCAndTIDMode()
                     rfid?.setPower(power)
+                    logd("Set RFID power to ${power}dB for single tag read")
                 }
                 
                 updateHardwareState(RfidHardwareState.Scanning)
                 
                 val tag = rfid?.inventorySingleTag()
                 updateHardwareState(RfidHardwareState.Ready)
+                
+                // Restore original power after scanning
+                if (withPower != null) {
+                    rfid?.setPower(originalPower)
+                    logd("Restored RFID power to ${originalPower}dB after single tag read")
+                }
                 
                 tag?.let { t ->
                     if (t.tid.isNullOrBlank() || t.epc.isNullOrBlank()) {
