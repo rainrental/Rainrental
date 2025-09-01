@@ -205,10 +205,15 @@ object ChainwayRfidManager: RfidManager, Logger {
             ensureActive()
             resetContinuousScanningStats()
             
+            // TEMPORARILY DISABLE EPC FILTER FOR TESTING
             // Apply EPC filter for RainRental company tags
-            val epcFilter = createRainRentalEpcFilter(rainCompanyId)
-            configureEpcFilter(epcFilter)
-            logd("Starting continuous scanning with EPC filter: $epcFilter")
+            // val epcFilter = createRainRentalEpcFilter(rainCompanyId)
+            // configureEpcFilter(epcFilter)
+            // logd("Starting continuous scanning with EPC filter: $epcFilter")
+            
+            // Clear any existing EPC filter for testing
+            clearEpcFilter()
+            logd("Starting continuous scanning WITHOUT EPC filter for testing")
             
             rfid?.let { rf ->
                 val currentMode = rf.epcAndTIDUserMode
@@ -284,6 +289,9 @@ object ChainwayRfidManager: RfidManager, Logger {
         if (tagData.tid == null) {
             return
         }
+        
+        // Log the detected tag EPC for debugging
+        logd("Detected tag - EPC: ${tagData.epc}, TID: ${tagData.tid}, RSSI: ${tagData.rssi}")
         
         try {
             val tagEvent = TagEvent(
