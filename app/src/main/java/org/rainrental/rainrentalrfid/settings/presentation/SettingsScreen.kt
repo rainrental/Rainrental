@@ -369,11 +369,11 @@ fun AuthenticationTab(
                                 text = authState.companyId ?: stringResource(R.string.auth_unknown),
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontFamily = FontFamily.Monospace
-                            )
-                        }
-                        
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
                         // Revoke Button
                         Button(
                             onClick = onShowRevokeConfirmation,
@@ -433,24 +433,24 @@ fun HardwareTab(
             Column(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = "Hardware Keys",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Hardware Keys",
-                    style = MaterialTheme.typography.titleMedium
+                    text = "Ignore Right Side Key",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Ignore Right Side Key",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Switch(
-                        checked = ignoreRightSideKey,
-                        onCheckedChange = onIgnoreRightSideKeyChange
-                    )
+                Switch(
+                    checked = ignoreRightSideKey,
+                    onCheckedChange = onIgnoreRightSideKeyChange
+                )
                 }
             }
         }

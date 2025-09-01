@@ -29,6 +29,14 @@ import org.rainrental.rainrentalrfid.app.AppConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.ScanBarcodeUseCase
+import org.rainrental.rainrentalrfid.commission.data.CommissionApi
+import org.rainrental.rainrentalrfid.commission.data.CheckInBarcodeRequestDto
+import org.rainrental.rainrentalrfid.commission.data.CheckInBarcodeResponseDto
+import org.rainrental.rainrentalrfid.apis.ApiCaller
+import org.rainrental.rainrentalrfid.result.ApiError
+import org.rainrental.rainrentalrfid.result.Result
+import javax.inject.Named
 
 
 @HiltViewModel
@@ -36,6 +44,9 @@ class ContinuousScanningViewModel @Inject constructor(
     private val mqttDeliveryService: MqttDeliveryService,
     @ApplicationContext private val context: Context,
     private val appConfig: AppConfig,
+    private val scanBarcodeUseCase: ScanBarcodeUseCase,
+    private val commissionApi: CommissionApi,
+    @Named("company_id") private val companyId: String,
     dependencies: BaseViewModelDependencies
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -159,7 +170,7 @@ class ContinuousScanningViewModel @Inject constructor(
 
     override fun onTriggerDown() {
         if (!isScanning) {
-            logd("Continuous Scanning Trigger Down - Starting continuous scanning")
+            logd("Continuous Scanning Trigger Down - Starting RFID continuous scanning")
             isScanning = true
             dependencies.scanningLifecycleManager.setScanningState(true)
             dependencies.rfidManager.startContinuousScanning()
@@ -168,7 +179,7 @@ class ContinuousScanningViewModel @Inject constructor(
 
     override fun onTriggerUp() {
         if (isScanning) {
-            logd("Continuous Scanning Trigger Up - Stopping continuous scanning")
+            logd("Continuous Scanning Trigger Up - Stopping RFID continuous scanning")
             isScanning = false
             dependencies.scanningLifecycleManager.setScanningState(false)
             dependencies.rfidManager.stopContinuousScanning()
@@ -176,21 +187,16 @@ class ContinuousScanningViewModel @Inject constructor(
     }
 
     override fun onSideKeyDown() {
-        if (!isScanning) {
-            logd("Continuous Scanning Side Key Down - Starting continuous scanning")
-            isScanning = true
-            dependencies.scanningLifecycleManager.setScanningState(true)
-            dependencies.rfidManager.startContinuousScanning()
+        // Side key now triggers barcode scanning instead of RFID scanning
+        logd("Continuous Scanning Side Key Down - Starting barcode scan")
+        viewModelScope.launch {
+            scanBarcodeAndCheckIn()
         }
     }
 
     override fun onSideKeyUp() {
-        if (isScanning) {
-            logd("Continuous Scanning Side Key Up - Stopping continuous scanning")
-            isScanning = false
-            dependencies.scanningLifecycleManager.setScanningState(false)
-            dependencies.rfidManager.stopContinuousScanning()
-        }
+        // Side key up doesn't do anything for barcode scanning
+        logd("Continuous Scanning Side Key Up - Barcode scan completed")
     }
 
     override fun onCleared() {
@@ -212,5 +218,40 @@ class ContinuousScanningViewModel @Inject constructor(
         logd("Restarting MQTT connection")
         val serverIp = appConfig.getMqttServerIp(context)
         mqttDeliveryService.restartWithNewServer(serverIp)
+    }
+
+    /**
+     * Scans a barcode and checks in the asset
+     */
+    private suspend fun scanBarcodeAndCheckIn() {
+        try {
+            logd("Starting barcode scan for check-in")
+            
+            when (val barcodeResult = scanBarcodeUseCase()) {
+                is Result.Error -> {
+                    logd("Barcode scan failed: ${barcodeResult.error.name}")
+                    // Could add toast notification here if needed
+                }
+                is Result.Success -> {
+                    val barcode = barcodeResult.data
+                    logd("Barcode scanned: $barcode")
+                    
+                    // Call the checkInBarcode API
+                    val request = CheckInBarcodeRequestDto(barcode = barcode, companyId = companyId)
+                    when (val checkInResult = ApiCaller()<CheckInBarcodeResponseDto> { commissionApi.checkInBarcode(request) }) {
+                        is Result.Error -> {
+                            logd("Check-in failed: ${checkInResult.error.apiErrorType}")
+                            // Could add toast notification here if needed
+                        }
+                        is Result.Success -> {
+                            logd("Check-in successful: ${checkInResult.data.message}")
+                            // Could add toast notification here if needed
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            loge("Error during barcode check-in: ${e.message}")
+        }
     }
 } 

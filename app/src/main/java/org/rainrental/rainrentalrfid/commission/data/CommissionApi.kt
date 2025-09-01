@@ -29,6 +29,9 @@ interface CommissionApi {
 
     @POST("getAssetByTid")
     suspend fun getAssetByTid(@Body getAssetByTidRequest: GetAssetByTidRequestDto) : Response<AssetDetailsResponseDto>
+
+    @POST("checkInBarcode")
+    suspend fun checkInBarcode(@Body checkInBarcodeRequest: CheckInBarcodeRequestDto) : Response<CheckInBarcodeResponseDto>
 }
 
 data class GetAssetRequestDto(
@@ -39,6 +42,17 @@ data class GetAssetRequestDto(
 data class GetAssetByTidRequestDto(
     val tidHex: String,
     val companyId: String
+)
+
+data class CheckInBarcodeRequestDto(
+    val barcode: String,
+    val companyId: String
+)
+
+data class CheckInBarcodeResponseDto(
+    val success: Boolean,
+    val message: String,
+    val asset: AssetDetailsResponseDto? = null
 )
 
 data class IsTagAvailableRequestDto(

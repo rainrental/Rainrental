@@ -128,13 +128,6 @@ fun WaitingForBarcodeView(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Very obvious test change
-        Text(
-            text = "NEW VERSION 1.0.17 - INVENTORY ENHANCED",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary
-        )
-        
         InputWithIcon(
             text = "Scan a barcode to lookup asset sku".uppercase(),
             withResourceIcon = R.drawable.barcode,

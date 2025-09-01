@@ -20,10 +20,14 @@ class LogInventoryAllUseCase @Inject constructor(
             inventoryRepository.setSaving(true)
             
             val request = LogInventoryRequestDto(
+                epcFilter = "", // No specific EPC filter for inventory all
+                sku = "", // No specific SKU for inventory all
+                skuId = 0, // No specific SKU ID for inventory all
+                department = "", // No specific department for inventory all
+                departmentId = 0, // No specific department ID for inventory all
                 companyId = dependencies.context.getString(org.rainrental.rainrentalrfid.R.string.company_id),
-                assetSku = null, // No specific asset for inventory all
-                inventory = inventory,
-                isInventoryAll = true
+                admin = org.rainrental.rainrentalrfid.app.deviceSerial,
+                inventory = inventory
             )
             
             val result = inventoryRepository.logInventory(request)

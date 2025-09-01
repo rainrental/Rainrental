@@ -74,7 +74,8 @@ fun ContinuousScanningScreen(
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center){
         AnimatedVisibility(state == RfidHardwareState.Ready) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                Text("Press and hold trigger to scan")
+                Text("Press and hold trigger for RFID scanning")
+                Text("Press side button for barcode check-in", style = MaterialTheme.typography.bodySmall)
             }
         }
         AnimatedVisibility(state == RfidHardwareState.Scanning) {
