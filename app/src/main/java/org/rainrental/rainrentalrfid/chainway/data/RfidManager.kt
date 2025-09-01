@@ -264,11 +264,11 @@ object ChainwayRfidManager: RfidManager, Logger {
     /**
      * Creates an EPC filter for RainRental company tags
      * Based on the EPC structure: "1111" + companyIdBits + remainingBits
-     * For company ID 12: "1111" + "0000000000001100" + remainingBits
+     * For company ID 12: "1111" + "0000000000001100" (20 bits total)
      */
     private fun createRainRentalEpcFilter(companyId: Int): String {
-        // Convert company ID to 16-bit binary string
-        val companyIdBits = String.format("%016d", Integer.toBinaryString(companyId).toInt())
+        // Convert company ID to 16-bit binary string with proper padding
+        val companyIdBits = Integer.toBinaryString(companyId).padStart(16, '0')
         
         // RainRental standard prefix is "1111" (4 bits)
         // Company ID is 16 bits
@@ -276,6 +276,7 @@ object ChainwayRfidManager: RfidManager, Logger {
         val filterValue = "1111" + companyIdBits
         
         logd("Created RainRental EPC filter: $filterValue for company ID: $companyId")
+        logd("Filter breakdown: RainRental prefix='1111', Company ID bits='$companyIdBits'")
         return filterValue
     }
 
