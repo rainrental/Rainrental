@@ -7,6 +7,7 @@
     <string name="api_key_rain_rental" translatable="false">your-rainrental-api-key-here</string>
     <string name="base_url_firebase_functions" translatable="false">https://europe-west2-universal-pixels.cloudfunctions.net/</string>
     <string name="company_id">W5sUM5XnJfDUkMAu1AHe</string>
+    <string name="rain_company_id" translatable="false">12</string>
     <string name="authentication_error">Authentication Error</string>
     <string name="retry">Retry</string>
     <string name="checking_authentication">Checking authentication...</string>

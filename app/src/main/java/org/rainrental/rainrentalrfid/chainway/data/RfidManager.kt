@@ -83,6 +83,7 @@ interface RfidManager : LifecycleEventObserver {
     fun startContinuousScanning()
     fun stopContinuousScanning()
     fun getConnectionStatus(): StateFlow<Boolean>
+    fun setRainCompanyId(companyId: Int)
 }
 
 object ChainwayRfidManager: RfidManager, Logger {
@@ -97,6 +98,9 @@ object ChainwayRfidManager: RfidManager, Logger {
 
     // Add cleanup flag to prevent operations after cleanup
     private var isCleanedUp = false
+    
+    // RainRental company ID for EPC filtering
+    private var rainCompanyId: Int = 12 // Default value
     
     // Configuration - using hardcoded values since this is a singleton object
     private object Config {
@@ -189,6 +193,11 @@ object ChainwayRfidManager: RfidManager, Logger {
         return true
     }
 
+    override fun setRainCompanyId(companyId: Int) {
+        rainCompanyId = companyId
+        logd("Set RainRental company ID to: $companyId")
+    }
+
     override fun startContinuousScanning() {
         if (!checkCleanupState()) return
         
@@ -196,9 +205,10 @@ object ChainwayRfidManager: RfidManager, Logger {
             ensureActive()
             resetContinuousScanningStats()
             
-            // Clear any existing EPC filter before starting continuous scanning
-            clearEpcFilter()
-            logd("Starting continuous scanning with cleared EPC filter")
+            // Apply EPC filter for RainRental company tags
+            val epcFilter = createRainRentalEpcFilter(rainCompanyId)
+            configureEpcFilter(epcFilter)
+            logd("Starting continuous scanning with EPC filter: $epcFilter")
             
             rfid?.let { rf ->
                 val currentMode = rf.epcAndTIDUserMode
@@ -249,6 +259,24 @@ object ChainwayRfidManager: RfidManager, Logger {
 
     private fun containsTid(tid: String): Boolean {
         return _tagEvents.value.any { it.key == tid }
+    }
+
+    /**
+     * Creates an EPC filter for RainRental company tags
+     * Based on the EPC structure: "1111" + companyIdBits + remainingBits
+     * For company ID 12: "1111" + "0000000000001100" + remainingBits
+     */
+    private fun createRainRentalEpcFilter(companyId: Int): String {
+        // Convert company ID to 16-bit binary string
+        val companyIdBits = String.format("%016d", Integer.toBinaryString(companyId).toInt())
+        
+        // RainRental standard prefix is "1111" (4 bits)
+        // Company ID is 16 bits
+        // Total filter length is 20 bits
+        val filterValue = "1111" + companyIdBits
+        
+        logd("Created RainRental EPC filter: $filterValue for company ID: $companyId")
+        return filterValue
     }
 
     private suspend fun onTagEvent(tagData: UHFTAGInfo) {

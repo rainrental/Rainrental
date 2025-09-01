@@ -34,6 +34,13 @@ object CommissionRepositoryModule {
 
     @Provides
     @Singleton
+    @Named("rain_company_id")
+    fun provideRainCompanyId(context: Context): Int {
+        return context.getString(R.string.rain_company_id).toInt()
+    }
+
+    @Provides
+    @Singleton
 //    @Named("Production")
     fun providesCommissionRepository(commissionApi: CommissionApi, rainRentalApi: RainRentalApi, @Named("company_id") companyId: String) : CommissionRepository{
         return DefaultCommissionRepository(commissionApi, rainRentalApi, companyId)

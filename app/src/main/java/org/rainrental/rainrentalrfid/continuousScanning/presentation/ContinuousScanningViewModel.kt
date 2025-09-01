@@ -47,6 +47,7 @@ class ContinuousScanningViewModel @Inject constructor(
     private val scanBarcodeUseCase: ScanBarcodeUseCase,
     private val commissionApi: CommissionApi,
     @Named("company_id") private val companyId: String,
+    @Named("rain_company_id") private val rainCompanyId: Int,
     dependencies: BaseViewModelDependencies
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -78,6 +79,11 @@ class ContinuousScanningViewModel @Inject constructor(
     init {
         instanceCount++
         logd("ContinuousScanningViewModel initialized (instance #$instanceCount)")
+        
+        // Set the RainRental company ID for EPC filtering
+        dependencies.rfidManager.setRainCompanyId(rainCompanyId)
+        logd("Set RainRental company ID for EPC filtering: $rainCompanyId")
+        
         startContinuousScanningWatch()
     }
 
