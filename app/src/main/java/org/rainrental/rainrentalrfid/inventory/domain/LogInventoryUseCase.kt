@@ -19,17 +19,14 @@ class LogInventoryUseCase @Inject constructor(
 ) : Logger {
     suspend operator fun invoke(asset:AssetDetailsResponseDto, inventory:List<InventoryRecord>){
         val logInventoryRequestDto = LogInventoryRequestDto(
-            companyId = companyId,
-            assetSku = asset.sku,
-            inventory = inventory,
-            isInventoryAll = false,
-            // Legacy fields for backward compatibility
             epcFilter = asset.epc.slice(0..19),
-            skuId = asset.skuId,
             sku = asset.sku,
-            departmentId = asset.departmentId,
+            skuId = asset.skuId,
             department = asset.department,
-            admin = org.rainrental.rainrentalrfid.app.deviceSerial
+            departmentId = asset.departmentId,
+            companyId = companyId,
+            admin = org.rainrental.rainrentalrfid.app.deviceSerial,
+            inventory = inventory
         )
         logd("Logging inventory for SKU: ${asset.sku}, Company ID: $companyId, Admin: ${org.rainrental.rainrentalrfid.app.deviceSerial}, Inventory count: ${inventory.size}")
         inventoryRepository.setSaving(true)

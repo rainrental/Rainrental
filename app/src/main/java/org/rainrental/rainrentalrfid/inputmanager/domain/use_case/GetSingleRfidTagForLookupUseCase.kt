@@ -6,6 +6,7 @@ import org.rainrental.rainrentalrfid.inputmanager.data.manager.InputManager
 import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.result.InputError
 import org.rainrental.rainrentalrfid.result.Result
+import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.RfidTagInfo
 import javax.inject.Inject
 
 class GetSingleRfidTagForLookupUseCase @Inject constructor(
@@ -36,8 +37,3 @@ class GetSingleRfidTagForLookupUseCase @Inject constructor(
         }
     }
 }
-
-data class RfidTagInfo(
-    val tid:String,
-    val epc:String
-)
