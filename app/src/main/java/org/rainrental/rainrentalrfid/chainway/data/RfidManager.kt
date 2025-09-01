@@ -438,26 +438,22 @@ object ChainwayRfidManager: RfidManager, Logger {
                 
                 _scannedTags.value = emptyList()
                 
-                // Store original power to restore later
-                val originalPower = rfid?.power ?: Config.DEFAULT_POWER
-                
-                withPower?.let { power ->
-                    updateHardwareState(RfidHardwareState.Configuring)
-                    rfid?.setEPCAndTIDMode()
-                    rfid?.setPower(power)
-                    logd("Set RFID power to ${power}dB for single tag read")
-                }
+                // For single tag operations, always use 2dB (close-range scanning)
+                val singleTagPower = withPower ?: Config.WRITE_POWER
+                updateHardwareState(RfidHardwareState.Configuring)
+                rfid?.setEPCAndTIDMode()
+                rfid?.setPower(singleTagPower)
+                logd("Set RFID power to ${singleTagPower}dB for single tag read")
                 
                 updateHardwareState(RfidHardwareState.Scanning)
                 
                 val tag = rfid?.inventorySingleTag()
                 updateHardwareState(RfidHardwareState.Ready)
                 
-                // Restore original power after scanning
-                if (withPower != null) {
-                    rfid?.setPower(originalPower)
-                    logd("Restored RFID power to ${originalPower}dB after single tag read")
-                }
+                // After single tag read, always restore to DEFAULT_POWER (24dB)
+                // This ensures we're ready for the next operation
+                rfid?.setPower(Config.DEFAULT_POWER)
+                logd("Restored RFID power to ${Config.DEFAULT_POWER}dB after single tag read")
                 
                 tag?.let { t ->
                     if (t.tid.isNullOrBlank() || t.epc.isNullOrBlank()) {
@@ -486,12 +482,19 @@ object ChainwayRfidManager: RfidManager, Logger {
             if (configureTidFilter(tid)){
                 rfid?.let{rf->
                     rf.setPower(Config.WRITE_POWER)
+                    logd("Set RFID power to ${Config.WRITE_POWER}dB for tag writing")
                     val didWrite = rf.writeDataToEpc("00000000",epc)
                     if (didWrite){
                         configureTidFilter("")
+                        // Restore power to DEFAULT_POWER after writing
+                        rf.setPower(Config.DEFAULT_POWER)
+                        logd("Restored RFID power to ${Config.DEFAULT_POWER}dB after tag writing")
                         return@async Result.Success(true)
                     }else{
                         configureTidFilter("")
+                        // Restore power to DEFAULT_POWER even on failure
+                        rf.setPower(Config.DEFAULT_POWER)
+                        logd("Restored RFID power to ${Config.DEFAULT_POWER}dB after failed tag writing")
                         return@async Result.Error(InputError.WriteEpcError)
                     }
                 }?: return@async Result.Error(InputError.WriteEpcError)
