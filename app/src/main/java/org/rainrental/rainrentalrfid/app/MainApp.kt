@@ -72,6 +72,77 @@ import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
 
 @Composable
+fun CompactHardwareIndicator(
+    rfidState: RfidHardwareState,
+    barcodeState: BarcodeHardwareState,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        // RFID Status Indicator
+        Box(
+            modifier = Modifier.size(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Sensors,
+                contentDescription = "RFID Status",
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(12.dp)
+            )
+            // Status dot
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(
+                        color = when (rfidState) {
+                            RfidHardwareState.Ready -> Color.Green
+                            RfidHardwareState.Scanning, RfidHardwareState.Writing -> Color.Yellow
+                            RfidHardwareState.Error, RfidHardwareState.ShuttingDown -> Color.Red
+                            RfidHardwareState.Init, RfidHardwareState.Configuring -> Color.Yellow
+                            else -> Color.Gray
+                        },
+                        shape = CircleShape
+                    )
+                    .align(Alignment.TopEnd)
+            )
+        }
+        
+        // Barcode Status Indicator
+        Box(
+            modifier = Modifier.size(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.barcode),
+                contentDescription = "Barcode Status",
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(12.dp)
+            )
+            // Status dot
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(
+                        color = when (barcodeState) {
+                            BarcodeHardwareState.Ready -> Color.Green
+                            BarcodeHardwareState.Busy -> Color.Yellow
+                            BarcodeHardwareState.Error, BarcodeHardwareState.TimedOut -> Color.Red
+                            BarcodeHardwareState.Startup, BarcodeHardwareState.Initialising -> Color.Yellow
+                            else -> Color.Gray
+                        },
+                        shape = CircleShape
+                    )
+                    .align(Alignment.TopEnd)
+            )
+        }
+    }
+}
+
+@Composable
 fun MainApp(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -153,62 +224,12 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                // RFID Status Icon
-                                Box {
-                                    Icon(
-                                        imageVector = Icons.Default.Sensors,
-                                        contentDescription = "RFID Status",
-                                        tint = if (rfidHardwareState == RfidHardwareState.Ready) 
-                                            MaterialTheme.colorScheme.onSurface 
-                                        else 
-                                            MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    if (rfidHardwareState != RfidHardwareState.Ready) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(8.dp)
-                                                .background(
-                                                    color = when (rfidHardwareState) {
-                                                        RfidHardwareState.Init -> Color.Yellow
-                                                        RfidHardwareState.Configuring -> Color.Blue
-                                                        RfidHardwareState.Scanning -> Color.Green
-                                                        RfidHardwareState.ShuttingDown -> Color.Red
-                                                        else -> Color.Gray
-                                                    },
-                                                    shape = CircleShape
-                                                )
-                                                .align(Alignment.TopEnd)
-                                        )
-                                    }
-                                }
-                                
-                                // Barcode Status Icon
-                                Box {
-                                    Icon(
-                                        painter = painterResource(R.drawable.barcode),
-                                        contentDescription = "Barcode Status",
-                                        tint = if (scannerState == BarcodeHardwareState.Ready) 
-                                            MaterialTheme.colorScheme.onSurface 
-                                        else 
-                                            MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    if (scannerState != BarcodeHardwareState.Ready) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(8.dp)
-                                                .background(
-                                                    color = when (scannerState) {
-                                                        BarcodeHardwareState.Busy -> Color.Green
-                                                        else -> Color.Gray
-                                                    },
-                                                    shape = CircleShape
-                                                )
-                                                .align(Alignment.TopEnd)
-                                        )
-                                    }
-                                }
+                                // Compact Hardware Status Indicators (stacked vertically)
+                                CompactHardwareIndicator(
+                                    rfidState = rfidHardwareState,
+                                    barcodeState = scannerState,
+                                    modifier = Modifier.size(32.dp)
+                                )
                                 
                                 // Settings Button (only show if not on settings screen)
                                 if (!isSettingsScreen) {
