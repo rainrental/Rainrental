@@ -231,7 +231,15 @@ fun MainApp(modifier: Modifier = Modifier) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            // App Title or Back Button
+                            // Compact Hardware Status Indicators (leftmost)
+                            CompactHardwareIndicator(
+                                rfidState = rfidHardwareState,
+                                barcodeState = scannerState,
+                                deliveryState = deliveryState,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            
+                            // App Title or Back Button (center)
                             if (isSettingsScreen) {
                                 // Back button for settings screen
                                 IconButton(
@@ -250,29 +258,15 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 )
                             }
                             
-                            // Status Icons and Settings
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // Compact Hardware Status Indicators (stacked vertically)
-                                CompactHardwareIndicator(
-                                    rfidState = rfidHardwareState,
-                                    barcodeState = scannerState,
-                                    deliveryState = deliveryState,
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                
-                                // Settings Button (only show if not on settings screen)
-                                if (!isSettingsScreen) {
-                                    IconButton(
-                                        onClick = { navController.navigate(NavigationRoutes.Settings.route) }
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Settings,
-                                            contentDescription = "Settings"
-                                        )
-                                    }
+                            // Settings Button (rightmost)
+                            if (!isSettingsScreen) {
+                                IconButton(
+                                    onClick = { navController.navigate(NavigationRoutes.Settings.route) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = "Settings"
+                                    )
                                 }
                             }
                         }
