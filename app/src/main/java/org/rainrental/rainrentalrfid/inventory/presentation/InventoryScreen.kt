@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -86,13 +88,11 @@ fun InventoryScreen(
     modifier: Modifier = Modifier,
     uiFlow: InventoryFlow,
     inventory: Int = 0,
-    saving: Boolean = true,
+    saving: Boolean = false,
     isInventoryEmpty: Boolean = false,
     onEvent: (InventoryEvent) -> Unit
 ) {
-    // DEBUG: Log what UI flow we're in
-    android.util.Log.d("RainRental", "InventoryScreen - Current UI Flow: ${uiFlow::class.simpleName}")
-    
+
     when(uiFlow){
         is InventoryFlow.WaitingForBarcode -> {
             android.util.Log.d("RainRental", "InventoryScreen - Showing WaitingForBarcodeView")
@@ -131,15 +131,24 @@ fun WaitingForBarcodeView(
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.Center
     ) {
-        InputWithIcon(
-            text = "Scan a barcode to lookup asset sku".uppercase(),
-            withResourceIcon = R.drawable.barcode,
-            withError = uiFlow.withError
-        )
+//        InputWithIcon(
+//            text = "Scan a barcode to lookup asset sku".uppercase(),
+//            withResourceIcon = R.drawable.barcode,
+//            withError = uiFlow.withError,
+//            fill = false
+//        )
 
+        Text(
+            text = "Scan a barcode to lookup asset sku".uppercase(),
+            style = MaterialTheme.typography.titleSmall,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        Image(painter = painterResource(id = R.drawable.barcode), contentDescription = null, modifier = Modifier.size(30.dp))
+        Spacer(modifier = Modifier.height(16.dp))
         // Manual barcode entry section
+
         Text(
             text = "Or enter barcode manually:",
             style = MaterialTheme.typography.bodyMedium,
@@ -182,18 +191,19 @@ fun WaitingForBarcodeView(
             )
             
             Button(
-                onClick = { onEvent(InventoryEvent.InventoryAll) },
+                onClick = { /* Disabled for now */ },
+                enabled = false,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
+                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
                 )
             ) {
                 Text(
-                    text = "INVENTORY ALL",
+                    text = "INVENTORY ALL (DISABLED)",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
+                    color = Color.White.copy(alpha = 0.7f)
                 )
             }
         }
