@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
@@ -29,6 +31,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -118,8 +123,8 @@ fun WaitingForBarcodeView(
     uiFlow: InventoryFlow.WaitingForBarcode,
     onEvent: (InventoryEvent) -> Unit
 ) {
-    // Debug log
-    android.util.Log.d("RainRental", "WaitingForBarcodeView called - showing new buttons")
+    var barcodeText by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() }
     
     Column(
         modifier = Modifier
@@ -134,26 +139,47 @@ fun WaitingForBarcodeView(
             withError = uiFlow.withError
         )
 
+        // Manual barcode entry section
+        Text(
+            text = "Or enter barcode manually:",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        
+        OutlinedTextField(
+            value = barcodeText,
+            onValueChange = { barcodeText = it },
+            label = { Text("Barcode") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Search
+            ),
+            keyboardActions = KeyboardActions(
+                onSearch = {
+                    if (barcodeText.isNotBlank()) {
+                        onEvent(InventoryEvent.ManualBarcodeSubmitted(barcodeText.trim()))
+                    }
+                }
+            ),
+            singleLine = true
+        )
+
         // Action buttons with clear spacing
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Button(
-                onClick = { onEvent(InventoryEvent.ManualEntry) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Text(
-                    text = "MANUAL ENTRY",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
-            }
+            AppButton(
+                text = "Lookup",
+                onClick = {
+                    if (barcodeText.isNotBlank()) {
+                        onEvent(InventoryEvent.ManualBarcodeSubmitted(barcodeText.trim()))
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
             
             Button(
                 onClick = { onEvent(InventoryEvent.InventoryAll) },
