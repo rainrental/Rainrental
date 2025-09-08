@@ -20,7 +20,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -91,7 +93,7 @@ fun ContinuousScanningScreen(
         AnimatedVisibility(state == RfidHardwareState.Ready,enter = fadeIn(), exit = fadeOut()) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 Text("Press and hold trigger for RFID scanning")
-                Text("Press side button for barcode check-in", style = MaterialTheme.typography.bodySmall)
+                Text("Press left side button for barcode check-in", style = MaterialTheme.typography.bodySmall)
             }
         }
         AnimatedVisibility(state == RfidHardwareState.Scanning,enter = fadeIn(), exit = fadeOut()) {
@@ -104,63 +106,47 @@ fun ContinuousScanningScreen(
                 )
             }
         }
-        Box(modifier = Modifier.fillMaxSize().padding(bottom = 16.dp), contentAlignment = Alignment.BottomCenter){
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
-
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(bottom = 32.dp, start = 16.dp, end = 16.dp), 
+            contentAlignment = Alignment.BottomCenter
+        ){
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally, 
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 // Last scanned tag information
                 continuousScanningState.lastTagEvent?.let { lastTag ->
                     Text(
                         text = "Last Tag TID: ${lastTag.tid}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.tertiary,
-                        textDecoration = TextDecoration.Underline
+                        textDecoration = TextDecoration.Underline,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = "Last Tag EPC: ${lastTag.epc}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.tertiary,
-                        textDecoration = TextDecoration.Underline
+                        textDecoration = TextDecoration.Underline,
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                // EPC Filter toggle button
-//                Button(
-//                    onClick = onToggleFilter,
-//                    modifier = Modifier.padding(vertical = 8.dp)
-//                ) {
-//                    Text(
-//                        text = if (epcFilterEnabled) "Disable EPC Filter" else "Enable EPC Filter",
-//                        style = MaterialTheme.typography.labelMedium
-//                    )
-//                }
-
-                // Status information
-                Text(
-                    text = "Delivery State: ${deliveryState.name}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (deliveryState == DeliveryConnectionState.CONNECTED) Color.Green else Color.Red,
-                    textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable { onStatusClick() }
-                )
-                Text(
-                    text = "Current Server: $currentServer",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    textDecoration = TextDecoration.Underline,
-                    modifier = Modifier.clickable { onStatusClick() }
-                )
                 Text(
                     text = "EPC Filter: ${if (epcFilterEnabled) currentEpcFilter else "DISABLED"}",
                     style = MaterialTheme.typography.labelSmall,
                     color = if (epcFilterEnabled) MaterialTheme.colorScheme.secondary else Color.Red,
-                    textDecoration = TextDecoration.Underline
+                    textDecoration = TextDecoration.Underline,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-//                Text(
-//                    text = "Company ID: $rainCompanyId",
-//                    style = MaterialTheme.typography.labelSmall,
-//                    color = MaterialTheme.colorScheme.secondary,
-//                    textDecoration = TextDecoration.Underline
-//                )
             }
         }
     }
