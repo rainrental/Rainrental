@@ -99,56 +99,56 @@ fun ContinuousScanningScreen(
         AnimatedVisibility(state == RfidHardwareState.Scanning,enter = fadeIn(), exit = fadeOut()) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 RfidScanningAnimation(
-                    text = continuousScanningState.uniqueCount.toString(), 
-                    rssi = continuousScanningState.lastRssi, 
+                    text = continuousScanningState.uniqueCount.toString(),
+                    rssi = continuousScanningState.lastRssi,
                     completion = 0f,
                     tid = continuousScanningState.lastTagEvent?.tid
                 )
             }
         }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = 32.dp, start = 16.dp, end = 16.dp), 
-            contentAlignment = Alignment.BottomCenter
-        ){
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally, 
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                // Last scanned tag information
-                continuousScanningState.lastTagEvent?.let { lastTag ->
-                    Text(
-                        text = "Last Tag TID: ${lastTag.tid}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        textDecoration = TextDecoration.Underline,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = "Last Tag EPC: ${lastTag.epc}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        textDecoration = TextDecoration.Underline,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Text(
-                    text = "EPC Filter: ${if (epcFilterEnabled) currentEpcFilter else "DISABLED"}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (epcFilterEnabled) MaterialTheme.colorScheme.secondary else Color.Red,
-                    textDecoration = TextDecoration.Underline,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(bottom = 32.dp, start = 16.dp, end = 16.dp),
+//            contentAlignment = Alignment.BottomCenter
+//        ){
+//            Column(
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.spacedBy(4.dp)
+//            ) {
+//                // Last scanned tag information
+//                continuousScanningState.lastTagEvent?.let { lastTag ->
+//                    Text(
+//                        text = "Last Tag TID: ${lastTag.tid}",
+//                        style = MaterialTheme.typography.labelSmall,
+//                        color = MaterialTheme.colorScheme.tertiary,
+//                        textDecoration = TextDecoration.Underline,
+//                        textAlign = TextAlign.Center,
+//                        maxLines = 2,
+//                        overflow = TextOverflow.Ellipsis
+//                    )
+//                    Text(
+//                        text = "Last Tag EPC: ${lastTag.epc}",
+//                        style = MaterialTheme.typography.labelSmall,
+//                        color = MaterialTheme.colorScheme.tertiary,
+//                        textDecoration = TextDecoration.Underline,
+//                        textAlign = TextAlign.Center,
+//                        maxLines = 2,
+//                        overflow = TextOverflow.Ellipsis
+//                    )
+//                }
+//
+//                Text(
+//                    text = "EPC Filter: ${if (epcFilterEnabled) currentEpcFilter else "DISABLED"}",
+//                    style = MaterialTheme.typography.labelSmall,
+//                    color = if (epcFilterEnabled) MaterialTheme.colorScheme.secondary else Color.Red,
+//                    textDecoration = TextDecoration.Underline,
+//                    textAlign = TextAlign.Center,
+//                    maxLines = 1,
+//                    overflow = TextOverflow.Ellipsis
+//                )
+//            }
+//        }
     }
 }
 

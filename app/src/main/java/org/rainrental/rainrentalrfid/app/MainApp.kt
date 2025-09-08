@@ -227,7 +227,8 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 .windowInsetsPadding(WindowInsets.statusBars)
                                 .height(56.dp)
                                 .background(MaterialTheme.colorScheme.surface)
-                                .padding(horizontal = 16.dp),
+//                                .padding(horizontal = 16.dp)
+                                ,
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {

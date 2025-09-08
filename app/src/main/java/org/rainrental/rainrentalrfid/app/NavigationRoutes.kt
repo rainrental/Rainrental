@@ -27,7 +27,7 @@ enum class NavigationRoutes(val route: String, val title: String){
     ),
     Lookup(
         route = "route_lookup",
-        title = "Lookup"
+        title = "Tag Lookup"
     ),
     Settings(
         route = "route_settings",
