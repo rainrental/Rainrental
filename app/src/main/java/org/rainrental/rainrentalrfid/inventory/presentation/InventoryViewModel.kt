@@ -108,7 +108,7 @@ class InventoryViewModel @Inject constructor(
 
             is InventoryEvent.ManualBarcodeSubmitted -> {
                 when (uiFlow.value){
-                    is InventoryFlow.ManualBarcodeEntry -> viewModelScope.launch{
+                    is InventoryFlow.WaitingForBarcode, is InventoryFlow.ManualBarcodeEntry -> viewModelScope.launch{
                         val barcode = event.barcode
                         if (barcode.isNotBlank()) {
                             inventoryRepository.updateUiFlow(InventoryFlow.LookingUpAsset(barcode = barcode))
