@@ -39,6 +39,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Mail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,6 +58,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import org.rainrental.rainrentalrfid.chainway.data.BarcodeHardwareState
 import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
+import org.rainrental.rainrentalrfid.continuousScanning.data.DeliveryConnectionState
 import org.rainrental.rainrentalrfid.chainway.presentation.RfidScreen
 import org.rainrental.rainrentalrfid.chainway.presentation.RfidViewModel
 import org.rainrental.rainrentalrfid.commission.presentation.CommissionScreen
@@ -75,6 +77,7 @@ import org.rainrental.rainrentalrfid.auth.AuthViewModel
 fun CompactHardwareIndicator(
     rfidState: RfidHardwareState,
     barcodeState: BarcodeHardwareState,
+    deliveryState: DeliveryConnectionState,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -139,6 +142,34 @@ fun CompactHardwareIndicator(
                     .align(Alignment.TopEnd)
             )
         }
+        
+        // Delivery Status Indicator
+        Box(
+            modifier = Modifier.size(16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Mail,
+                contentDescription = "Delivery Status",
+                tint = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.size(12.dp)
+            )
+            // Status dot
+            Box(
+                modifier = Modifier
+                    .size(6.dp)
+                    .background(
+                        color = when (deliveryState) {
+                            DeliveryConnectionState.CONNECTED -> Color.Green
+                            DeliveryConnectionState.CONNECTING, DeliveryConnectionState.INIT -> Color.Yellow
+                            DeliveryConnectionState.ERROR, DeliveryConnectionState.DEAD -> Color.Red
+                            DeliveryConnectionState.WAITING_FOR_IP -> Color.Yellow
+                        },
+                        shape = CircleShape
+                    )
+                    .align(Alignment.TopEnd)
+            )
+        }
     }
 }
 
@@ -149,6 +180,8 @@ fun MainApp(modifier: Modifier = Modifier) {
     val snackbarHostState = remember { SnackbarHostState() }
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.authState.collectAsState()
+    val mainAppViewModel: MainAppViewModel = hiltViewModel()
+    val deliveryState by mainAppViewModel.deliveryState.collectAsState()
 
     Toaster(snackbarHostState = snackbarHostState)
 
@@ -228,6 +261,7 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 CompactHardwareIndicator(
                                     rfidState = rfidHardwareState,
                                     barcodeState = scannerState,
+                                    deliveryState = deliveryState,
                                     modifier = Modifier.size(32.dp)
                                 )
                                 
