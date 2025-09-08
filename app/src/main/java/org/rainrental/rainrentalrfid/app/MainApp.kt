@@ -50,6 +50,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.rainrental.rainrentalrfid.R
 import androidx.navigation.compose.NavHost
@@ -86,9 +87,9 @@ fun CompactHardwareIndicator(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         // RFID Status Indicator
-        Box(
-            modifier = Modifier.size(16.dp),
-            contentAlignment = Alignment.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Sensors,
@@ -110,14 +111,13 @@ fun CompactHardwareIndicator(
                         },
                         shape = CircleShape
                     )
-                    .align(Alignment.TopEnd)
             )
         }
         
         // Barcode Status Indicator
-        Box(
-            modifier = Modifier.size(16.dp),
-            contentAlignment = Alignment.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Icon(
                 painter = painterResource(R.drawable.barcode),
@@ -139,14 +139,13 @@ fun CompactHardwareIndicator(
                         },
                         shape = CircleShape
                     )
-                    .align(Alignment.TopEnd)
             )
         }
         
         // Delivery Status Indicator
-        Box(
-            modifier = Modifier.size(16.dp),
-            contentAlignment = Alignment.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Mail,
@@ -167,7 +166,6 @@ fun CompactHardwareIndicator(
                         },
                         shape = CircleShape
                     )
-                    .align(Alignment.TopEnd)
             )
         }
     }
@@ -262,7 +260,7 @@ fun MainApp(modifier: Modifier = Modifier) {
                                     rfidState = rfidHardwareState,
                                     barcodeState = scannerState,
                                     deliveryState = deliveryState,
-                                    modifier = Modifier.size(32.dp)
+                                    modifier = Modifier.size(48.dp)
                                 )
                                 
                                 // Settings Button (only show if not on settings screen)
@@ -332,6 +330,15 @@ fun MainApp(modifier: Modifier = Modifier) {
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun IconPreview(){
+    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+        CompactHardwareIndicator(rfidState = RfidHardwareState.Ready, barcodeState = BarcodeHardwareState.Ready, deliveryState = DeliveryConnectionState.CONNECTED)
+    }
+
 }
 
 
