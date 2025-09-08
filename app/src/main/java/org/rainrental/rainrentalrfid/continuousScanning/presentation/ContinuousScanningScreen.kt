@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,9 +13,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.Sensors
+import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,6 +42,39 @@ import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
 import org.rainrental.rainrentalrfid.continuousScanning.data.DeliveryConnectionState
 import org.rainrental.rainrentalrfid.continuousScanning.data.ContinuousScanningState
 import org.rainrental.rainrentalrfid.continuousScanning.presentation.RfidScanningAnimation
+
+@Composable
+fun DeliveryStatusIcon(
+    deliveryState: DeliveryConnectionState,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier.size(16.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Cloud,
+            contentDescription = "Delivery Status",
+            tint = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.size(12.dp)
+        )
+        // Status dot
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .background(
+                    color = when (deliveryState) {
+                        DeliveryConnectionState.CONNECTED -> Color.Green
+                        DeliveryConnectionState.CONNECTING, DeliveryConnectionState.INIT -> Color.Yellow
+                        DeliveryConnectionState.ERROR, DeliveryConnectionState.DEAD -> Color.Red
+                        DeliveryConnectionState.WAITING_FOR_IP -> Color.Yellow
+                    },
+                    shape = CircleShape
+                )
+                .align(Alignment.TopEnd)
+        )
+    }
+}
 
 @Composable
 fun ContinuousScanningScreen() {
@@ -108,6 +149,71 @@ fun ContinuousScanningScreen(
         }
         Box(modifier = Modifier.fillMaxSize().padding(bottom = 16.dp), contentAlignment = Alignment.BottomCenter){
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
+                // Hardware Status Icons (stacked vertically)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                ) {
+                    // RFID Status Icon
+                    Box(
+                        modifier = Modifier.size(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sensors,
+                            contentDescription = "RFID Status",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        // Status dot
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(
+                                    color = when (state) {
+                                        RfidHardwareState.Ready -> Color.Green
+                                        RfidHardwareState.Scanning, RfidHardwareState.Writing -> Color.Yellow
+                                        RfidHardwareState.Error, RfidHardwareState.ShuttingDown -> Color.Red
+                                        RfidHardwareState.Init, RfidHardwareState.Configuring -> Color.Yellow
+                                        else -> Color.Gray
+                                    },
+                                    shape = CircleShape
+                                )
+                                .align(Alignment.TopEnd)
+                        )
+                    }
+                    
+                    // Barcode Status Icon (simplified - always ready for now)
+                    Box(
+                        modifier = Modifier.size(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.QrCodeScanner,
+                            contentDescription = "Barcode Status",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        // Status dot - always green for now since barcode scanning works
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .background(
+                                    color = Color.Green,
+                                    shape = CircleShape
+                                )
+                                .align(Alignment.TopEnd)
+                        )
+                    }
+                    
+                    // Delivery Status Icon
+                    DeliveryStatusIcon(
+                        deliveryState = deliveryState,
+                        modifier = Modifier.clickable { onStatusClick() }
+                    )
+                }
+
                 // Last scanned tag information
                 continuousScanningState.lastTagEvent?.let { lastTag ->
                     Text(
@@ -125,15 +231,15 @@ fun ContinuousScanningScreen(
                 }
 
                 // EPC Filter toggle button
-                Button(
-                    onClick = onToggleFilter,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                ) {
-                    Text(
-                        text = if (epcFilterEnabled) "Disable EPC Filter" else "Enable EPC Filter",
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
+//                Button(
+//                    onClick = onToggleFilter,
+//                    modifier = Modifier.padding(vertical = 8.dp)
+//                ) {
+//                    Text(
+//                        text = if (epcFilterEnabled) "Disable EPC Filter" else "Enable EPC Filter",
+//                        style = MaterialTheme.typography.labelMedium
+//                    )
+//                }
 
                 // Status information
                 Text(
