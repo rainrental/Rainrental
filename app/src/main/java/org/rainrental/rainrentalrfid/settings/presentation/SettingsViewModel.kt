@@ -15,12 +15,16 @@ import org.rainrental.rainrentalrfid.update.UpdateInfo
 import org.rainrental.rainrentalrfid.settings.presentation.ButtonState
 import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
+import android.content.Context
+import android.media.AudioManager
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     dependencies: BaseViewModelDependencies,
-    private val updateManager: UpdateManager
+    private val updateManager: UpdateManager,
+    @ApplicationContext private val context: Context
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
     private val _mqttServerIp = MutableStateFlow("")
@@ -28,6 +32,23 @@ class SettingsViewModel @Inject constructor(
 
     private val _ignoreRightSideKey = MutableStateFlow(false)
     val ignoreRightSideKey: StateFlow<Boolean> = _ignoreRightSideKey.asStateFlow()
+
+    // Volume control state
+    private val _systemVolume = MutableStateFlow(0)
+    val systemVolume: StateFlow<Int> = _systemVolume.asStateFlow()
+    
+    private val _maxSystemVolume = MutableStateFlow(15)
+    val maxSystemVolume: StateFlow<Int> = _maxSystemVolume.asStateFlow()
+    
+    private val audioManager: AudioManager by lazy {
+        context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    }
+
+    init {
+        // Initialize volume state
+        _maxSystemVolume.value = getMaxSystemVolume()
+        getCurrentSystemVolume()
+    }
 
     // Update-related state
     private val _updateStatus = MutableStateFlow<String?>(null)
@@ -277,5 +298,33 @@ class SettingsViewModel @Inject constructor(
     fun revokeAuthentication() {
         logd("SETTINGS VIEWMODEL: revokeAuthentication called")
         _showRevokeConfirmation.value = false
+    }
+    
+    // Volume control functions
+    fun getCurrentSystemVolume(): Int {
+        val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        _systemVolume.value = currentVolume
+        logd("Current system volume: $currentVolume")
+        return currentVolume
+    }
+    
+    fun setSystemVolume(volume: Int) {
+        val maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        val clampedVolume = volume.coerceIn(0, maxVolume)
+        
+        // Set all volume streams to the same level
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, clampedVolume, 0)
+        audioManager.setStreamVolume(AudioManager.STREAM_RING, clampedVolume, 0)
+        audioManager.setStreamVolume(AudioManager.STREAM_ALARM, clampedVolume, 0)
+        audioManager.setStreamVolume(AudioManager.STREAM_NOTIFICATION, clampedVolume, 0)
+        audioManager.setStreamVolume(AudioManager.STREAM_SYSTEM, clampedVolume, 0)
+        audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, clampedVolume, 0)
+        
+        _systemVolume.value = clampedVolume
+        logd("System volume set to: $clampedVolume (max: $maxVolume)")
+    }
+    
+    fun getMaxSystemVolume(): Int {
+        return audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
     }
 }

@@ -75,20 +75,36 @@ class ContinuousScanningViewModel @Inject constructor(
     
     // Expose AppConfig for UI access
     val appConfigState = kotlinx.coroutines.flow.MutableStateFlow(appConfig).asStateFlow()
+    
+    // Expose EPC filter information for UI
+    private val _currentEpcFilter = kotlinx.coroutines.flow.MutableStateFlow("")
+    val currentEpcFilter = _currentEpcFilter.asStateFlow()
+    
+    private val _currentRainCompanyId = kotlinx.coroutines.flow.MutableStateFlow(0)
+    val currentRainCompanyId = _currentRainCompanyId.asStateFlow()
+    
+    private val _epcFilterEnabled = kotlinx.coroutines.flow.MutableStateFlow(true)
+    val epcFilterEnabled = _epcFilterEnabled.asStateFlow()
 
     init {
         instanceCount++
         logd("ContinuousScanningViewModel initialized (instance #$instanceCount)")
         
-        // Set the RainRental company ID for EPC filtering
+        // Set the RainRental company ID for EPC filtering FIRST
         dependencies.rfidManager.setRainCompanyId(rainCompanyId)
         logd("Set RainRental company ID for EPC filtering: $rainCompanyId")
+        
+        // THEN initialize the EPC filter display with the correct company ID
+        _currentEpcFilter.value = dependencies.rfidManager.getCurrentEpcFilter()
+        _currentRainCompanyId.value = dependencies.rfidManager.getRainCompanyId()
+        logd("EPC filter display initialized with: ${_currentEpcFilter.value}")
         
         startContinuousScanningWatch()
     }
 
     private var continuousScanningWatchJob : Job? = null
     private var isScanning = false
+    private var isScreenActive = false
 
     private fun startContinuousScanningWatch(){
         continuousScanningWatchJob?.cancel()
@@ -175,6 +191,11 @@ class ContinuousScanningViewModel @Inject constructor(
     }
 
     override fun onTriggerDown() {
+        if (!isScreenActive) {
+            logd("Continuous Scanning Trigger Down - Ignored (screen not active)")
+            return
+        }
+        
         if (!isScanning) {
             logd("Continuous Scanning Trigger Down - Starting RFID continuous scanning")
             isScanning = true
@@ -184,6 +205,11 @@ class ContinuousScanningViewModel @Inject constructor(
     }
 
     override fun onTriggerUp() {
+        if (!isScreenActive) {
+            logd("Continuous Scanning Trigger Up - Ignored (screen not active)")
+            return
+        }
+        
         if (isScanning) {
             logd("Continuous Scanning Trigger Up - Stopping RFID continuous scanning")
             isScanning = false
@@ -207,6 +233,7 @@ class ContinuousScanningViewModel @Inject constructor(
 
     override fun onCleared() {
         logd("ContinuousScanningViewModel being cleared")
+        isScreenActive = false
         continuousScanningWatchJob?.cancel()
         // Ensure scanning is stopped when ViewModel is cleared
         if (isScanning) {
@@ -224,6 +251,35 @@ class ContinuousScanningViewModel @Inject constructor(
         logd("Restarting MQTT connection")
         val serverIp = appConfig.getMqttServerIp(context)
         mqttDeliveryService.restartWithNewServer(serverIp)
+    }
+    
+    /**
+     * Toggles the EPC filter on/off
+     */
+    fun toggleEpcFilter() {
+        val newState = !_epcFilterEnabled.value
+        _epcFilterEnabled.value = newState
+        dependencies.rfidManager.setEpcFilterEnabled(newState)
+        logd("EPC filter toggled to: $newState")
+    }
+    
+    
+    override fun onScreenResumed() {
+        isScreenActive = true
+        logd("Continuous Scanning screen resumed - hardware events enabled")
+    }
+    
+    override fun onScreenPaused() {
+        isScreenActive = false
+        logd("Continuous Scanning screen paused - hardware events disabled")
+        
+        // Stop any ongoing scanning when screen is paused
+        if (isScanning) {
+            logd("Stopping continuous scanning due to screen pause")
+            isScanning = false
+            dependencies.scanningLifecycleManager.setScanningState(false)
+            dependencies.rfidManager.stopContinuousScanning()
+        }
     }
 
     /**

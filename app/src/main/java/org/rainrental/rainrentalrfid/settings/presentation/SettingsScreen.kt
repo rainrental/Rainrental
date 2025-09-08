@@ -25,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Slider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -70,6 +71,8 @@ fun SettingsScreen() {
     
     val mqttServerIp by settingsViewModel.mqttServerIp.collectAsState()
     val ignoreRightSideKey by settingsViewModel.ignoreRightSideKey.collectAsState()
+    val systemVolume by settingsViewModel.systemVolume.collectAsState()
+    val maxSystemVolume by settingsViewModel.maxSystemVolume.collectAsState()
     val updateStatus by settingsViewModel.updateStatus.collectAsState()
     val updateProgress by settingsViewModel.updateProgress.collectAsState()
     val isUpdateInProgress by settingsViewModel.isUpdateInProgress.collectAsState()
@@ -93,12 +96,15 @@ fun SettingsScreen() {
         modifier = Modifier,
         mqttServerIp = mqttServerIp,
         ignoreRightSideKey = ignoreRightSideKey,
+        systemVolume = systemVolume,
+        maxSystemVolume = maxSystemVolume,
         updateStatus = updateStatus,
         updateProgress = updateProgress,
         isUpdateInProgress = isUpdateInProgress,
         installedVersion = installedVersion,
         onMqttServerIpChange = settingsViewModel::setMqttServerIp,
         onIgnoreRightSideKeyChange = settingsViewModel::setIgnoreRightSideKey,
+        onSystemVolumeChange = settingsViewModel::setSystemVolume,
         onCheckForUpdates = { forceCheck ->
             settingsViewModel.checkForUpdates(forceCheck)
         },
@@ -123,12 +129,15 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     mqttServerIp: String = "",
     ignoreRightSideKey: Boolean = false,
+    systemVolume: Int = 0,
+    maxSystemVolume: Int = 15,
     updateStatus: String? = null,
     updateProgress: Float = 0f,
     isUpdateInProgress: Boolean = false,
     installedVersion: String = "",
     onMqttServerIpChange: (String) -> Unit = {},
     onIgnoreRightSideKeyChange: (Boolean) -> Unit = {},
+    onSystemVolumeChange: (Int) -> Unit = {},
     onCheckForUpdates: (Boolean) -> Unit = { _ -> },
     onClearUpdateStatus: () -> Unit = {},
     onDebugVersion: () -> Unit = {},
@@ -164,7 +173,10 @@ fun SettingsScreen(
         when (selectedTab) {
             SettingsTab.GENERAL -> GeneralTab(
                 mqttServerIp = mqttServerIp,
-                onMqttServerIpChange = onMqttServerIpChange
+                systemVolume = systemVolume,
+                maxSystemVolume = maxSystemVolume,
+                onMqttServerIpChange = onMqttServerIpChange,
+                onSystemVolumeChange = onSystemVolumeChange
             )
             SettingsTab.AUTHENTICATION -> AuthenticationTab(
                 authState = authState,
@@ -271,7 +283,10 @@ enum class ButtonState {
 @Composable
 fun GeneralTab(
     mqttServerIp: String,
-    onMqttServerIpChange: (String) -> Unit
+    systemVolume: Int,
+    maxSystemVolume: Int,
+    onMqttServerIpChange: (String) -> Unit,
+    onSystemVolumeChange: (Int) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -294,6 +309,47 @@ fun GeneralTab(
                 label = { Text("Server IP/Hostname") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
+            )
+        }
+        
+        // System Volume Control
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "System Volume",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = "Controls all system volumes (Media, Ring, Alarm, Notification, Call)",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "0",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Slider(
+                    value = systemVolume.toFloat(),
+                    onValueChange = { onSystemVolumeChange(it.toInt()) },
+                    valueRange = 0f..maxSystemVolume.toFloat(),
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = maxSystemVolume.toString(),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            Text(
+                text = "Current Volume: $systemVolume",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }

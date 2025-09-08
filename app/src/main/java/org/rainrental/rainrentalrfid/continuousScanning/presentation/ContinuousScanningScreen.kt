@@ -2,12 +2,17 @@ package org.rainrental.rainrentalrfid.continuousScanning.presentation
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +42,9 @@ fun ContinuousScanningScreen() {
     val continuousScanningState by continuousScanningViewModel.continuousScanningState.collectAsState()
     val deliveryState by continuousScanningViewModel.deliverState.collectAsState()
     val currentServer by continuousScanningViewModel.currentServer.collectAsState()
+    val currentEpcFilter by continuousScanningViewModel.currentEpcFilter.collectAsState()
+    val currentRainCompanyId by continuousScanningViewModel.currentRainCompanyId.collectAsState()
+    val epcFilterEnabled by continuousScanningViewModel.epcFilterEnabled.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     
     // Handle back navigation and lifecycle events
@@ -54,10 +62,16 @@ fun ContinuousScanningScreen() {
         continuousScanningState = continuousScanningState,
         deliveryState = deliveryState, 
         currentServer = currentServer,
+        currentEpcFilter = currentEpcFilter,
+        rainCompanyId = currentRainCompanyId,
+        epcFilterEnabled = epcFilterEnabled,
         onStatusClick = {
             coroutineScope.launch {
                 continuousScanningViewModel.restartMqttConnection()
             }
+        },
+        onToggleFilter = {
+            continuousScanningViewModel.toggleEpcFilter()
         }
     )
 }
@@ -69,16 +83,20 @@ fun ContinuousScanningScreen(
     continuousScanningState: ContinuousScanningState = ContinuousScanningState(),
     deliveryState: DeliveryConnectionState = DeliveryConnectionState.DEAD,
     currentServer: String? = "",
-    onStatusClick: () -> Unit = {}
+    currentEpcFilter: String = "",
+    rainCompanyId: Int = 0,
+    epcFilterEnabled: Boolean = true,
+    onStatusClick: () -> Unit = {},
+    onToggleFilter: () -> Unit = {}
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center){
-        AnimatedVisibility(state == RfidHardwareState.Ready) {
+        AnimatedVisibility(state == RfidHardwareState.Ready,enter = fadeIn(), exit = fadeOut()) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 Text("Press and hold trigger for RFID scanning")
                 Text("Press side button for barcode check-in", style = MaterialTheme.typography.bodySmall)
             }
         }
-        AnimatedVisibility(state == RfidHardwareState.Scanning) {
+        AnimatedVisibility(state == RfidHardwareState.Scanning,enter = fadeIn(), exit = fadeOut()) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 RfidScanningAnimation(
                     text = continuousScanningState.uniqueCount.toString(), 
@@ -90,20 +108,60 @@ fun ContinuousScanningScreen(
         }
         Box(modifier = Modifier.fillMaxSize().padding(bottom = 16.dp), contentAlignment = Alignment.BottomCenter){
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Bottom) {
+                // Last scanned tag information
+                continuousScanningState.lastTagEvent?.let { lastTag ->
+                    Text(
+                        text = "Last Tag TID: ${lastTag.tid}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        textDecoration = TextDecoration.Underline
+                    )
+                    Text(
+                        text = "Last Tag EPC: ${lastTag.epc}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        textDecoration = TextDecoration.Underline
+                    )
+                }
+
+                // EPC Filter toggle button
+                Button(
+                    onClick = onToggleFilter,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = if (epcFilterEnabled) "Disable EPC Filter" else "Enable EPC Filter",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+
+                // Status information
                 Text(
-                    text = "Delivery State: ${deliveryState.name}", 
+                    text = "Delivery State: ${deliveryState.name}",
                     style = MaterialTheme.typography.labelSmall,
                     color = if (deliveryState == DeliveryConnectionState.CONNECTED) Color.Green else Color.Red,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable { onStatusClick() }
                 )
                 Text(
-                    text = "Current Server: $currentServer", 
+                    text = "Current Server: $currentServer",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.primary,
                     textDecoration = TextDecoration.Underline,
                     modifier = Modifier.clickable { onStatusClick() }
                 )
+                Text(
+                    text = "EPC Filter: ${if (epcFilterEnabled) currentEpcFilter else "DISABLED"}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (epcFilterEnabled) MaterialTheme.colorScheme.secondary else Color.Red,
+                    textDecoration = TextDecoration.Underline
+                )
+//                Text(
+//                    text = "Company ID: $rainCompanyId",
+//                    style = MaterialTheme.typography.labelSmall,
+//                    color = MaterialTheme.colorScheme.secondary,
+//                    textDecoration = TextDecoration.Underline
+//                )
             }
         }
     }
@@ -115,7 +173,10 @@ fun ContinuousScanningScreenPreviewStopped() {
     ContinuousScanningScreen(
         modifier = Modifier,
         state = RfidHardwareState.Ready, 
-        continuousScanningState = ContinuousScanningState()
+        continuousScanningState = ContinuousScanningState(),
+        currentEpcFilter = "11110000000000001100",
+        rainCompanyId = 12,
+        epcFilterEnabled = true
     )
 }
 
@@ -125,6 +186,9 @@ fun ContinuousScanningScreenPreview() {
     ContinuousScanningScreen(
         modifier = Modifier,
         state = RfidHardwareState.Scanning, 
-        continuousScanningState = ContinuousScanningState()
+        continuousScanningState = ContinuousScanningState(),
+        currentEpcFilter = "11110000000000001100",
+        rainCompanyId = 12,
+        epcFilterEnabled = true
     )
 } 

@@ -84,6 +84,9 @@ interface RfidManager : LifecycleEventObserver {
     fun stopContinuousScanning()
     fun getConnectionStatus(): StateFlow<Boolean>
     fun setRainCompanyId(companyId: Int)
+    fun getCurrentEpcFilter(): String
+    fun getRainCompanyId(): Int
+    fun setEpcFilterEnabled(enabled: Boolean)
 }
 
 object ChainwayRfidManager: RfidManager, Logger {
@@ -101,6 +104,7 @@ object ChainwayRfidManager: RfidManager, Logger {
     
     // RainRental company ID for EPC filtering
     private var rainCompanyId: Int = 12 // Default value
+    private var epcFilterEnabled: Boolean = true // Default to enabled
     
     // Configuration - using hardcoded values since this is a singleton object
     private object Config {
@@ -143,26 +147,9 @@ object ChainwayRfidManager: RfidManager, Logger {
 
     private val orientationManager = OrientationManager
 
-    // Add state validation helper
-    private fun canTransitionTo(newState: RfidHardwareState): Boolean {
-        return when (newState) {
-            RfidHardwareState.Init -> true
-            RfidHardwareState.Configuring -> _hardwareState.value != RfidHardwareState.Sleeping
-            RfidHardwareState.Ready -> _hardwareState.value in listOf(RfidHardwareState.Init, RfidHardwareState.Configuring, RfidHardwareState.Scanning, RfidHardwareState.Writing)
-            RfidHardwareState.Scanning -> _hardwareState.value in listOf(RfidHardwareState.Ready, RfidHardwareState.Configuring)
-            RfidHardwareState.Writing -> _hardwareState.value == RfidHardwareState.Ready
-            RfidHardwareState.Error -> true
-            RfidHardwareState.ShuttingDown -> _hardwareState.value != RfidHardwareState.Sleeping
-            RfidHardwareState.Sleeping -> _hardwareState.value == RfidHardwareState.ShuttingDown
-        }
-    }
-
     private fun updateHardwareState(newState: RfidHardwareState) {
-        if (canTransitionTo(newState)) {
-            _hardwareState.update { newState }
-        } else {
-            loge("Invalid state transition from ${_hardwareState.value} to $newState")
-        }
+        _hardwareState.update { newState }
+        logd("Hardware state updated to: $newState")
     }
 
     // Add cleanup method for proper resource management
@@ -197,6 +184,25 @@ object ChainwayRfidManager: RfidManager, Logger {
         rainCompanyId = companyId
         logd("Set RainRental company ID to: $companyId")
     }
+    
+    /**
+     * Gets the current EPC filter string for RainRental company tags
+     */
+    override fun getCurrentEpcFilter(): String {
+        return createRainRentalEpcFilter(rainCompanyId)
+    }
+    
+    /**
+     * Gets the current RainRental company ID
+     */
+    override fun getRainCompanyId(): Int {
+        return rainCompanyId
+    }
+    
+    override fun setEpcFilterEnabled(enabled: Boolean) {
+        epcFilterEnabled = enabled
+        logd("EPC filter enabled set to: $enabled")
+    }
 
     override fun startContinuousScanning() {
         if (!checkCleanupState()) return
@@ -205,30 +211,73 @@ object ChainwayRfidManager: RfidManager, Logger {
             ensureActive()
             resetContinuousScanningStats()
             
-            // TEMPORARILY DISABLE EPC FILTER FOR TESTING
-            // Apply EPC filter for RainRental company tags
-            // val epcFilter = createRainRentalEpcFilter(rainCompanyId)
-            // configureEpcFilter(epcFilter)
-            // logd("Starting continuous scanning with EPC filter: $epcFilter")
-            
-            // Clear any existing EPC filter for testing
-            clearEpcFilter()
-            logd("Starting continuous scanning WITHOUT EPC filter for testing")
+            // Ensure hardware is ready before any operations
+            if (!validateConnection()) {
+                loge("Hardware not ready for continuous scanning")
+                return@launch
+            }
             
             rfid?.let { rf ->
-                val currentMode = rf.epcAndTIDUserMode
-                if (currentMode != null && currentMode.mode == 0) {
-                    rf.setEPCAndTIDMode()
+                // Set mode first to ensure hardware is in correct state
+                val didSetMode = rf.setEPCAndTIDMode()
+                if (isHardwareError(didSetMode)) {
+                    loge("setEPCAndTIDMode failed - reconnecting hardware")
+                    reconnectHardware()
+                    return@launch
                 }
-
+                
                 // Set power to HUNT_POWER (30dB) for continuous scanning
-                rf.setPower(Config.HUNT_POWER)
+                val didSetPower = rf.setPower(Config.HUNT_POWER)
+                if (isHardwareError(didSetPower)) {
+                    loge("setPower failed - reconnecting hardware")
+                    reconnectHardware()
+                    return@launch
+                }
                 logd("Set RFID power to ${Config.HUNT_POWER}dB for continuous scanning")
+                
+                // Now handle EPC filter operations after hardware is properly configured
+                if (epcFilterEnabled) {
+                    // Clear any existing EPC filter first
+                    val didClear = clearEpcFilter()
+                    if (!didClear) {
+                        loge("Failed to clear EPC filter - reconnecting hardware")
+                        reconnectHardware()
+                        return@launch
+                    }
+                    logd("Cleared existing EPC filter")
+                    
+                    // Apply EPC filter for RainRental company tags
+                    val epcFilter = createRainRentalEpcFilter(rainCompanyId)
+                    val didConfigure = configureEpcFilter(epcFilter)
+                    if (!didConfigure) {
+                        loge("Failed to configure EPC filter - reconnecting hardware")
+                        reconnectHardware()
+                        return@launch
+                    }
+                    logd("Starting continuous scanning with EPC filter: $epcFilter")
+                } else {
+                    // Clear EPC filter when disabled
+                    val didClear = clearEpcFilter()
+                    if (!didClear) {
+                        loge("Failed to clear EPC filter - reconnecting hardware")
+                        reconnectHardware()
+                        return@launch
+                    }
+                    logd("Starting continuous scanning WITHOUT EPC filter (filter disabled)")
+                }
 
                 rf.setInventoryCallback { tagData ->
                     scope.launch { onTagEvent(tagData) }
                 }
-                if (rf.startInventoryTag()) updateHardwareState(RfidHardwareState.Scanning)
+                
+                val didStartInventory = rf.startInventoryTag()
+                if (isHardwareError(didStartInventory)) {
+                    loge("startInventoryTag failed - reconnecting hardware")
+                    reconnectHardware()
+                    return@launch
+                }
+                
+                updateHardwareState(RfidHardwareState.Scanning)
             }
         }
     }
@@ -238,11 +287,24 @@ object ChainwayRfidManager: RfidManager, Logger {
         
         scope.launch {
             ensureActive()
-            if (rfid?.isInventorying == false) return@launch
-            if (!isActive) updateHardwareState(RfidHardwareState.Sleeping)
+            
+            // Only stop if we're actually inventorying
+            if (rfid?.isInventorying != true) {
+                logd("No active inventory to stop")
+                return@launch
+            }
+            
             updateHardwareState(RfidHardwareState.Configuring)
+            
+            // Stop inventory and wait for it to complete
             val didStopInventory = rfid?.stopInventory()
-            if (didStopInventory == true || rfid?.isInventorying == false) updateHardwareState(RfidHardwareState.Ready)
+            if (didStopInventory == true) {
+                logd("Successfully stopped continuous scanning")
+                updateHardwareState(RfidHardwareState.Ready)
+            } else {
+                loge("Failed to stop inventory properly")
+                updateHardwareState(RfidHardwareState.Error)
+            }
         }
     }
 
@@ -266,24 +328,7 @@ object ChainwayRfidManager: RfidManager, Logger {
         return _tagEvents.value.any { it.key == tid }
     }
 
-    /**
-     * Creates an EPC filter for RainRental company tags
-     * Based on the EPC structure: "1111" + companyIdBits + remainingBits
-     * For company ID 12: "1111" + "0000000000001100" (20 bits total)
-     */
-    private fun createRainRentalEpcFilter(companyId: Int): String {
-        // Convert company ID to 16-bit binary string with proper padding
-        val companyIdBits = Integer.toBinaryString(companyId).padStart(16, '0')
-        
-        // RainRental standard prefix is "1111" (4 bits)
-        // Company ID is 16 bits
-        // Total filter length is 20 bits
-        val filterValue = "1111" + companyIdBits
-        
-        logd("Created RainRental EPC filter: $filterValue for company ID: $companyId")
-        logd("Filter breakdown: RainRental prefix='1111', Company ID bits='$companyIdBits'")
-        return filterValue
-    }
+
 
     private suspend fun onTagEvent(tagData: UHFTAGInfo) {
         if (tagData.tid == null) {
@@ -344,7 +389,7 @@ object ChainwayRfidManager: RfidManager, Logger {
                 try {
                     updateHardwareState(RfidHardwareState.Configuring)
                     it.setEPCAndTIDMode()
-                    it.setPower(Config.HUNT_POWER)
+                    it.power = Config.HUNT_POWER
                     configureEpcFilter(epc.slice(0..9))
                     it.setInventoryCallback {tag->
                         if (tag != null){
@@ -416,8 +461,8 @@ object ChainwayRfidManager: RfidManager, Logger {
                         val configSuccess = safeHardwareOperation(
                             operation = {
                                                     rfid.setEPCAndTIDMode()
-                    rfid.setFrequencyMode(Config.FREQUENCY_MODE)
-                    rfid.setPower(Config.DEFAULT_POWER)
+                                rfid.frequencyMode = Config.FREQUENCY_MODE
+                                rfid.power = Config.DEFAULT_POWER
                                 true
                             },
                             errorMessage = "Failed to configure RFID hardware",
@@ -478,8 +523,20 @@ object ChainwayRfidManager: RfidManager, Logger {
                 // For single tag operations, always use 2dB (close-range scanning)
                 val singleTagPower = withPower ?: Config.WRITE_POWER
                 updateHardwareState(RfidHardwareState.Configuring)
-                rfid?.setEPCAndTIDMode()
-                rfid?.setPower(singleTagPower)
+                
+                val didSetMode = rfid?.setEPCAndTIDMode()
+                if (isHardwareError(didSetMode)) {
+                    loge("setEPCAndTIDMode failed during single tag read - reconnecting hardware")
+                    reconnectHardware()
+                    return@async Result.Error(InputError.HardwareError)
+                }
+                
+                val didSetPower = rfid?.setPower(singleTagPower)
+                if (isHardwareError(didSetPower)) {
+                    loge("setPower failed during single tag read - reconnecting hardware")
+                    reconnectHardware()
+                    return@async Result.Error(InputError.HardwareError)
+                }
                 logd("Set RFID power to ${singleTagPower}dB for single tag read")
                 
                 updateHardwareState(RfidHardwareState.Scanning)
@@ -489,20 +546,25 @@ object ChainwayRfidManager: RfidManager, Logger {
                 
                 // After single tag read, always restore to DEFAULT_POWER (24dB)
                 // This ensures we're ready for the next operation
-                rfid?.setPower(Config.DEFAULT_POWER)
+                val didRestorePower = rfid?.setPower(Config.DEFAULT_POWER)
+                if (isHardwareError(didRestorePower)) {
+                    loge("Failed to restore power after single tag read - reconnecting hardware")
+                    reconnectHardware()
+                    return@async Result.Error(InputError.HardwareError)
+                }
                 logd("Restored RFID power to ${Config.DEFAULT_POWER}dB after single tag read")
                 
-                tag?.let { t ->
-                    if (t.tid.isNullOrBlank() || t.epc.isNullOrBlank()) {
-                        return@async Result.Error(InputError.NoRfidTag)
-                    }
-                    
-                    _scannedTags.value += t
-                    val r = RfidTagInfo(tid = t.tid, epc = t.epc)
-                    return@async Result.Success(r)
-                } ?: run {
+                if (tag == null) {
                     return@async Result.Error(InputError.NoRfidTag)
                 }
+                
+                if (tag.tid.isNullOrBlank() || tag.epc.isNullOrBlank()) {
+                    return@async Result.Error(InputError.NoRfidTag)
+                }
+                
+                _scannedTags.value += tag
+                val r = RfidTagInfo(tid = tag.tid, epc = tag.epc)
+                return@async Result.Success(r)
                 
             } catch (e: Exception) {
                 loge("Error during tag reading: $e")
@@ -517,8 +579,10 @@ object ChainwayRfidManager: RfidManager, Logger {
         val deferred = scope.async {
             updateHardwareState(RfidHardwareState.Writing)
             if (configureTidFilter(tid)){
+
                 rfid?.let{rf->
-                    rf.setPower(Config.WRITE_POWER)
+                    logd("is this reachable")
+                    rf.power = Config.WRITE_POWER
                     logd("Set RFID power to ${Config.WRITE_POWER}dB for tag writing")
                     val didWrite = rf.writeDataToEpc("00000000",epc)
                     if (didWrite){
@@ -597,38 +661,109 @@ object ChainwayRfidManager: RfidManager, Logger {
         return deferred.await()
     }
 
+    /**
+     * Creates an EPC filter for RainRental company tags
+     * Based on the EPC structure: "1111" + companyIdBits + remainingBits
+     * For company ID 198: "1111" + "00000000000011000110" (24 bits total)
+     */
+    private fun createRainRentalEpcFilter(companyId: Int): String {
+        // Convert company ID to 16-bit binary string with proper padding
+        // Then convert to hex representation of that binary string
+        // If the hex string has an odd number of characters, add a trailing zero
+        val companyIdBits = Integer.toBinaryString(companyId).padStart(16, '0')
+
+        // RainRental standard prefix is "1111" (4 bits)
+        // Company ID is 16 bits (padded to 20 bits for hardware compatibility)
+        // Total filter length is 24 bits
+        val filterValue = "1111$companyIdBits"
+
+        logd("Created RainRental EPC filter: $filterValue for company ID: $companyId")
+        logd("Filter breakdown: RainRental prefix='1111', Company ID bits='$companyIdBits'")
+
+        val hexValue = Integer.toHexString(filterValue.toInt(2)).uppercase()
+        logd("Hex value of filter: $hexValue")
+        logd("Length of hex value: ${hexValue.length}")
+        if (hexValue.length % 2 == 1) logd("Adding trailing zero to hex value to make it even: ${hexValue}0")
+        if (hexValue.length % 2 == 1) return hexValue + "0"
+        return hexValue
+    }
+
     override suspend fun configureEpcFilter(epc: String,):Boolean {
-        updateHardwareState(RfidHardwareState.Configuring)
         val deferred = scope.async {
+            // Check if hardware is ready before attempting filter operations
+            if (!validateConnection()) {
+                loge("Hardware not ready for EPC filter configuration")
+                return@async false
+            }
+            
             rfid?.let{rf->
-                val startBit = 2 * 16
-                val numBits = epc.length * 4
+                updateHardwareState(RfidHardwareState.Configuring)
+
+                val didSetFastId = rf.setFastID(true)
+                if (isHardwareError(didSetFastId)) {
+                    loge("setFastID failed - reconnecting hardware")
+                    reconnectHardware()
+                    return@async false
+                }
+
+                val startBit = 32 // After CRC (0..15) and PC (16..31)
+                val numBits = 20 //epc.length (Rain rental 4 bits (F) plus 16 bits companyId
                 val didSetEpc = rf.setFilter(IUHF.Bank_EPC,startBit,numBits,epc)
+//                val didSetEpc = rf.setFilter(IUHF.Bank_EPC,32,20,"F000C0")
+                logd("Start bit: $startBit, Num bits: $numBits, EPC: $epc")
+                
+                if (isHardwareError(didSetEpc)) {
+                    loge("EPC filter configuration failed - reconnecting hardware")
+                    reconnectHardware()
+                    return@async false
+                }
+                
                 logd("EPC filter configured successfully with EPC: $epc")
-                rf.setFastID(true)
+                
+
+                
                 updateHardwareState(RfidHardwareState.Ready)
                 return@async true
             }
 
-            updateHardwareState(RfidHardwareState.Ready)
+            loge("Failed to configure EPC filter - RFID not available")
             return@async false
         }
         return deferred.await()
     }
 
     override suspend fun clearEpcFilter():Boolean {
-        updateHardwareState(RfidHardwareState.Configuring)
         val deferred = scope.async {
+            // Check if hardware is ready before attempting filter operations
+            if (!validateConnection()) {
+                loge("Hardware not ready for EPC filter clear")
+                return@async false
+            }
+            
             rfid?.let{rf->
+                updateHardwareState(RfidHardwareState.Configuring)
+                
                 // Clear the EPC filter by setting it with 0 bits
                 val didClearEpc = rf.setFilter(IUHF.Bank_EPC, 0, 0, "")
-                rf.setFastID(true)
+                
+                if (isHardwareError(didClearEpc)) {
+                    loge("EPC filter clear failed - reconnecting hardware")
+                    reconnectHardware()
+                    return@async false
+                }
+                
+                val didSetFastId = rf.setFastID(true)
+                if (isHardwareError(didSetFastId)) {
+                    loge("setFastID failed during EPC filter clear - reconnecting hardware")
+                    reconnectHardware()
+                    return@async false
+                }
+                
                 updateHardwareState(RfidHardwareState.Ready)
                 logd("EPC filter cleared successfully")
                 return@async true
             }
 
-            updateHardwareState(RfidHardwareState.Ready)
             loge("Failed to clear EPC filter - RFID not available")
             return@async false
         }
@@ -642,6 +777,7 @@ object ChainwayRfidManager: RfidManager, Logger {
                 val startBit = 0
                 val numBits = tid.length * 4
                 val didSetTid = rf.setFilter(IUHF.Bank_TID, startBit, numBits, tid)
+                logd("TID filter configured successfully ($didSetTid) with TID: $tid")
                 updateHardwareState(RfidHardwareState.Ready)
                 return@async true
             }
@@ -687,6 +823,53 @@ object ChainwayRfidManager: RfidManager, Logger {
             return false
         }
         return true
+    }
+    
+    /**
+     * Checks if a hardware operation result indicates a communication error
+     * Returns true if the operation failed with a -1 error (hardware communication issue)
+     */
+    private fun isHardwareError(result: Boolean?): Boolean {
+        return result == false || result == null
+    }
+    
+    /**
+     * Performs a simple hardware reconnection when communication errors occur
+     * This is a lightweight recovery that just reinitializes the connection
+     */
+    private suspend fun reconnectHardware() {
+        loge("Hardware communication error - reconnecting")
+        updateHardwareState(RfidHardwareState.Error)
+        
+        // Clean shutdown
+        try {
+            rfid?.stopInventory()
+            rfid?.free()
+        } catch (e: Exception) {
+            loge("Error during hardware cleanup: $e")
+        }
+        
+        rfid = null
+        connectionStatus.update { false }
+        
+        // Brief pause for hardware reset
+        kotlinx.coroutines.delay(500)
+        
+        // Reinitialize
+        initializeHardware()
+        
+        // Wait for reconnection (with timeout)
+        var attempts = 0
+        while (attempts < 5 && !connectionStatus.value) {
+            kotlinx.coroutines.delay(200)
+            attempts++
+        }
+        
+        if (connectionStatus.value) {
+            logd("Hardware reconnected successfully")
+        } else {
+            loge("Hardware reconnection failed")
+        }
     }
 
     // Add timeout handling

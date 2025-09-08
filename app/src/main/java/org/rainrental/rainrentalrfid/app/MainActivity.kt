@@ -117,7 +117,7 @@ class MainActivity : ComponentActivity() {
         // Check if this is a repeated key event
         val isRepeated = (event?.repeatCount ?: 0) > 0
         if (isRepeated) {
-            Log.d("MainActivity", "Ignoring repeated key event for keyCode: $keyCode with repeatCount: ${event?.repeatCount}")
+//            Log.d("MainActivity", "Ignoring repeated key event for keyCode: $keyCode with repeatCount: ${event?.repeatCount}")
             return true // Consume the event, don't pass to super
         }
         
