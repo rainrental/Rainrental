@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -31,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -71,9 +71,9 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(280.dp), // Increased height from 220dp to 280dp
+            .padding(vertical = 16.dp), // Add vertical padding instead of fixed height
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(8.dp) // Add spacing between elements
     ) {
         // Scanning waves - made larger
         Box(
@@ -139,8 +139,7 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
             style = MaterialTheme.typography.displayMedium, // Changed from displaySmall to displayMedium
             color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
-            fontFamily = FontFamily.Monospace,
-            modifier = Modifier.padding(top = 20.dp) // Increased padding from 16dp to 20dp
+            fontFamily = FontFamily.Monospace
         )
         
         // RSSI indicator - made larger
@@ -160,7 +159,8 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Monospace,
                 fontSize = 14.sp, // Increased from 12sp to 14sp
-                modifier = Modifier.padding(top = 10.dp) // Increased padding from 8dp to 10dp
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
