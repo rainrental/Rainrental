@@ -523,7 +523,9 @@ object ChainwayRfidManager: RfidManager, Logger {
                 // For single tag operations, always use 2dB (close-range scanning)
                 val singleTagPower = withPower ?: Config.WRITE_POWER
                 updateHardwareState(RfidHardwareState.Configuring)
-                
+
+                clearEpcFilter()
+
                 val didSetMode = rfid?.setEPCAndTIDMode()
                 if (isHardwareError(didSetMode)) {
                     loge("setEPCAndTIDMode failed during single tag read - reconnecting hardware")
@@ -575,30 +577,35 @@ object ChainwayRfidManager: RfidManager, Logger {
         return deferred.await()
     }
 
+    /*
+
+     */
     override suspend fun writeTagEpc(tid: String, epc: String): Result<Boolean, InputError> {
         val deferred = scope.async {
             updateHardwareState(RfidHardwareState.Writing)
             if (configureTidFilter(tid)){
-
-                rfid?.let{rf->
-                    logd("is this reachable")
+                logd("This IS reachable")
+                return@async rfid?.let{ rf->
+                    logd("attempting to use $rf")
                     rf.power = Config.WRITE_POWER
                     logd("Set RFID power to ${Config.WRITE_POWER}dB for tag writing")
                     val didWrite = rf.writeDataToEpc("00000000",epc)
                     if (didWrite){
                         configureTidFilter("")
                         // Restore power to DEFAULT_POWER after writing
-                        rf.setPower(Config.DEFAULT_POWER)
+                        rf.power = Config.DEFAULT_POWER
                         logd("Restored RFID power to ${Config.DEFAULT_POWER}dB after tag writing")
-                        return@async Result.Success(true)
+                        //return@async
+                        Result.Success(true)
                     }else{
                         configureTidFilter("")
                         // Restore power to DEFAULT_POWER even on failure
-                        rf.setPower(Config.DEFAULT_POWER)
+                        rf.power = Config.DEFAULT_POWER
                         logd("Restored RFID power to ${Config.DEFAULT_POWER}dB after failed tag writing")
-                        return@async Result.Error(InputError.WriteEpcError)
+                        //return@async
+                        Result.Error(InputError.WriteEpcError)
                     }
-                }?: return@async Result.Error(InputError.WriteEpcError)
+                } ?: Result.Error(InputError.WriteEpcError)
             }else{
                 return@async Result.Error(InputError.WriteEpcError)
             }

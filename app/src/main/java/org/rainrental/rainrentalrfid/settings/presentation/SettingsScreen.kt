@@ -1,6 +1,8 @@
 package org.rainrental.rainrentalrfid.settings.presentation
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,60 +11,43 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.rainrental.rainrentalrfid.BuildConfig
 import org.rainrental.rainrentalrfid.R
-import org.rainrental.rainrentalrfid.settings.presentation.SettingsTab
 import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
-import org.rainrental.rainrentalrfid.auth.presentation.AuthScreen
-import org.rainrental.rainrentalrfid.chainway.data.BarcodeHardwareState
-import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
-import org.rainrental.rainrentalrfid.chainway.presentation.RfidViewModel
-import org.rainrental.rainrentalrfid.inputmanager.data.manager.InputManager
-import org.rainrental.rainrentalrfid.inputmanager.data.model.InputFlowState
-import org.rainrental.rainrentalrfid.inputmanager.domain.model.InputPanelState
-import org.rainrental.rainrentalrfid.result.ApiError
-import org.rainrental.rainrentalrfid.result.Result
-import org.rainrental.rainrentalrfid.shared.presentation.composables.AppButton
-import org.rainrental.rainrentalrfid.shared.presentation.composables.LoadingWithText
-import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
-import org.rainrental.rainrentalrfid.update.UpdateManager
-import androidx.compose.ui.platform.LocalContext
-import android.os.Build
 
 @Composable
 fun SettingsScreen() {
@@ -155,7 +140,42 @@ fun SettingsScreen(
     Column(
         modifier = modifier.fillMaxSize()
     ) {
-        // Tab Row
+        // Tab Content - with weight to take available space
+        Box(
+            modifier = Modifier.weight(1f)
+        ) {
+            when (selectedTab) {
+                SettingsTab.GENERAL -> GeneralTab(
+                    mqttServerIp = mqttServerIp,
+                    systemVolume = systemVolume,
+                    maxSystemVolume = maxSystemVolume,
+                    onMqttServerIpChange = onMqttServerIpChange,
+                    onSystemVolumeChange = onSystemVolumeChange
+                )
+                SettingsTab.AUTHENTICATION -> AuthenticationTab(
+                    authState = authState,
+                    onShowRevokeConfirmation = onShowRevokeConfirmation
+                )
+                SettingsTab.HARDWARE -> HardwareTab(
+                    ignoreRightSideKey = ignoreRightSideKey,
+                    onIgnoreRightSideKeyChange = onIgnoreRightSideKeyChange,
+                    triggerState = triggerState,
+                    sideState = sideState,
+                    auxState = auxState
+                )
+                SettingsTab.UPDATES -> UpdatesTab(
+                    updateStatus = updateStatus,
+                    updateProgress = updateProgress,
+                    isUpdateInProgress = isUpdateInProgress,
+                    installedVersion = installedVersion,
+                    onCheckForUpdates = onCheckForUpdates,
+                    onClearUpdateStatus = onClearUpdateStatus,
+                    onDebugVersion = onDebugVersion
+                )
+            }
+        }
+        
+        // Tab Row at bottom
         TabRow(
             selectedTabIndex = selectedTab.ordinal,
             modifier = Modifier.fillMaxWidth()
@@ -164,40 +184,21 @@ fun SettingsScreen(
                 Tab(
                     selected = selectedTab == tab,
                     onClick = { selectedTab = tab },
-                    text = { Text(stringResource(tab.titleResId)) }
+                    icon = {
+                        Icon(
+                            imageVector = tab.icon,
+                            contentDescription = stringResource(tab.titleResId),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    text = { 
+                        Text(
+                            text = stringResource(tab.titleResId),
+                            fontSize = 10.sp
+                        ) 
+                    }
                 )
             }
-        }
-        
-        // Tab Content
-        when (selectedTab) {
-            SettingsTab.GENERAL -> GeneralTab(
-                mqttServerIp = mqttServerIp,
-                systemVolume = systemVolume,
-                maxSystemVolume = maxSystemVolume,
-                onMqttServerIpChange = onMqttServerIpChange,
-                onSystemVolumeChange = onSystemVolumeChange
-            )
-            SettingsTab.AUTHENTICATION -> AuthenticationTab(
-                authState = authState,
-                onShowRevokeConfirmation = onShowRevokeConfirmation
-            )
-            SettingsTab.HARDWARE -> HardwareTab(
-                ignoreRightSideKey = ignoreRightSideKey,
-                onIgnoreRightSideKeyChange = onIgnoreRightSideKeyChange,
-                triggerState = triggerState,
-                sideState = sideState,
-                auxState = auxState
-            )
-            SettingsTab.UPDATES -> UpdatesTab(
-                updateStatus = updateStatus,
-                updateProgress = updateProgress,
-                isUpdateInProgress = isUpdateInProgress,
-                installedVersion = installedVersion,
-                onCheckForUpdates = onCheckForUpdates,
-                onClearUpdateStatus = onClearUpdateStatus,
-                onDebugVersion = onDebugVersion
-            )
         }
     }
     

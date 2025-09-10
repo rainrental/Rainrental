@@ -9,6 +9,7 @@ import android.view.WindowInsets
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -85,6 +86,9 @@ class MainActivity : ComponentActivity() {
         lifecycle.addObserver(scannerManager)
         lifecycle.addObserver(rfidManager)
 
+        // Register back pressed callback
+        onBackPressedDispatcher.addCallback(this, backPressedCallback)
+        
         // Use configured MQTT server IP
         val mqttServerIp = appConfig.getMqttServerIp(this@MainActivity)
         Log.i("MainActivity", "Using MQTT server: $mqttServerIp")
@@ -125,12 +129,16 @@ class MainActivity : ComponentActivity() {
         return super.onKeyDown(keyCode, event)
     }
 
-    @Deprecated("Deprecated in favor of the new back handling system")
-    override fun onBackPressed() {
-        Log.i("MainActivity", "Back button pressed - cancelling all scanning")
-        // Cancel all scanning operations when back is pressed
-        scanningLifecycleManager.cancelAllScanning()
-        super.onBackPressed()
+    private val backPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            Log.i("MainActivity", "Back button pressed - cancelling all scanning")
+            // Cancel all scanning operations when back is pressed
+            scanningLifecycleManager.cancelAllScanning()
+            // Let the system handle the back navigation
+            isEnabled = false
+            onBackPressedDispatcher.onBackPressed()
+            isEnabled = true
+        }
     }
 
     override fun onPause() {

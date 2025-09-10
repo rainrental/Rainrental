@@ -28,22 +28,31 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Sensors
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalDensity
@@ -81,92 +90,225 @@ fun CompactHardwareIndicator(
     deliveryState: DeliveryConnectionState,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        // RFID Status Indicator
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+    var showPopup by remember { mutableStateOf(false) }
+    
+    Box {
+        // Main indicator (clickable)
+        Column(
+            modifier = modifier.clickable { showPopup = !showPopup },
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Sensors,
-                contentDescription = "RFID Status",
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(12.dp)
-            )
-            // Status dot
-            Box(
-                modifier = Modifier
-                    .size(6.dp)
-                    .background(
-                        color = when (rfidState) {
-                            RfidHardwareState.Ready -> Color.Green
-                            RfidHardwareState.Scanning, RfidHardwareState.Writing -> Color.Yellow
-                            RfidHardwareState.Error, RfidHardwareState.ShuttingDown -> Color.Red
-                            RfidHardwareState.Init, RfidHardwareState.Configuring -> Color.Yellow
-                            else -> Color.Gray
-                        },
-                        shape = CircleShape
-                    )
-            )
+            // RFID Status Indicator
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Sensors,
+                    contentDescription = "RFID Status",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(12.dp)
+                )
+                // Status dot
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(
+                            color = when (rfidState) {
+                                RfidHardwareState.Ready -> Color.Green
+                                RfidHardwareState.Scanning, RfidHardwareState.Writing -> Color.Yellow
+                                RfidHardwareState.Error, RfidHardwareState.ShuttingDown -> Color.Red
+                                RfidHardwareState.Init, RfidHardwareState.Configuring -> Color.Yellow
+                                else -> Color.Gray
+                            },
+                            shape = CircleShape
+                        )
+                )
+            }
+            
+            // Barcode Status Indicator
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.barcode),
+                    contentDescription = "Barcode Status",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(12.dp)
+                )
+                // Status dot
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(
+                            color = when (barcodeState) {
+                                BarcodeHardwareState.Ready -> Color.Green
+                                BarcodeHardwareState.Busy -> Color.Yellow
+                                BarcodeHardwareState.Error, BarcodeHardwareState.TimedOut -> Color.Red
+                                BarcodeHardwareState.Startup, BarcodeHardwareState.Initialising -> Color.Yellow
+                                else -> Color.Gray
+                            },
+                            shape = CircleShape
+                        )
+                )
+            }
+            
+            // Delivery Status Indicator
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Mail,
+                    contentDescription = "Delivery Status",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.size(12.dp)
+                )
+                // Status dot
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(
+                            color = when (deliveryState) {
+                                DeliveryConnectionState.CONNECTED -> Color.Green
+                                DeliveryConnectionState.CONNECTING, DeliveryConnectionState.INIT -> Color.Yellow
+                                DeliveryConnectionState.ERROR, DeliveryConnectionState.DEAD -> Color.Red
+                                DeliveryConnectionState.WAITING_FOR_IP -> Color.Yellow
+                            },
+                            shape = CircleShape
+                        )
+                )
+            }
         }
         
-        // Barcode Status Indicator
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.barcode),
-                contentDescription = "Barcode Status",
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(12.dp)
-            )
-            // Status dot
+        // Popup overlay
+        if (showPopup) {
+            // Background overlay with reduced saturation
             Box(
                 modifier = Modifier
-                    .size(6.dp)
-                    .background(
-                        color = when (barcodeState) {
-                            BarcodeHardwareState.Ready -> Color.Green
-                            BarcodeHardwareState.Busy -> Color.Yellow
-                            BarcodeHardwareState.Error, BarcodeHardwareState.TimedOut -> Color.Red
-                            BarcodeHardwareState.Startup, BarcodeHardwareState.Initialising -> Color.Yellow
-                            else -> Color.Gray
-                        },
-                        shape = CircleShape
-                    )
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+                    .clickable { showPopup = false }
+                    .zIndex(1f)
             )
-        }
-        
-        // Delivery Status Indicator
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Mail,
-                contentDescription = "Delivery Status",
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(12.dp)
-            )
-            // Status dot
+            
+            // Popup content
             Box(
                 modifier = Modifier
-                    .size(6.dp)
+                    .offset(x = (-40).dp, y = 20.dp) // Position closer to center and below the indicator
+                    .width(200.dp) // Ensure minimum width for visibility
+                    .shadow(8.dp, RoundedCornerShape(12.dp))
                     .background(
-                        color = when (deliveryState) {
-                            DeliveryConnectionState.CONNECTED -> Color.Green
-                            DeliveryConnectionState.CONNECTING, DeliveryConnectionState.INIT -> Color.Yellow
-                            DeliveryConnectionState.ERROR, DeliveryConnectionState.DEAD -> Color.Red
-                            DeliveryConnectionState.WAITING_FOR_IP -> Color.Yellow
-                        },
-                        shape = CircleShape
+                        MaterialTheme.colorScheme.surface,
+                        RoundedCornerShape(12.dp)
                     )
-            )
+                    .padding(16.dp)
+                    .zIndex(2f)
+            ) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Hardware Status",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    // RFID Status
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sensors,
+                            contentDescription = "RFID Status",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "RFID Scanner",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = rfidState.name,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = when (rfidState) {
+                                    RfidHardwareState.Ready -> Color.Green
+                                    RfidHardwareState.Scanning, RfidHardwareState.Writing -> Color(0xFFFFA500) // Orange
+                                    RfidHardwareState.Error, RfidHardwareState.ShuttingDown -> Color.Red
+                                    RfidHardwareState.Init, RfidHardwareState.Configuring -> Color(0xFFFFA500) // Orange
+                                    else -> Color.Gray
+                                }
+                            )
+                        }
+                    }
+                    
+                    // Barcode Status
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.barcode),
+                            contentDescription = "Barcode Status",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "Barcode Scanner",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = barcodeState.name,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = when (barcodeState) {
+                                    BarcodeHardwareState.Ready -> Color.Green
+                                    BarcodeHardwareState.Busy -> Color(0xFFFFA500) // Orange
+                                    BarcodeHardwareState.Error, BarcodeHardwareState.TimedOut -> Color.Red
+                                    BarcodeHardwareState.Startup, BarcodeHardwareState.Initialising -> Color(0xFFFFA500) // Orange
+                                    else -> Color.Gray
+                                }
+                            )
+                        }
+                    }
+                    
+                    // Delivery Status
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Mail,
+                            contentDescription = "Delivery Status",
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Column {
+                            Text(
+                                text = "MQTT Delivery",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = deliveryState.name,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = when (deliveryState) {
+                                    DeliveryConnectionState.CONNECTED -> Color.Green
+                                    DeliveryConnectionState.CONNECTING, DeliveryConnectionState.INIT -> Color(0xFFFFA500) // Orange
+                                    DeliveryConnectionState.ERROR, DeliveryConnectionState.DEAD -> Color.Red
+                                    DeliveryConnectionState.WAITING_FOR_IP -> Color(0xFFFFA500) // Orange
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -247,7 +389,7 @@ fun MainApp(modifier: Modifier = Modifier) {
                                     onClick = { navController.popBackStack() }
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.ArrowBack,
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                         contentDescription = "Back"
                                     )
                                 }
