@@ -132,7 +132,7 @@ class SettingsViewModel @Inject constructor(
             // Trigger MQTT reconnection with new server IP
             try {
                 logd("Triggering MQTT reconnection with new server: $serverIp")
-                mqttDeliveryService.reDetectAndConnect(dependencies.context, dependencies.appConfig)
+                mqttDeliveryService.restartWithNewServer(serverIp)
                 logd("MQTT reconnection initiated successfully")
             } catch (e: Exception) {
                 loge("Failed to trigger MQTT reconnection: ${e.message}")
