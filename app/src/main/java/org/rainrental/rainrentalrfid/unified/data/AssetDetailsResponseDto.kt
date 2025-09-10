@@ -2,6 +2,7 @@ package org.rainrental.rainrentalrfid.unified.data
 
 data class AssetDetailsResponseDto(
     val barcode: String = "",
+    val productName: String? = null,
     val epc: String = "",
     val sku: String = "",
     val skuId: Int = 0,
@@ -15,6 +16,7 @@ data class AssetDetailsResponseDto(
         fun example(): AssetDetailsResponseDto {
             return AssetDetailsResponseDto(
                 barcode = "123456789",
+                productName = "Test product name here",
                 epc = "E2003412010200000000000001",
                 sku = "Sample SKU",
                 skuId = 1,

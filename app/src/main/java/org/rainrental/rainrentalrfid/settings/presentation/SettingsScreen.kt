@@ -247,7 +247,7 @@ private fun ButtonBox(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxWidth()
-            .height(60.dp)
+            .height(50.dp)
             .background(
                 color = backgroundColor,
                 shape = RoundedCornerShape(6.dp)
@@ -488,7 +488,7 @@ fun HardwareTab(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
@@ -517,11 +517,11 @@ fun HardwareTab(
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(12.dp)
+                modifier = Modifier.padding(8.dp)
             ) {
                 Text(
                     text = "Button Test",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
                 
@@ -554,9 +554,9 @@ fun HardwareTab(
                 
                 Text(
                     text = "Press the hardware buttons to see visual feedback",
-                    fontSize = 14.sp,
+                    fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp)
+                    modifier = Modifier.padding(top = 4.dp)
                 )
             }
         }
@@ -673,6 +673,13 @@ fun SettingsScreenPreview() {
     SettingsScreen(
         modifier = Modifier,
         mqttServerIp = "192.168.1.100",
-        ignoreRightSideKey = false
+        ignoreRightSideKey = true
     )
+}
+
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HardwarePreview(){
+    HardwareTab(ignoreRightSideKey = true, onIgnoreRightSideKeyChange = {}, triggerState = ButtonState.UP, sideState = ButtonState.UP, auxState = ButtonState.UP)
 }

@@ -3,11 +3,13 @@ package org.rainrental.rainrentalrfid.commission.presentation.composable
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,9 +18,15 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -37,54 +45,67 @@ fun LoadedAssetView(
     scannedTags: List<ScanningTagData> = emptyList(),
     onEvent: (CommissionEvent) -> Unit
 ) {
+    var showTagsPopup by remember { mutableStateOf(false) }
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(8.dp)
         ,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
-        Text("Loaded Asset".uppercase(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+//        Text("Loaded Asset".uppercase(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp)
+//                .padding(8.dp)
                 .border(width = 2.dp, shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary)
-                .padding(8.dp),
+                .padding(8.dp)
+            ,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AssetView(asset)
-            AnimatedVisibility(!asset.tags.isNullOrEmpty()) {
-                asset.tags?.let{
-                    LazyColumn {
-                    items(
-                        items = asset.tags.sortedBy { it.tidHex }
-                    ){tag ->
-                        Row(
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            FieldValue(
-                                header = tag.tidHex,
-                                borderColour = MaterialTheme.colorScheme.secondary,
-                                value = tag.epcHex,
-                                size = 320,
-                                iconSize = 15,
-                                equalFontSize = true,
-                                hasAction = false,
-                            )
-                        }
+            Row(
+                modifier = Modifier.padding(vertical = 4.dp).clickable{
+                    if (asset.tags.isNotEmpty()) {
+                        showTagsPopup = true
                     }
                 }
-                }
+            ) {
+                FieldValue(
+                    header = "Existing Tags",
+                    borderColour = MaterialTheme.colorScheme.secondary,
+                    value = asset.tags.size.toString(),
+                    size = 320,
+                    iconSize = 15,
+                    equalFontSize = true,
+                    hasAction = false,
+                )
             }
-            AnimatedVisibility(scannedTags.isNotEmpty()) {
+
+
+        }
+        AnimatedVisibility(scannedTags.isNotEmpty()) {
+
+            Column(
+                modifier = Modifier
+                    .padding(vertical = 8.dp)
+                    .fillMaxWidth()
+
+                    .border(width = 2.dp, shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary)
+                    .padding(8.dp)
+                ,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Scanned Tags".uppercase(), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
                 LazyColumn {
                     items(
                         items = scannedTags.sortedBy { !it.writtenEpc }
                     ){tag ->
                         Row(
                             modifier = Modifier.padding(vertical = 4.dp)
+//                            .fillMaxWidth()
                         ) {
                             FieldValue(
                                 header = tag.tidHex,
@@ -110,15 +131,13 @@ fun LoadedAssetView(
             }
 
         }
+
         AnimatedVisibility(scannedTags.none { !it.writtenEpc }) {
             val anotherText = if (scannedTags.isNotEmpty()) "another" else "a"
             Row(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth()
-//                        .width(278.dp)
-//                        .border(width = 2.dp, shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary)
-//                        .padding(16.dp)
                 ,
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
@@ -131,7 +150,7 @@ fun LoadedAssetView(
                 modifier = Modifier
                     .padding(top = 8.dp)
                     .fillMaxWidth()
-//                    .border(width = 2.dp, shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.primary)
+
                 ,
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
@@ -149,28 +168,81 @@ fun LoadedAssetView(
         }
 
     }
+    
+    // Tags popup dialog
+    if (showTagsPopup) {
+        AlertDialog(
+            onDismissRequest = { showTagsPopup = false },
+            title = {
+                Text(
+                    text = "Existing Tags (${asset.tags.size})",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 400.dp)
+                ) {
+                    items(
+                        items = asset.tags.sortedBy { it.tidHex }
+                    ) { tag ->
+                        Row(
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        ) {
+                            FieldValue(
+                                header = tag.tidHex,
+                                borderColour = MaterialTheme.colorScheme.secondary,
+                                value = tag.epcHex,
+                                size = 320,
+                                iconSize = 15,
+                                equalFontSize = true,
+                                hasAction = false,
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showTagsPopup = false }
+                ) {
+                    Text("Close")
+                }
+            }
+        )
+    }
 }
 
 @Composable
 fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false) {
+    val verticalPadding = 2.dp
     if (!general){
 
         Row(
-            modifier = Modifier.padding(vertical = 4.dp),
+            modifier = Modifier.padding(vertical = verticalPadding),
             horizontalArrangement = Arrangement.Center
         ) {
             FieldValue(header = "BARCODE", value = asset.barcode,size = 320)
         }
     }
+    asset.productName?.let{ productName ->
+        Row(
+            modifier = Modifier.padding(vertical = verticalPadding),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            FieldValue(header = "Product Name".uppercase(), value = productName,size = 320)
+        }
+    }
+
     Row(
-        modifier = Modifier.padding(vertical = 4.dp),
+        modifier = Modifier.padding(vertical = verticalPadding),
         horizontalArrangement = Arrangement.Center
     ) {
         FieldValue(header = "CATEGORY", value = asset.department, size = 160)
         FieldValue(header = "CATEGORY ID", value = asset.departmentId.toString(), size = 160)
     }
     Row(
-        modifier = Modifier.padding(vertical = 4.dp),
+        modifier = Modifier.padding(vertical = verticalPadding),
         horizontalArrangement = Arrangement.Center
     ) {
         FieldValue(header = "SKU", value = asset.sku, size = 160)
@@ -178,7 +250,7 @@ fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false) {
     }
     if (!general) {
         Row(
-            modifier = Modifier.padding(vertical = 4.dp),
+            modifier = Modifier.padding(vertical = verticalPadding),
             horizontalArrangement = Arrangement.Center
         ) {
             FieldValue(header = "SERIAL", value = asset.serial, size = 160)
@@ -186,7 +258,7 @@ fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false) {
         }
     }
     Row(
-        modifier = Modifier.padding(vertical = 4.dp),
+        modifier = Modifier.padding(vertical = verticalPadding),
         horizontalArrangement = Arrangement.Center
     ) {
         FieldValue(header = "EPC", value = asset.epc, size = 320)

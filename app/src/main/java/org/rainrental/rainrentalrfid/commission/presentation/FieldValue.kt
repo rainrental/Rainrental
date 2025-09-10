@@ -45,13 +45,13 @@ fun FieldValue(
     Box(
         modifier = modifier
             .width(size.dp)
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 4.dp)
             .border(
                 color = borderColour,
                 shape = RoundedCornerShape(5.dp),
                 width = 2.dp
             )
-            .padding(4.dp)
+            .padding(2.dp)
     ) {
         Row(
             modifier = modifier.fillMaxWidth(),
