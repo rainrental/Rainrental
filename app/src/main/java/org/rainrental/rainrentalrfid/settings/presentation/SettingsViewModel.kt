@@ -15,6 +15,7 @@ import org.rainrental.rainrentalrfid.update.UpdateInfo
 import org.rainrental.rainrentalrfid.settings.presentation.ButtonState
 import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
+import org.rainrental.rainrentalrfid.continuousScanning.MqttDeliveryService
 import android.content.Context
 import android.media.AudioManager
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -24,6 +25,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     dependencies: BaseViewModelDependencies,
     private val updateManager: UpdateManager,
+    private val mqttDeliveryService: MqttDeliveryService,
     @ApplicationContext private val context: Context
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -126,6 +128,15 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dependencies.appConfig.setMqttServerIp(dependencies.context, serverIp)
             logd("MQTT server IP updated to: $serverIp")
+            
+            // Trigger MQTT reconnection with new server IP
+            try {
+                logd("Triggering MQTT reconnection with new server: $serverIp")
+                mqttDeliveryService.reDetectAndConnect(dependencies.context, dependencies.appConfig)
+                logd("MQTT reconnection initiated successfully")
+            } catch (e: Exception) {
+                loge("Failed to trigger MQTT reconnection: ${e.message}")
+            }
         }
     }
 
