@@ -12,6 +12,7 @@ import org.rainrental.rainrentalrfid.app.BaseViewModelDependencies
 import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.update.UpdateManager
 import org.rainrental.rainrentalrfid.update.UpdateInfo
+import org.rainrental.rainrentalrfid.update.UpdateRepository
 import org.rainrental.rainrentalrfid.settings.presentation.ButtonState
 import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class SettingsViewModel @Inject constructor(
     dependencies: BaseViewModelDependencies,
     private val updateManager: UpdateManager,
+    private val updateRepository: UpdateRepository,
     private val mqttDeliveryService: MqttDeliveryService,
     @ApplicationContext private val context: Context
 ) : BaseViewModel(dependencies = dependencies), Logger {
@@ -248,9 +250,15 @@ class SettingsViewModel @Inject constructor(
                 Configuration:
                 - Company ID: ${dependencies.context.getString(R.string.company_id)}
                 - API Base URL: ${dependencies.appConfig.Network.API_BASE_URL}
+                - Update API URL: ${dependencies.appConfig.Network.API_BASE_URL}/api/v1/appVersions/${dependencies.context.getString(R.string.company_id)}
                 
                 Backend Version Data:
                 - $backendInfo
+                
+                Network Status:
+                - Check network connectivity and API endpoint availability
+                - Verify company ID is correct
+                - Ensure backend has versions data
             """.trimIndent()
             
             _updateStatus.value = debugInfo
@@ -337,5 +345,31 @@ class SettingsViewModel @Inject constructor(
     
     fun getMaxSystemVolume(): Int {
         return audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+    }
+    
+    fun testApiConnectivity() {
+        viewModelScope.launch {
+            _updateStatus.value = "Testing API connectivity..."
+            try {
+                val companyId = dependencies.context.getString(R.string.company_id)
+                val apiUrl = "${dependencies.appConfig.Network.API_BASE_URL}/api/v1/appVersions/$companyId"
+                
+                logd("Testing API connectivity to: $apiUrl")
+                
+                // Simple connectivity test
+                val result = updateRepository.testConnectivity(companyId)
+                
+                if (result) {
+                    _updateStatus.value = "✅ API connectivity test PASSED\nEndpoint is reachable and responding"
+                    logd("API connectivity test passed")
+                } else {
+                    _updateStatus.value = "❌ API connectivity test FAILED\nCheck network connection and endpoint availability"
+                    loge("API connectivity test failed")
+                }
+            } catch (e: Exception) {
+                _updateStatus.value = "❌ API connectivity test ERROR\n${e.message}"
+                loge("API connectivity test error: ${e.message}")
+            }
+        }
     }
 }

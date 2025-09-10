@@ -132,6 +132,42 @@ class UpdateRepository @Inject constructor(
     }
 
     /**
+     * Test API connectivity without downloading
+     */
+    suspend fun testConnectivity(companyId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            logd("=== API CONNECTIVITY TEST ===")
+            logd("Testing connectivity for company: $companyId")
+            
+            val apiUrl = NetworkUtils.constructUrl(appConfig.Network.API_BASE_URL, "api/v1/appVersions/$companyId")
+            logd("Testing URL: $apiUrl")
+            
+            val request = Request.Builder()
+                .url(apiUrl)
+                .addHeader("companyid", companyId)
+                .head() // Use HEAD request to test connectivity without downloading data
+                .build()
+
+            logd("Making HEAD request...")
+            val response = client.newCall(request).execute()
+            
+            logd("Response received - Status: ${response.code}")
+            response.close()
+            
+            val isSuccessful = response.isSuccessful
+            logd("Connectivity test result: $isSuccessful")
+            return@withContext isSuccessful
+            
+        } catch (e: Exception) {
+            loge("=== API CONNECTIVITY TEST FAILED ===")
+            loge("Error testing connectivity: ${e.message}")
+            loge("Exception type: ${e.javaClass.simpleName}")
+            e.printStackTrace()
+            return@withContext false
+        }
+    }
+
+    /**
      * Download APK file from URL
      * @param downloadUrl URL to download the APK from
      * @param fileSize Expected file size for progress tracking
