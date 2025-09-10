@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -46,6 +48,8 @@ fun LoadedAssetView(
     onEvent: (CommissionEvent) -> Unit
 ) {
     var showTagsPopup by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var tagToDelete by remember { mutableStateOf<Pair<String, String>?>(null) } // Pair of (barcode, tidHex)
     
     Column(
         modifier = Modifier
@@ -65,7 +69,7 @@ fun LoadedAssetView(
             ,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AssetView(asset)
+            AssetView(asset, showFull = scannedTags.isEmpty())
             Row(
                 modifier = Modifier.padding(vertical = 4.dp).clickable{
                     if (asset.tags.isNotEmpty()) {
@@ -193,10 +197,16 @@ fun LoadedAssetView(
                                 header = tag.tidHex,
                                 borderColour = MaterialTheme.colorScheme.secondary,
                                 value = tag.epcHex,
-                                size = 320,
+                                size = 280,
                                 iconSize = 15,
                                 equalFontSize = true,
-                                hasAction = false,
+                                hasAction = true,
+                                actionIcon = Icons.Default.Delete,
+                                actionIconColour = MaterialTheme.colorScheme.error,
+                                onClick = {
+                                    tagToDelete = Pair(asset.barcode, tag.tidHex)
+                                    showDeleteConfirmation = true
+                                }
                             )
                         }
                     }
@@ -211,10 +221,55 @@ fun LoadedAssetView(
             }
         )
     }
+    
+    // Delete confirmation dialog
+    if (showDeleteConfirmation && tagToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { 
+                showDeleteConfirmation = false
+                tagToDelete = null
+            },
+            title = {
+                Text(
+                    text = "Delete Tag",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete the tag with TID: ${tagToDelete?.second}?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        tagToDelete?.let { (barcode, tidHex) ->
+                            onEvent(CommissionEvent.DeleteTagPressed(barcode, tidHex))
+                        }
+                        showDeleteConfirmation = false
+                        tagToDelete = null
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { 
+                        showDeleteConfirmation = false
+                        tagToDelete = null
+                    }
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false) {
+fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false, showFull: Boolean = true) {
     val verticalPadding = 2.dp
     if (!general){
 
@@ -234,27 +289,39 @@ fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false) {
         }
     }
 
-    Row(
-        modifier = Modifier.padding(vertical = verticalPadding),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        FieldValue(header = "CATEGORY", value = asset.department, size = 160)
-        FieldValue(header = "CATEGORY ID", value = asset.departmentId.toString(), size = 160)
+    if (!showFull) {
+        Text(
+            text = "Some fields are hidden whilst adding tags",
+            style = MaterialTheme.typography.bodySmall,
+            fontStyle = FontStyle.Italic,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            modifier = Modifier.padding(vertical = verticalPadding)
+        )
     }
-    Row(
-        modifier = Modifier.padding(vertical = verticalPadding),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        FieldValue(header = "SKU", value = asset.sku, size = 160)
-        FieldValue(header = "SKU ID", value = asset.skuId.toString(), size = 160)
-    }
-    if (!general) {
+
+    if (showFull) {
         Row(
             modifier = Modifier.padding(vertical = verticalPadding),
             horizontalArrangement = Arrangement.Center
         ) {
-            FieldValue(header = "SERIAL", value = asset.serial, size = 160)
-            FieldValue(header = "SERIAL ID", value = asset.serialId.toString(), size = 160)
+            FieldValue(header = "CATEGORY", value = asset.department, size = 160)
+            FieldValue(header = "CATEGORY ID", value = asset.departmentId.toString(), size = 160)
+        }
+        Row(
+            modifier = Modifier.padding(vertical = verticalPadding),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            FieldValue(header = "SKU", value = asset.sku, size = 160)
+            FieldValue(header = "SKU ID", value = asset.skuId.toString(), size = 160)
+        }
+        if (!general) {
+            Row(
+                modifier = Modifier.padding(vertical = verticalPadding),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                FieldValue(header = "SERIAL", value = asset.serial, size = 160)
+                FieldValue(header = "SERIAL ID", value = asset.serialId.toString(), size = 160)
+            }
         }
     }
     Row(

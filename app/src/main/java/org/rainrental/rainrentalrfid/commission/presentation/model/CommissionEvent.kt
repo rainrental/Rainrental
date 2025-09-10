@@ -7,5 +7,6 @@ sealed interface CommissionEvent {
     data class EncodeEpcButtonPressed(val scannedTagData: ScanningTagData): CommissionEvent
     data object OnKeyUp : CommissionEvent
     data object SaveButtonPressed : CommissionEvent
+    data class DeleteTagPressed(val barcode: String, val tidHex: String): CommissionEvent
 
 }

@@ -113,6 +113,43 @@ class CommissionTagsViewModel @Inject constructor(
                     }
                 }
             }
+
+            is CommissionEvent.DeleteTagPressed -> {
+                when (uiFlow.value) {
+                    is CommissionUiFlow.LoadedAsset -> {
+                        viewModelScope.launch {
+                            val result = commissionRepository.deleteTag(event.barcode, event.tidHex)
+                            when (result) {
+                                is Result.Success -> {
+                                    triggerToast("Tag deleted successfully")
+                                    // Refresh the asset to get updated tag list
+                                    val assetResult = commissionRepository.getAsset(event.barcode)
+                                    when (assetResult) {
+                                        is Result.Success -> {
+                                            val currentFlow = uiFlow.value as CommissionUiFlow.LoadedAsset
+                                            commissionRepository.updateUiFlow(
+                                                CommissionUiFlow.LoadedAsset(
+                                                    asset = assetResult.data,
+                                                    scannedTags = currentFlow.scannedTags
+                                                )
+                                            )
+                                        }
+                                        is Result.Error -> {
+                                            triggerToast("Error refreshing asset: ${assetResult.error.name}")
+                                        }
+                                    }
+                                }
+                                is Result.Error -> {
+                                    triggerToast("Error deleting tag: ${result.error.name}")
+                                }
+                            }
+                        }
+                    }
+                    else -> {
+                        triggerToast("Cannot delete tag in current state")
+                    }
+                }
+            }
         }
     }
 

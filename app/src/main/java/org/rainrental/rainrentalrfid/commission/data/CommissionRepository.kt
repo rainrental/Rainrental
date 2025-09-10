@@ -24,6 +24,7 @@ interface CommissionRepository {
     suspend fun getEpc(encodeEpcRequestDto: EncodeEpcRequestDto): Result<String,ApiError>
     suspend fun commissionTag(requestDto: CommissionTagRequestDto) : Result<CommissionTagResponseDto, ApiError>
     suspend fun isTagAvailable(tidHex: String): Result<Boolean, ApiError>
+    suspend fun deleteTag(barcode: String, tidHex: String): Result<DeleteTagResponseDto, ApiError>
 }
 
 class DummyCommissionRepository @Inject constructor(
@@ -55,6 +56,10 @@ class DummyCommissionRepository @Inject constructor(
 
     override suspend fun isTagAvailable(tidHex: String): Result<Boolean, ApiError> {
         return Result.Success(true)
+    }
+
+    override suspend fun deleteTag(barcode: String, tidHex: String): Result<DeleteTagResponseDto, ApiError> {
+        throw NotImplementedError("Delete tag not implemented in dummy repository")
     }
 
 }

@@ -70,4 +70,13 @@ class DefaultCommissionRepository @Inject constructor(
         }
     }
 
+    override suspend fun deleteTag(barcode: String, tidHex: String): Result<DeleteTagResponseDto, ApiError> {
+        val request = DeleteTagRequestDto(barcode = barcode, tidHex = tidHex, companyId = companyId)
+        return when (val result = ApiCaller()<DeleteTagResponseDto> { commissionApi.deleteTag(request) }) {
+            is Result.Error -> Result.Error(result.error.apiErrorType)
+            is Result.Success -> Result.Success(result.data)
+            else -> Result.Error(ApiError.UnknownException)
+        }
+    }
+
 }

@@ -32,6 +32,9 @@ interface CommissionApi {
 
     @POST("checkInBarcode")
     suspend fun checkInBarcode(@Body checkInBarcodeRequest: CheckInBarcodeRequestDto) : Response<CheckInBarcodeResponseDto>
+
+    @POST("deleteTag")
+    suspend fun deleteTag(@Body deleteTagRequest: DeleteTagRequestDto) : Response<DeleteTagResponseDto>
 }
 
 data class GetAssetRequestDto(
@@ -112,3 +115,14 @@ data class CommissionTagResponseDto(
         }
     }
 }
+
+data class DeleteTagRequestDto(
+    val barcode: String,
+    val tidHex: String,
+    val companyId: String
+)
+
+data class DeleteTagResponseDto(
+    val success: Boolean,
+    val message: String
+)
