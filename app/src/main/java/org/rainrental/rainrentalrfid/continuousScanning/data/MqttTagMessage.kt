@@ -1,6 +1,6 @@
 package org.rainrental.rainrentalrfid.continuousScanning.data
 
-import android.util.Log
+import org.rainrental.rainrentalrfid.logging.LogUtils
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
@@ -31,7 +31,7 @@ fun convertToJsonString(data: MqttTagMessage): String {
     return try {
         Json.encodeToString(data)
     } catch (e: SerializationException) {
-        Log.e("Serialization", "Failed to serialize MqttTagMessage: ${e.message}")
+        LogUtils.loge("Serialization", "Failed to serialize MqttTagMessage: ${e.message}")
         throw e
     }
 } 

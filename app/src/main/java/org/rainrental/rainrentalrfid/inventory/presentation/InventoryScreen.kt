@@ -95,7 +95,7 @@ fun InventoryScreen(
 
     when(uiFlow){
         is InventoryFlow.WaitingForBarcode -> {
-            android.util.Log.d("RainRental", "InventoryScreen - Showing WaitingForBarcodeView")
+            org.rainrental.rainrentalrfid.logging.LogUtils.logd("RainRental", "InventoryScreen - Showing WaitingForBarcodeView")
             WaitingForBarcodeView(uiFlow = uiFlow, onEvent = onEvent)
         }
         is InventoryFlow.ManualBarcodeEntry -> ManualBarcodeEntryView(uiFlow = uiFlow, onEvent = onEvent)

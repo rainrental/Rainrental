@@ -1,7 +1,7 @@
 package org.rainrental.rainrentalrfid.di
 
 import android.content.Context
-import android.util.Log
+import org.rainrental.rainrentalrfid.logging.LogUtils
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -91,7 +91,7 @@ object ApiModule {
     @Provides
     @Named("UnifiedRetrofit")
     fun provideRetrofit(@Named("UnifiedHttpClient") okHttpClient: OkHttpClient, @Named("UnifiedConfig") configuration: Configuration, gson:Gson) : Retrofit {
-        Log.i("Building","Building with Url: ${configuration.baseUrl}")
+        LogUtils.logi("Building","Building with Url: ${configuration.baseUrl}")
         return Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(configuration.baseUrl)
@@ -103,7 +103,7 @@ object ApiModule {
     @Provides
     @Named("RainRentalRetrofit")
     fun provideAuthRetrofit(@Named("RainRentalHttpClient") okHttpClient: OkHttpClient, @Named("RainRentalConfig") configuration: Configuration, gson:Gson) : Retrofit {
-        Log.i("Building","Building with Url: ${configuration.baseUrl}")
+        LogUtils.logi("Building","Building with Url: ${configuration.baseUrl}")
         return Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl(configuration.baseUrl)

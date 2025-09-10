@@ -1,7 +1,7 @@
 package org.rainrental.rainrentalrfid.auth
 
 import kotlinx.coroutines.*
-import android.util.Log
+import org.rainrental.rainrentalrfid.logging.LogUtils
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -15,16 +15,16 @@ class TokenRefreshScheduler @Inject constructor(
     fun startAutoRefresh() {
         stopAutoRefresh() // Stop any existing job
         
-        Log.d("TokenRefreshScheduler", "Starting automatic token refresh")
+        LogUtils.logd("TokenRefreshScheduler", "Starting automatic token refresh")
         refreshJob = CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
                 try {
                     delay(refreshInterval)
-                    Log.d("TokenRefreshScheduler", "Refreshing token...")
+                    LogUtils.logd("TokenRefreshScheduler", "Refreshing token...")
                     authService.refreshToken()
-                    Log.d("TokenRefreshScheduler", "Token refreshed successfully")
+                    LogUtils.logd("TokenRefreshScheduler", "Token refreshed successfully")
                 } catch (e: Exception) {
-                    Log.e("TokenRefreshScheduler", "Token refresh failed: ${e.message}")
+                    LogUtils.loge("TokenRefreshScheduler", "Token refresh failed: ${e.message}")
                     // If refresh fails, stop the scheduler
                     // The user will need to re-authenticate
                     break
@@ -34,7 +34,7 @@ class TokenRefreshScheduler @Inject constructor(
     }
     
     fun stopAutoRefresh() {
-        Log.d("TokenRefreshScheduler", "Stopping automatic token refresh")
+        LogUtils.logd("TokenRefreshScheduler", "Stopping automatic token refresh")
         refreshJob?.cancel()
         refreshJob = null
     }

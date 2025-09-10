@@ -2,7 +2,7 @@ package org.rainrental.rainrentalrfid.app
 
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
+import org.rainrental.rainrentalrfid.logging.LogUtils
 import android.view.KeyEvent
 import android.view.Surface
 import android.view.WindowInsets
@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
         
         // Use configured MQTT server IP
         val mqttServerIp = appConfig.getMqttServerIp(this@MainActivity)
-        Log.i("MainActivity", "Using MQTT server: $mqttServerIp")
+        LogUtils.logi("MainActivity", "Using MQTT server: $mqttServerIp")
         mqttService.initialiseClient(listOf(mqttServerIp), this@MainActivity)
         lifecycle.addObserver(mqttService)
 
@@ -131,7 +131,7 @@ class MainActivity : ComponentActivity() {
 
     private val backPressedCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
-            Log.i("MainActivity", "Back button pressed - cancelling all scanning")
+            LogUtils.logi("MainActivity", "Back button pressed - cancelling all scanning")
             // Cancel all scanning operations when back is pressed
             scanningLifecycleManager.cancelAllScanning()
             // Let the system handle the back navigation
@@ -143,19 +143,19 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         super.onPause()
-        Log.i("MainActivity","On Pause - cancelling all scanning")
+        LogUtils.logi("MainActivity","On Pause - cancelling all scanning")
         // Cancel all scanning operations when app is paused
         scanningLifecycleManager.cancelAllScanning()
     }
 
     override fun onResume() {
         super.onResume()
-        Log.i("MainActivity", "On Resume")
+        LogUtils.logi("MainActivity", "On Resume")
     }
     
     override fun onDestroy() {
         super.onDestroy()
-        Log.i("MainActivity", "On Destroy - Cleaning up resources")
+        LogUtils.logi("MainActivity", "On Destroy - Cleaning up resources")
         
         // Cleanup resources
         try {
@@ -168,9 +168,9 @@ class MainActivity : ComponentActivity() {
             // Cleanup MQTT service
             mqttService.cleanup()
             
-            Log.i("MainActivity", "Resource cleanup completed")
+            LogUtils.logi("MainActivity", "Resource cleanup completed")
         } catch (e: Exception) {
-            Log.e("MainActivity", "Error during cleanup: $e")
+            LogUtils.loge("MainActivity", "Error during cleanup: $e")
         }
     }
 }

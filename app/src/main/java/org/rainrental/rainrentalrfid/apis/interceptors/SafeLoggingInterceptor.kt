@@ -1,6 +1,6 @@
 package org.rainrental.rainrentalrfid.apis.interceptors
 
-import android.util.Log
+import org.rainrental.rainrentalrfid.logging.LogUtils
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
@@ -15,10 +15,10 @@ class SafeLoggingInterceptor : Interceptor {
         return try {
             loggingInterceptor.intercept(chain)
         } catch (e: IOException) {
-            Log.e("SafeLoggingInterceptor", "IOException during logging: ${e.message}")
+            LogUtils.loge("SafeLoggingInterceptor", "IOException during logging: ${e.message}")
             throw e
         } catch (e: Exception) {
-            Log.e("SafeLoggingInterceptor", "Exception during logging: ${e.message}")
+            LogUtils.loge("SafeLoggingInterceptor", "Exception during logging: ${e.message}")
             throw e
         }
     }
