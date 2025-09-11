@@ -2,9 +2,11 @@ package org.rainrental.rainrentalrfid.commission.presentation.composable
 
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -269,17 +271,18 @@ fun LoadedAssetView(
 }
 
 @Composable
-fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false, showFull: Boolean = true) {
-    val verticalPadding = 2.dp
-    if (!general){
+fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false, showFull: Boolean = true, scannedEpc: String? = null) {
+    Box {
+        val verticalPadding = 2.dp
+        if (!general){
 
-        Row(
-            modifier = Modifier.padding(vertical = verticalPadding),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            FieldValue(header = "BARCODE", value = asset.barcode,size = 320)
+            Row(
+                modifier = Modifier.padding(vertical = verticalPadding),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                FieldValue(header = "BARCODE", value = asset.barcode,size = 320)
+            }
         }
-    }
     asset.productName?.let{ productName ->
         Row(
             modifier = Modifier.padding(vertical = verticalPadding),
@@ -329,6 +332,29 @@ fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false, showFull:
         horizontalArrangement = Arrangement.Center
     ) {
         FieldValue(header = "EPC", value = asset.epc, size = 320)
+    }
+    
+    // EPC Match/Mismatch Overlay Indicator (only shown when scannedEpc is provided)
+    scannedEpc?.let { scanned ->
+        val epcMatch = scanned.equals(asset.epc, ignoreCase = true)
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(8.dp)
+                .background(
+                    color = if (epcMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = if (epcMatch) "✓" else "⚠",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
     }
 }
 

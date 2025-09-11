@@ -1,10 +1,8 @@
 package org.rainrental.rainrentalrfid.taglookup.presentation
 
 import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -111,42 +109,18 @@ fun TagLookupScreen(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     
-                    Box(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .border(
-                                    width = 2.dp,
-                                    shape = RoundedCornerShape(8.dp),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                .padding(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            AssetView(asset = uiFlow.asset)
-                        }
-                        
-                        // EPC Match/Mismatch Overlay Indicator
-                        val epcMatch = uiFlow.scannedEpc.equals(uiFlow.asset.epc, ignoreCase = true)
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(8.dp)
-                                .background(
-                                    color = if (epcMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = if (epcMatch) "✓" else "⚠",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onPrimary
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(
+                                width = 2.dp,
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.primary
                             )
-                        }
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        AssetView(asset = uiFlow.asset, scannedEpc = uiFlow.scannedEpc)
                     }
                     
                     Text(
