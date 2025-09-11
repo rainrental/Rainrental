@@ -1,8 +1,10 @@
 package org.rainrental.rainrentalrfid.taglookup.presentation
 
 import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -102,60 +104,49 @@ fun TagLookupScreen(
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                     
-                    // EPC Comparison Section
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .border(
-                                width = 1.dp,
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.outline
-                            )
-                            .padding(12.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Text(
-                            text = "EPC Comparison",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        
-                        Text(
-                            text = "Scanned: ${uiFlow.scannedEpc}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        
-                        Text(
-                            text = "Expected: ${uiFlow.asset.epc}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        
-                        val epcMatch = uiFlow.scannedEpc.equals(uiFlow.asset.epc, ignoreCase = true)
-                        Text(
-                            text = if (epcMatch) "✓ EPCs Match" else "⚠ EPC Mismatch",
-                            style = MaterialTheme.typography.bodySmall,
-                            fontWeight = FontWeight.Bold,
-                            color = if (epcMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-                        )
-                    }
+                    Text(
+                        text = "Scanned EPC: ${uiFlow.scannedEpc}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
                     
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .border(
-                                width = 2.dp,
-                                shape = RoundedCornerShape(8.dp),
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Box(
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        AssetView(asset = uiFlow.asset)
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(
+                                    width = 2.dp,
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AssetView(asset = uiFlow.asset)
+                        }
+                        
+                        // EPC Match/Mismatch Overlay Indicator
+                        val epcMatch = uiFlow.scannedEpc.equals(uiFlow.asset.epc, ignoreCase = true)
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .background(
+                                    color = if (epcMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                                    shape = RoundedCornerShape(16.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = if (epcMatch) "✓" else "⚠",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
                     }
                     
                     Text(
