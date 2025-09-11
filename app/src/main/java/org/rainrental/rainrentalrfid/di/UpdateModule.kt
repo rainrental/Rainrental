@@ -6,6 +6,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.rainrental.rainrentalrfid.update.UpdateManager
 import org.rainrental.rainrentalrfid.update.UpdateRepository
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import javax.inject.Singleton
 
 @Module
@@ -15,9 +16,9 @@ object UpdateModule {
     @Provides
     @Singleton
     fun provideUpdateRepository(
-        appConfig: org.rainrental.rainrentalrfid.app.AppConfig
+        backendApi: BackendApi
     ): UpdateRepository {
-        return UpdateRepository(appConfig)
+        return UpdateRepository(backendApi)
     }
 
 

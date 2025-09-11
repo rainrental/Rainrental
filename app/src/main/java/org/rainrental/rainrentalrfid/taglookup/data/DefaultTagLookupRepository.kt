@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.rainrental.rainrentalrfid.apis.ApiCaller
-import org.rainrental.rainrentalrfid.commission.data.CommissionApi
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import org.rainrental.rainrentalrfid.commission.data.GetAssetByTidRequestDto
 import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.result.ApiError
@@ -18,7 +18,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class DefaultTagLookupRepository @Inject constructor(
-    private val commissionApi: CommissionApi,
+    private val backendApi: BackendApi,
     @Named("company_id") private val companyId: String,
 ) : TagLookupRepository, Logger {
 
@@ -38,7 +38,7 @@ class DefaultTagLookupRepository @Inject constructor(
 
     override suspend fun getAssetByTid(tidHex: String): Result<AssetDetailsResponseDto, ApiError> {
         val request = GetAssetByTidRequestDto(tidHex = tidHex, companyId = companyId)
-        return when (val result = ApiCaller()<AssetDetailsResponseDto> { commissionApi.getAssetByTid(request) }) {
+        return when (val result = ApiCaller()<AssetDetailsResponseDto> { backendApi.getAssetByTid(request) }) {
             is Result.Error -> Result.Error(result.error.apiErrorType)
             is Result.Success -> Result.Success(result.data)
             else -> Result.Error(ApiError.UnknownException)

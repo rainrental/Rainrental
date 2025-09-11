@@ -4,7 +4,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import org.rainrental.rainrentalrfid.commission.data.CommissionApi
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import org.rainrental.rainrentalrfid.commission.data.CommissionRepository
 import org.rainrental.rainrentalrfid.commission.data.DefaultCommissionRepository
 import org.rainrental.rainrentalrfid.commission.data.DummyCommissionRepository
@@ -42,15 +42,15 @@ object CommissionRepositoryModule {
     @Provides
     @Singleton
 //    @Named("Production")
-    fun providesCommissionRepository(commissionApi: CommissionApi, rainRentalApi: RainRentalApi, @Named("company_id") companyId: String) : CommissionRepository{
-        return DefaultCommissionRepository(commissionApi, rainRentalApi, companyId)
+    fun providesCommissionRepository(backendApi: BackendApi, rainRentalApi: RainRentalApi, @Named("company_id") companyId: String) : CommissionRepository{
+        return DefaultCommissionRepository(backendApi, rainRentalApi, companyId)
     }
 
     @Provides
     @Singleton
     @Named("Dummy")
-    fun providesDummyCommissionRepository(commissionApi: CommissionApi) : CommissionRepository{
-        return DummyCommissionRepository(commissionApi)
+    fun providesDummyCommissionRepository(backendApi: BackendApi) : CommissionRepository{
+        return DummyCommissionRepository(backendApi)
     }
 
 }

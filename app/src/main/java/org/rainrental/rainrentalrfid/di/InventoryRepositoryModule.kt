@@ -5,7 +5,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import org.rainrental.rainrentalrfid.app.BaseViewModelDependencies
-import org.rainrental.rainrentalrfid.commission.data.CommissionApi
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import org.rainrental.rainrentalrfid.inventory.data.DefaultInventoryRepository
 import org.rainrental.rainrentalrfid.inventory.data.InventoryRepository
 import org.rainrental.rainrentalrfid.inventory.domain.StartInventoryAllUseCase
@@ -20,8 +20,8 @@ object InventoryRepositoryModule {
 
     @Provides
     @Singleton
-    fun providesInventoryRepository(commissionApi: CommissionApi, @Named("company_id") companyId: String): InventoryRepository{
-        return DefaultInventoryRepository(commissionApi, companyId)
+    fun providesInventoryRepository(backendApi: BackendApi, @Named("company_id") companyId: String): InventoryRepository{
+        return DefaultInventoryRepository(backendApi, companyId)
     }
 
     @Provides

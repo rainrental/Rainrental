@@ -20,7 +20,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 class DefaultCommissionRepository @Inject constructor(
-    override val commissionApi: CommissionApi,
+    override val backendApi: BackendApi,
     private val rainRentalApi: RainRentalApi,
     @Named("company_id") private val companyId: String,
 ) : CommissionRepository {
@@ -40,7 +40,7 @@ class DefaultCommissionRepository @Inject constructor(
 
     override suspend fun getAsset(barcode: String): Result<AssetDetailsResponseDto, ApiError> {
         val request = GetAssetRequestDto(barcode = barcode, companyId = companyId)
-        return when (val result = ApiCaller()<AssetDetailsResponseDto>{ commissionApi.getAssetDetails(request)}){
+        return when (val result = ApiCaller()<AssetDetailsResponseDto>{ backendApi.getAssetDetails(request)}){
             is Result.Error -> Result.Error(result.error.apiErrorType)
             is Result.Success -> Result.Success(result.data)
             else -> Result.Error(ApiError.UnknownException)
@@ -56,7 +56,7 @@ class DefaultCommissionRepository @Inject constructor(
     }
 
     override suspend fun commissionTag(requestDto: CommissionTagRequestDto): Result<CommissionTagResponseDto,ApiError> {
-        return when (val result = ApiCaller()<CommissionTagResponseDto> { commissionApi.commissionTag(requestDto) }){
+        return when (val result = ApiCaller()<CommissionTagResponseDto> { backendApi.commissionTag(requestDto) }){
             is Result.Error -> Result.Error(result.error.apiErrorType)
             is Result.Success -> Result.Success(result.data)
             else -> Result.Error(ApiError.UnknownException)
@@ -64,7 +64,7 @@ class DefaultCommissionRepository @Inject constructor(
     }
 
     override suspend fun isTagAvailable(tidHex: String): Result<Boolean, ApiError> {
-        return when (val result = ApiCaller()<IsTagAvailableResponseDto> { commissionApi.isTagAvailable(IsTagAvailableRequestDto(tidHex = tidHex, companyId = companyId)) }){ //TODO get from settings
+        return when (val result = ApiCaller()<IsTagAvailableResponseDto> { backendApi.isTagAvailable(IsTagAvailableRequestDto(tidHex = tidHex, companyId = companyId)) }){ //TODO get from settings
             is Result.Error -> Result.Error(result.error.apiErrorType)
             is Result.Success -> Result.Success(result.data.success)
         }
@@ -72,7 +72,7 @@ class DefaultCommissionRepository @Inject constructor(
 
     override suspend fun deleteTag(barcode: String, tidHex: String): Result<DeleteTagResponseDto, ApiError> {
         val request = DeleteTagRequestDto(barcode = barcode, tidHex = tidHex, companyId = companyId)
-        return when (val result = ApiCaller()<DeleteTagResponseDto> { commissionApi.deleteTag(request) }) {
+        return when (val result = ApiCaller()<DeleteTagResponseDto> { backendApi.deleteTag(request) }) {
             is Result.Error -> Result.Error(result.error.apiErrorType)
             is Result.Success -> Result.Success(result.data)
             else -> Result.Error(ApiError.UnknownException)

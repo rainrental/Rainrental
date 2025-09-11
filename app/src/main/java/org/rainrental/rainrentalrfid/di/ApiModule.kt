@@ -19,7 +19,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.apis.data.Configuration
 import org.rainrental.rainrentalrfid.apis.interceptors.SafeLoggingInterceptor
-import org.rainrental.rainrentalrfid.commission.data.CommissionApi
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import org.rainrental.rainrentalrfid.rainrental.data.RainRentalApi
 import org.rainrental.rainrentalrfid.auth.InvitationApiService
 import com.google.firebase.auth.FirebaseAuth
@@ -115,8 +115,8 @@ object ApiModule {
 
     @Provides
     @Singleton
-    fun providesCommissionApi(@Named("UnifiedRetrofit") retrofit: Retrofit) : CommissionApi {
-        return retrofit.create(CommissionApi::class.java)
+    fun providesBackendApi(@Named("UnifiedRetrofit") retrofit: Retrofit) : BackendApi {
+        return retrofit.create(BackendApi::class.java)
     }
 
     @Provides

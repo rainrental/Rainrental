@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.rainrental.rainrentalrfid.apis.ApiCaller
-import org.rainrental.rainrentalrfid.commission.data.CommissionApi
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import org.rainrental.rainrentalrfid.commission.data.GetAssetRequestDto
 import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.result.ApiError
@@ -15,14 +15,14 @@ import javax.inject.Inject
 import javax.inject.Named
 
 interface HuntRepository : Logger {
-    val commissionApi : CommissionApi
+    val backendApi : BackendApi
     val uiFlow: SharedFlow<HuntFlow>
     suspend fun updateUiFlow(flow:HuntFlow)
     suspend fun getAsset(barcode:String): Result<AssetDetailsResponseDto, ApiError>
 }
 
 class DefaultHuntRepository @Inject constructor(
-    override val commissionApi: CommissionApi,
+    override val backendApi: BackendApi,
     @Named("company_id") private val companyId: String
 ) : HuntRepository{
 
@@ -33,7 +33,7 @@ class DefaultHuntRepository @Inject constructor(
     }
     override suspend fun getAsset(barcode: String): Result<AssetDetailsResponseDto, ApiError> {
         val request = GetAssetRequestDto(barcode = barcode, companyId = companyId)
-        return when (val result = (ApiCaller())<AssetDetailsResponseDto>{ commissionApi.getAssetDetails(request)}){
+        return when (val result = (ApiCaller())<AssetDetailsResponseDto>{ backendApi.getAssetDetails(request)}){
             is Result.Error -> Result.Error(result.error.apiErrorType)
             is Result.Success -> Result.Success(result.data)
             else -> Result.Error(ApiError.UnknownException)

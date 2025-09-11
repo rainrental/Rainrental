@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.rainrental.rainrentalrfid.apis.ApiCaller
-import org.rainrental.rainrentalrfid.commission.data.CommissionApi
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import org.rainrental.rainrentalrfid.commission.data.LogInventoryRequestDto
 import org.rainrental.rainrentalrfid.commission.data.LogInventoryResponseDto
 import org.rainrental.rainrentalrfid.logging.Logger
@@ -29,7 +29,7 @@ interface InventoryRepository : Logger{
 }
 
 class DefaultInventoryRepository @Inject constructor(
-    private val commissionApi: CommissionApi,
+    private val backendApi: BackendApi,
     @Named("company_id") private val companyId: String
 ) : InventoryRepository {
 
@@ -46,7 +46,7 @@ class DefaultInventoryRepository @Inject constructor(
 
     override suspend fun getAsset(barcode: String) : Result<AssetDetailsResponseDto,ApiError> {
         val request = GetAssetRequestDto(barcode = barcode, companyId = companyId)
-        return when (val result = (ApiCaller())<AssetDetailsResponseDto> { commissionApi.getAssetDetails(request) }){
+        return when (val result = (ApiCaller())<AssetDetailsResponseDto> { backendApi.getAssetDetails(request) }){
             is Result.Error -> Result.Error(result.error.apiErrorType)
             is Result.Success -> Result.Success(result.data)
         }
@@ -57,7 +57,7 @@ class DefaultInventoryRepository @Inject constructor(
     }
 
     override suspend fun logInventory(logInventoryRequestDto: LogInventoryRequestDto): Result<LogInventoryResponseDto, ApiError> {
-        return when (val result = ApiCaller()<LogInventoryResponseDto> { commissionApi.logInventory(logInventoryRequestDto) }){
+        return when (val result = ApiCaller()<LogInventoryResponseDto> { backendApi.logInventory(logInventoryRequestDto) }){
             is Result.Error -> {
                 loge("Error saving inventory data")
                 Result.Error(result.error.apiErrorType)

@@ -15,7 +15,7 @@ import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
 import javax.inject.Inject
 
 interface CommissionRepository {
-    val commissionApi: CommissionApi
+    val backendApi: BackendApi
     val uiState: StateFlow<CommissionUiState>
     val uiFlow: SharedFlow<CommissionUiFlow>
     suspend fun updateUiFlow(uiFlow: CommissionUiFlow)
@@ -28,7 +28,7 @@ interface CommissionRepository {
 }
 
 class DummyCommissionRepository @Inject constructor(
-    override val commissionApi: CommissionApi
+    override val backendApi: BackendApi
 ) : CommissionRepository{
 
     private val _uiState: MutableStateFlow<CommissionUiState> = MutableStateFlow(CommissionUiState())

@@ -8,7 +8,7 @@ import retrofit2.http.QueryMap
 import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
 
 
-interface CommissionApi {
+interface BackendApi {
     @POST("commissionTags")
     suspend fun commissionTag(@Body commissionTagRequestDto: CommissionTagRequestDto): Response<CommissionTagResponseDto>
 
@@ -35,6 +35,9 @@ interface CommissionApi {
 
     @POST("deleteTag")
     suspend fun deleteTag(@Body deleteTagRequest: DeleteTagRequestDto) : Response<DeleteTagResponseDto>
+
+    @POST("appVersions")
+    suspend fun getAppVersions(@Body appVersionsRequest: AppVersionsRequestDto) : Response<AppVersionsResponseDto>
 }
 
 data class GetAssetRequestDto(
@@ -125,4 +128,24 @@ data class DeleteTagRequestDto(
 data class DeleteTagResponseDto(
     val success: Boolean,
     val message: String
+)
+
+data class AppVersionsRequestDto(
+    val companyId: String
+)
+
+data class AppVersionsResponseDto(
+    val success: Boolean,
+    val message: String,
+    val versions: List<AppVersionDto>
+)
+
+data class AppVersionDto(
+    val version: String,
+    val versionCode: Int,
+    val downloadUrl: String,
+    val fileSize: Long,
+    val releaseNotes: String = "",
+    val minSdkVersion: Int = 30,
+    val targetSdkVersion: Int = 34
 )

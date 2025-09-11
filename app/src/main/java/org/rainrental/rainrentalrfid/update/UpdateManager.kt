@@ -30,6 +30,7 @@ class UpdateManager @Inject constructor(
      * @param context Application context
      * @param companyId Company ID for the API call
      * @param forceCheck Force check even if recently checked
+     * @param useTestMode If true, uses mock data instead of real API
      * @param onUpdateAvailable Callback when update is available
      * @param onUpdateProgress Callback for download progress
      * @param onUpdateComplete Callback when update is complete
@@ -39,6 +40,7 @@ class UpdateManager @Inject constructor(
         context: Context,
         companyId: String,
         forceCheck: Boolean = false,
+        useTestMode: Boolean = false,
         onUpdateAvailable: (UpdateInfo) -> Unit = {},
         onUpdateProgress: (Float) -> Unit = {},
         onUpdateComplete: () -> Unit = {},
@@ -73,8 +75,8 @@ class UpdateManager @Inject constructor(
                 logd("UPDATE MANAGER: Starting update check in coroutine")
                 
                 // Check for available updates
-                logd("UPDATE MANAGER: Calling updateRepository.checkForUpdates")
-                val updateInfo = updateRepository.checkForUpdates(companyId)
+                logd("UPDATE MANAGER: Calling updateRepository.checkForUpdates (testMode: $useTestMode)")
+                val updateInfo = updateRepository.checkForUpdates(companyId, useTestMode)
                 
                 if (updateInfo == null) {
                     logd("UPDATE MANAGER: No update available from repository")

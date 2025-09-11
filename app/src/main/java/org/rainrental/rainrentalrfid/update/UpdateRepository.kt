@@ -4,9 +4,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.json.JSONObject
-import org.rainrental.rainrentalrfid.app.AppConfig
-import org.rainrental.rainrentalrfid.app.NetworkUtils
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
+import org.rainrental.rainrentalrfid.commission.data.AppVersionsRequestDto
+import org.rainrental.rainrentalrfid.commission.data.AppVersionsResponseDto
+import org.rainrental.rainrentalrfid.commission.data.AppVersionDto
 import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.result.ApiError
 import org.rainrental.rainrentalrfid.result.Result
@@ -18,7 +19,7 @@ import javax.inject.Singleton
 
 @Singleton
 class UpdateRepository @Inject constructor(
-    private val appConfig: AppConfig
+    private val backendApi: BackendApi
 ) : Logger {
 
     private val client = OkHttpClient.Builder()
@@ -29,51 +30,55 @@ class UpdateRepository @Inject constructor(
     /**
      * Check for available app updates
      * @param companyId Company ID for the API call
+     * @param useTestMode If true, returns mock data instead of calling real API
      * @return UpdateInfo if update is available, null otherwise
      */
-    suspend fun checkForUpdates(companyId: String): UpdateInfo? = withContext(Dispatchers.IO) {
+    suspend fun checkForUpdates(companyId: String, useTestMode: Boolean = false): UpdateInfo? = withContext(Dispatchers.IO) {
         try {
             logd("=== UPDATE CHECK START ===")
             logd("Checking for updates for company: $companyId")
+            logd("Test mode: $useTestMode")
             
-            val apiUrl = NetworkUtils.constructUrl(appConfig.Network.API_BASE_URL, "api/v1/appVersions/$companyId")
-            logd("API URL: $apiUrl")
+            // Test mode - return mock data for testing
+            if (useTestMode) {
+                logd("=== USING TEST MODE - RETURNING MOCK DATA ===")
+                return@withContext UpdateInfo(
+                    version = "1.0.99",
+                    versionCode = 10099,
+                    downloadUrl = "https://example.com/test-update.apk",
+                    fileSize = 1024 * 1024 * 10, // 10MB
+                    releaseNotes = "Test update for auto-update functionality",
+                    minSdkVersion = 30,
+                    targetSdkVersion = 34
+                )
+            }
             
-            val request = Request.Builder()
-                .url(apiUrl)
-                .addHeader("companyid", companyId)
-                .get()
-                .build()
-
-            logd("Making HTTP request...")
-            val response = client.newCall(request).execute()
+            logd("Calling backendApi.getAppVersions...")
+            val response = backendApi.getAppVersions(AppVersionsRequestDto(companyId = companyId))
             
-            logd("Response received - Status: ${response.code}, Headers: ${response.headers}")
+            logd("Response received - Code: ${response.code()}")
             
             if (!response.isSuccessful) {
-                loge("UPDATE CHECK FAILED: HTTP ${response.code}")
-                loge("Response body: ${response.body?.string()}")
+                loge("UPDATE CHECK FAILED: HTTP ${response.code()}")
+                loge("Response body: ${response.errorBody()?.string()}")
                 return@withContext null
             }
 
-            val responseBody = response.body?.string() ?: run {
-                loge("UPDATE CHECK FAILED: Empty response body")
+            val responseBody = response.body()
+            if (responseBody == null) {
+                loge("UPDATE CHECK FAILED: Null response body")
                 return@withContext null
             }
             
-            logd("UPDATE API RESPONSE: $responseBody")
+            logd("UPDATE API RESPONSE: success=${responseBody.success}, message=${responseBody.message}")
+            logd("Found ${responseBody.versions.size} versions in response")
             
-            val jsonResponse = JSONObject(responseBody)
-            
-            if (!jsonResponse.has("versions")) {
-                loge("UPDATE CHECK FAILED: No 'versions' field in response")
+            if (!responseBody.success) {
+                loge("UPDATE CHECK FAILED: API returned success=false, message=${responseBody.message}")
                 return@withContext null
             }
             
-            val versions = jsonResponse.getJSONArray("versions")
-            logd("Found ${versions.length()} versions in response")
-            
-            if (versions.length() == 0) {
+            if (responseBody.versions.isEmpty()) {
                 logd("No versions available in response")
                 return@withContext null
             }
@@ -83,25 +88,21 @@ class UpdateRepository @Inject constructor(
             var highestVersionCode = 0
             
             logd("Analyzing versions...")
-            for (i in 0 until versions.length()) {
-                val version = versions.getJSONObject(i)
-                val versionCode = version.getInt("versionCode")
-                val versionName = version.getString("version")
+            for (version in responseBody.versions) {
+                logd("Version: ${version.version} (code: ${version.versionCode})")
                 
-                logd("Version $i: $versionName (code: $versionCode)")
-                
-                if (versionCode > highestVersionCode) {
-                    highestVersionCode = versionCode
+                if (version.versionCode > highestVersionCode) {
+                    highestVersionCode = version.versionCode
                     latestVersion = UpdateInfo(
-                        version = versionName,
-                        versionCode = versionCode,
-                        downloadUrl = version.getString("downloadUrl"),
-                        fileSize = version.getLong("fileSize"),
-                        releaseNotes = version.optString("releaseNotes", ""),
-                        minSdkVersion = version.optInt("minSdkVersion", 30),
-                        targetSdkVersion = version.optInt("targetSdkVersion", 34)
+                        version = version.version,
+                        versionCode = version.versionCode,
+                        downloadUrl = version.downloadUrl,
+                        fileSize = version.fileSize,
+                        releaseNotes = version.releaseNotes,
+                        minSdkVersion = version.minSdkVersion,
+                        targetSdkVersion = version.targetSdkVersion
                     )
-                    logd("New highest version found: $versionName (code: $versionCode)")
+                    logd("New highest version found: ${version.version} (code: ${version.versionCode})")
                 }
             }
             
@@ -116,14 +117,8 @@ class UpdateRepository @Inject constructor(
                 return@withContext null
             }
             
-        } catch (e: IOException) {
-            loge("=== UPDATE CHECK NETWORK ERROR ===")
-            loge("Network error during update check: ${e.message}")
-            loge("Exception type: ${e.javaClass.simpleName}")
-            e.printStackTrace()
-            return@withContext null
         } catch (e: Exception) {
-            loge("=== UPDATE CHECK GENERAL ERROR ===")
+            loge("=== UPDATE CHECK ERROR ===")
             loge("Error checking for updates: ${e.message}")
             loge("Exception type: ${e.javaClass.simpleName}")
             e.printStackTrace()
@@ -139,20 +134,10 @@ class UpdateRepository @Inject constructor(
             logd("=== API CONNECTIVITY TEST ===")
             logd("Testing connectivity for company: $companyId")
             
-            val apiUrl = NetworkUtils.constructUrl(appConfig.Network.API_BASE_URL, "api/v1/appVersions/$companyId")
-            logd("Testing URL: $apiUrl")
+            logd("Calling backendApi.getAppVersions for connectivity test...")
+            val response = backendApi.getAppVersions(AppVersionsRequestDto(companyId = companyId))
             
-            val request = Request.Builder()
-                .url(apiUrl)
-                .addHeader("companyid", companyId)
-                .head() // Use HEAD request to test connectivity without downloading data
-                .build()
-
-            logd("Making HEAD request...")
-            val response = client.newCall(request).execute()
-            
-            logd("Response received - Status: ${response.code}")
-            response.close()
+            logd("Response received - Code: ${response.code()}")
             
             val isSuccessful = response.isSuccessful
             logd("Connectivity test result: $isSuccessful")

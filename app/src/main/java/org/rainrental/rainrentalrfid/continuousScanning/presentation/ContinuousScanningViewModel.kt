@@ -30,7 +30,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.ScanBarcodeUseCase
-import org.rainrental.rainrentalrfid.commission.data.CommissionApi
+import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import org.rainrental.rainrentalrfid.commission.data.CheckInBarcodeRequestDto
 import org.rainrental.rainrentalrfid.commission.data.CheckInBarcodeResponseDto
 import org.rainrental.rainrentalrfid.apis.ApiCaller
@@ -45,7 +45,7 @@ class ContinuousScanningViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val appConfig: AppConfig,
     private val scanBarcodeUseCase: ScanBarcodeUseCase,
-    private val commissionApi: CommissionApi,
+    private val backendApi: BackendApi,
     @Named("company_id") private val companyId: String,
     @Named("rain_company_id") private val rainCompanyId: Int,
     dependencies: BaseViewModelDependencies
@@ -300,7 +300,7 @@ class ContinuousScanningViewModel @Inject constructor(
                     
                     // Call the checkInBarcode API
                     val request = CheckInBarcodeRequestDto(barcode = barcode, companyId = companyId)
-                    when (val checkInResult = ApiCaller()<CheckInBarcodeResponseDto> { commissionApi.checkInBarcode(request) }) {
+                    when (val checkInResult = ApiCaller()<CheckInBarcodeResponseDto> { backendApi.checkInBarcode(request) }) {
                         is Result.Error -> {
                             logd("Check-in failed: ${checkInResult.error.apiErrorType}")
                             // Could add toast notification here if needed
