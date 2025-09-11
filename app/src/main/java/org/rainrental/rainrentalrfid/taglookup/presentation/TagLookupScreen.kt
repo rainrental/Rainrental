@@ -69,7 +69,17 @@ fun TagLookupScreen(
             }
             
             is TagLookupUiFlow.LookingUpAsset -> {
-                LoadingWithText(text = "Looking up asset for tag: ${uiFlow.tidHex}")
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    LoadingWithText(text = "Looking up asset for tag: ${uiFlow.tidHex}")
+                    Text(
+                        text = "Scanned EPC: ${uiFlow.scannedEpc}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
             
             is TagLookupUiFlow.AssetFound -> {
@@ -89,8 +99,50 @@ fun TagLookupScreen(
                         text = "Tag ID: ${uiFlow.tidHex}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
+                    
+                    // EPC Comparison Section
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .border(
+                                width = 1.dp,
+                                shape = RoundedCornerShape(8.dp),
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                            .padding(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = "EPC Comparison",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        
+                        Text(
+                            text = "Scanned: ${uiFlow.scannedEpc}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        Text(
+                            text = "Expected: ${uiFlow.asset.epc}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        val epcMatch = uiFlow.scannedEpc.equals(uiFlow.asset.epc, ignoreCase = true)
+                        Text(
+                            text = if (epcMatch) "✓ EPCs Match" else "⚠ EPC Mismatch",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = if (epcMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+                        )
+                    }
                     
                     Column(
                         modifier = Modifier
@@ -132,8 +184,17 @@ fun TagLookupScreen(
                         text = "Tag ID: ${uiFlow.tidHex}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 16.dp)
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
+                    
+                    if (uiFlow.scannedEpc.isNotEmpty()) {
+                        Text(
+                            text = "Scanned EPC: ${uiFlow.scannedEpc}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
                     
                     Text(
                         text = "This RFID tag is not associated with any asset",

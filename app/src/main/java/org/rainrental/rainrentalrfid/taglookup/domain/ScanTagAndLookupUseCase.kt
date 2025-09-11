@@ -18,19 +18,22 @@ class ScanTagAndLookupUseCase @Inject constructor(
                 tagLookupRepository.updateUiFlow(
                     TagLookupUiFlow.AssetNotFound(
                         tidHex = "",
+                        scannedEpc = "",
                         withError = "Failed to scan tag: ${tagResult.error.name}"
                     )
                 )
             }
             is Result.Success -> {
                 val tidHex = tagResult.data.tid
-                tagLookupRepository.updateUiFlow(TagLookupUiFlow.LookingUpAsset(tidHex = tidHex))
+                val scannedEpc = tagResult.data.epc
+                tagLookupRepository.updateUiFlow(TagLookupUiFlow.LookingUpAsset(tidHex = tidHex, scannedEpc = scannedEpc))
                 
                 when (val assetResult = tagLookupRepository.getAssetByTid(tidHex)) {
                     is Result.Error -> {
                         tagLookupRepository.updateUiFlow(
                             TagLookupUiFlow.AssetNotFound(
                                 tidHex = tidHex,
+                                scannedEpc = scannedEpc,
                                 withError = "Failed to lookup asset: ${assetResult.error.name}"
                             )
                         )
@@ -39,7 +42,8 @@ class ScanTagAndLookupUseCase @Inject constructor(
                         tagLookupRepository.updateUiFlow(
                             TagLookupUiFlow.AssetFound(
                                 asset = assetResult.data,
-                                tidHex = tidHex
+                                tidHex = tidHex,
+                                scannedEpc = scannedEpc
                             )
                         )
                     }
