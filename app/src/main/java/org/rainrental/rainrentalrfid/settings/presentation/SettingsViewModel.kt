@@ -352,9 +352,8 @@ class SettingsViewModel @Inject constructor(
             _updateStatus.value = "Testing API connectivity..."
             try {
                 val companyId = dependencies.context.getString(R.string.company_id)
-                val apiUrl = "${dependencies.appConfig.Network.API_BASE_URL}/api/v1/appVersions/$companyId"
                 
-                logd("Testing API connectivity to: $apiUrl")
+                logd("Testing API connectivity for company: $companyId")
                 
                 // Simple connectivity test
                 val result = updateRepository.testConnectivity(companyId)
