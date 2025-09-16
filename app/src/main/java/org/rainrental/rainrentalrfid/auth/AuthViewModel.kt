@@ -25,7 +25,8 @@ class AuthViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val scanInvitationCodeUseCase: ScanInvitationCodeUseCase,
     private val tokenRefreshScheduler: TokenRefreshScheduler,
-    private val hardwareEventBus: HardwareEventBus
+    private val hardwareEventBus: HardwareEventBus,
+    private val authStateService: AuthStateService
 ) : ViewModel(), HardwareEventListener, Logger {
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -55,12 +56,14 @@ class AuthViewModel @Inject constructor(
                     val companyId = claims["companyId"] as? String
                     val rslId = claims["rsl_id"] as? String
                     
-                    _authState.value = AuthState.Authenticated(
+                    val authenticatedState = AuthState.Authenticated(
                         user = currentUser,
                         locationName = locationName,
                         companyId = companyId,
                         rslId = rslId
                     )
+                    _authState.value = authenticatedState
+                    authStateService.updateAuthState(authenticatedState)
                     // Start automatic token refresh for existing sessions
                     tokenRefreshScheduler.startAutoRefresh()
                 } catch (e: Exception) {
@@ -85,23 +88,29 @@ class AuthViewModel @Inject constructor(
                 
                 when (result) {
                     is AuthResult.Success -> {
-                        _authState.value = AuthState.Authenticated(
+                        val authenticatedState = AuthState.Authenticated(
                             user = result.user,
                             locationName = result.locationName,
                             companyId = result.companyId,
                             rslId = result.rslId
                         )
+                        _authState.value = authenticatedState
+                        authStateService.updateAuthState(authenticatedState)
                         // Start automatic token refresh
                         tokenRefreshScheduler.startAutoRefresh()
                     }
                     is AuthResult.Error -> {
                         _errorMessage.value = result.message
-                        _authState.value = AuthState.Error(result.message)
+                        val errorState = AuthState.Error(result.message)
+                        _authState.value = errorState
+                        authStateService.updateAuthState(errorState)
                     }
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Authentication failed: ${e.message}"
-                _authState.value = AuthState.Error(e.message ?: "Unknown error")
+                val errorState = AuthState.Error(e.message ?: "Unknown error")
+                _authState.value = errorState
+                authStateService.updateAuthState(errorState)
             } finally {
                 _isLoading.value = false
             }
@@ -138,7 +147,9 @@ class AuthViewModel @Inject constructor(
             tokenRefreshScheduler.stopAutoRefresh()
             authService.signOut()
             logd("AUTH VIEWMODEL: Setting auth state to NotAuthenticated")
-            _authState.value = AuthState.NotAuthenticated
+            val notAuthenticatedState = AuthState.NotAuthenticated
+            _authState.value = notAuthenticatedState
+            authStateService.updateAuthState(notAuthenticatedState)
             _errorMessage.value = null
             logd("AUTH VIEWMODEL: Sign out completed")
         }
@@ -149,7 +160,9 @@ class AuthViewModel @Inject constructor(
     }
     
     fun resetAuth() {
-        _authState.value = AuthState.NotAuthenticated
+        val notAuthenticatedState = AuthState.NotAuthenticated
+        _authState.value = notAuthenticatedState
+        authStateService.updateAuthState(notAuthenticatedState)
         _errorMessage.value = null
         _isLoading.value = false
     }

@@ -36,7 +36,7 @@ import org.rainrental.rainrentalrfid.commission.data.CheckInBarcodeResponseDto
 import org.rainrental.rainrentalrfid.apis.ApiCaller
 import org.rainrental.rainrentalrfid.result.ApiError
 import org.rainrental.rainrentalrfid.result.Result
-import org.rainrental.rainrentalrfid.auth.AuthViewModel
+import org.rainrental.rainrentalrfid.auth.AuthStateService
 import javax.inject.Named
 
 
@@ -49,7 +49,7 @@ class ContinuousScanningViewModel @Inject constructor(
     private val backendApi: BackendApi,
     @Named("company_id") private val companyId: String,
     @Named("rain_company_id") private val rainCompanyId: Int,
-    private val authViewModel: AuthViewModel,
+    private val authStateService: AuthStateService,
     dependencies: BaseViewModelDependencies
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -292,18 +292,9 @@ class ContinuousScanningViewModel @Inject constructor(
             logd("Starting barcode scan for check-in")
             
             // Get location from auth state
-            val authState = authViewModel.authState.value
-            val location = when (authState) {
-                is org.rainrental.rainrentalrfid.auth.AuthState.Authenticated -> {
-                    authState.locationName ?: run {
-                        loge("No location name available in auth state")
-                        return
-                    }
-                }
-                else -> {
-                    loge("User not authenticated, cannot check in barcode")
-                    return
-                }
+            val location = authStateService.getLocationName() ?: run {
+                loge("No location name available in auth state")
+                return
             }
             
             when (val barcodeResult = scanBarcodeUseCase()) {
