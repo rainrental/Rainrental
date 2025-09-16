@@ -8,7 +8,8 @@ sealed class AuthState {
     data class Authenticated(
         val user: FirebaseUser,
         val locationName: String?,
-        val companyId: String?
+        val companyId: String?,
+        val rslId: String?
     ) : AuthState()
     data class Error(val message: String) : AuthState()
 } 

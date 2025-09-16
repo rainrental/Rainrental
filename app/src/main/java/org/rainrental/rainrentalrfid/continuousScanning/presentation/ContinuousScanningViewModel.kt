@@ -36,6 +36,7 @@ import org.rainrental.rainrentalrfid.commission.data.CheckInBarcodeResponseDto
 import org.rainrental.rainrentalrfid.apis.ApiCaller
 import org.rainrental.rainrentalrfid.result.ApiError
 import org.rainrental.rainrentalrfid.result.Result
+import org.rainrental.rainrentalrfid.auth.AuthViewModel
 import javax.inject.Named
 
 
@@ -48,6 +49,7 @@ class ContinuousScanningViewModel @Inject constructor(
     private val backendApi: BackendApi,
     @Named("company_id") private val companyId: String,
     @Named("rain_company_id") private val rainCompanyId: Int,
+    private val authViewModel: AuthViewModel,
     dependencies: BaseViewModelDependencies
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -289,6 +291,21 @@ class ContinuousScanningViewModel @Inject constructor(
         try {
             logd("Starting barcode scan for check-in")
             
+            // Get location from auth state
+            val authState = authViewModel.authState.value
+            val location = when (authState) {
+                is org.rainrental.rainrentalrfid.auth.AuthState.Authenticated -> {
+                    authState.locationName ?: run {
+                        loge("No location name available in auth state")
+                        return
+                    }
+                }
+                else -> {
+                    loge("User not authenticated, cannot check in barcode")
+                    return
+                }
+            }
+            
             when (val barcodeResult = scanBarcodeUseCase()) {
                 is Result.Error -> {
                     logd("Barcode scan failed: ${barcodeResult.error.name}")
@@ -296,10 +313,14 @@ class ContinuousScanningViewModel @Inject constructor(
                 }
                 is Result.Success -> {
                     val barcode = barcodeResult.data
-                    logd("Barcode scanned: $barcode")
+                    logd("Barcode scanned: $barcode, location: $location")
                     
-                    // Call the checkInBarcode API
-                    val request = CheckInBarcodeRequestDto(barcode = barcode, companyId = companyId)
+                    // Call the checkInBarcode API with location
+                    val request = CheckInBarcodeRequestDto(
+                        barcode = barcode, 
+                        companyId = companyId,
+                        location = location
+                    )
                     when (val checkInResult = ApiCaller()<CheckInBarcodeResponseDto> { backendApi.checkInBarcode(request) }) {
                         is Result.Error -> {
                             logd("Check-in failed: ${checkInResult.error.apiErrorType}")

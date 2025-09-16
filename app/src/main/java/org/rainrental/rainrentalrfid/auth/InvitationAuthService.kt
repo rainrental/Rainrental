@@ -28,6 +28,7 @@ data class ValidateInvitationResponse(
     val expiresIn: Int?,
     val locationName: String?,
     val companyId: String?,
+    val rslId: String?,
     val error: String?
 )
 
@@ -35,6 +36,9 @@ data class RefreshTokenResponse(
     val success: Boolean,
     val customToken: String?,
     val expiresIn: Int?,
+    val locationName: String?,
+    val companyId: String?,
+    val rslId: String?,
     val error: String?
 )
 
@@ -56,7 +60,8 @@ sealed class AuthResult {
     data class Success(
         val user: FirebaseUser,
         val locationName: String?,
-        val companyId: String?
+        val companyId: String?,
+        val rslId: String?
     ) : AuthResult()
     
     data class Error(val message: String) : AuthResult()
@@ -98,7 +103,8 @@ class InvitationAuthService @Inject constructor(
                             AuthResult.Success(
                                 user = result.user!!,
                                 locationName = data.locationName,
-                                companyId = data.companyId
+                                companyId = data.companyId,
+                                rslId = data.rslId
                             )
                         } else {
                             AuthResult.Error("Authentication failed")

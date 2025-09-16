@@ -1,0 +1,28 @@
+# Project-wide review rules for Cursor
+Primary language: Kotlin (Android)
+Architecture: MVVM + Jetpack Compose (assume unless otherwise noted)
+Target SDK: 34
+
+When reviewing:
+- Prioritize: correctness > readability > performance > idiomatic Kotlin > testability
+- Flag nullability risks, coroutine scope leaks, lifecycle misuse, and Compose recomposition pitfalls
+- Ensure ViewModels: no Android context leaks, use StateFlow/Immutable state, cancel jobs in onCleared()
+- Compose: remember{}, derivedStateOf{}, keys in Lazy lists, hoist state, @Stable when useful
+- Android: follow recommended DI (Hilt), single source of truth, unidirectional data flow
+- Concurrency: use structured concurrency; prefer viewModelScope; avoid GlobalScope; handle cancellation
+- Networking: handle timeouts, retries, error mapping; no blocking calls on main
+- Persist: use Room w/ DAO interfaces; migrations documented/tested
+- Logging: no secrets; use Timber or similar; redaction rules for PII
+- Security: no plaintext tokens; use EncryptedSharedPreferences/Keystore; certificate pinning optional
+- Build: Gradle kts, version catalogs, reproducible builds
+
+Require:
+- Static analysis passes: ktlint + detekt
+- Unit tests cover business logic; UI tests for critical flows (Compose test rules)
+- Performance: avoid unnecessary recompositions and allocations in hot paths
+
+Output format for reviews:
+1) Summary of risks
+2) Inline comments (file:line) – grouped
+3) Remediation steps with code diffs or snippets
+4) Quick wins vs long-term refactors

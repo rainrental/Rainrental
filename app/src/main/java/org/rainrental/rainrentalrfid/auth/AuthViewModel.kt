@@ -53,11 +53,13 @@ class AuthViewModel @Inject constructor(
                     
                     val locationName = claims["locationName"] as? String
                     val companyId = claims["companyId"] as? String
+                    val rslId = claims["rsl_id"] as? String
                     
                     _authState.value = AuthState.Authenticated(
                         user = currentUser,
                         locationName = locationName,
-                        companyId = companyId
+                        companyId = companyId,
+                        rslId = rslId
                     )
                     // Start automatic token refresh for existing sessions
                     tokenRefreshScheduler.startAutoRefresh()
@@ -86,7 +88,8 @@ class AuthViewModel @Inject constructor(
                         _authState.value = AuthState.Authenticated(
                             user = result.user,
                             locationName = result.locationName,
-                            companyId = result.companyId
+                            companyId = result.companyId,
+                            rslId = result.rslId
                         )
                         // Start automatic token refresh
                         tokenRefreshScheduler.startAutoRefresh()
