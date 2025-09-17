@@ -666,7 +666,7 @@ fun UpdatesTab(
                         onClick = onTestApiConnectivity,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Test API v1.0.41")
+                        Text("Test API v1.0.42")
                     }
                 }
                 
