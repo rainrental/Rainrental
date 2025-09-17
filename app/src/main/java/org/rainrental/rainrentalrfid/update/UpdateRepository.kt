@@ -83,14 +83,16 @@ class UpdateRepository @Inject constructor(
                 return@withContext null
             }
 
-            // Find the version with the highest versionCode (latest version)
+            // Smart update logic: prefer newer versions, then fall back to isCurrent
             var latestVersion: UpdateInfo? = null
             var highestVersionCode = 0
+            var currentVersion: UpdateInfo? = null
             
             logd("Analyzing versions...")
             for (version in responseBody.versions) {
-                logd("Version: ${version.version} (code: ${version.versionCode})")
+                logd("Version: ${version.version} (code: ${version.versionCode}, isCurrent: ${version.isCurrent})")
                 
+                // Track the version with highest versionCode (newest)
                 if (version.versionCode > highestVersionCode) {
                     highestVersionCode = version.versionCode
                     latestVersion = UpdateInfo(
@@ -100,18 +102,46 @@ class UpdateRepository @Inject constructor(
                         fileSize = version.fileSize,
                         releaseNotes = version.releaseNotes,
                         minSdkVersion = version.minSdkVersion,
-                        targetSdkVersion = version.targetSdkVersion
+                        targetSdkVersion = version.targetSdkVersion,
+                        isCurrent = version.isCurrent
                     )
                     logd("New highest version found: ${version.version} (code: ${version.versionCode})")
                 }
+                
+                // Track the version marked as current
+                if (version.isCurrent) {
+                    currentVersion = UpdateInfo(
+                        version = version.version,
+                        versionCode = version.versionCode,
+                        downloadUrl = version.downloadUrl,
+                        fileSize = version.fileSize,
+                        releaseNotes = version.releaseNotes,
+                        minSdkVersion = version.minSdkVersion,
+                        targetSdkVersion = version.targetSdkVersion,
+                        isCurrent = version.isCurrent
+                    )
+                    logd("Found current version: ${version.version} (code: ${version.versionCode})")
+                }
             }
             
-            if (latestVersion != null) {
+            // Choose update strategy: prefer newer versions, fall back to current
+            val selectedVersion = if (latestVersion != null) {
+                logd("Using latest version strategy: ${latestVersion.version} (code: ${latestVersion.versionCode})")
+                latestVersion
+            } else if (currentVersion != null) {
+                logd("Falling back to current version strategy: ${currentVersion.version} (code: ${currentVersion.versionCode})")
+                currentVersion
+            } else {
+                logd("No suitable version found")
+                null
+            }
+            
+            if (selectedVersion != null) {
                 logd("=== UPDATE CHECK SUCCESS ===")
-                logd("Latest version available: ${latestVersion.version} (code: ${latestVersion.versionCode})")
-                logd("Download URL: ${latestVersion.downloadUrl}")
-                logd("File size: ${latestVersion.fileSize} bytes")
-                return@withContext latestVersion
+                logd("Selected version: ${selectedVersion.version} (code: ${selectedVersion.versionCode}, isCurrent: ${selectedVersion.isCurrent})")
+                logd("Download URL: ${selectedVersion.downloadUrl}")
+                logd("File size: ${selectedVersion.fileSize} bytes")
+                return@withContext selectedVersion
             } else {
                 loge("UPDATE CHECK FAILED: No valid version found after analysis")
                 return@withContext null
@@ -235,5 +265,6 @@ data class UpdateInfo(
     val fileSize: Long,
     val releaseNotes: String,
     val minSdkVersion: Int,
-    val targetSdkVersion: Int
+    val targetSdkVersion: Int,
+    val isCurrent: Boolean = false
 )

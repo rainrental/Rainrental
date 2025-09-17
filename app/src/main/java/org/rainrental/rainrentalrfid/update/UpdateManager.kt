@@ -86,7 +86,7 @@ class UpdateManager @Inject constructor(
                 }
 
                 logd("UPDATE MANAGER: Update info received from repository")
-                logd("UPDATE MANAGER: Available version: ${updateInfo.version} (code: ${updateInfo.versionCode})")
+                logd("UPDATE MANAGER: Available version: ${updateInfo.version} (code: ${updateInfo.versionCode}, isCurrent: ${updateInfo.isCurrent})")
 
                 // Check if this version is newer than current
                 val currentVersionCode = getCurrentVersionCode(context)

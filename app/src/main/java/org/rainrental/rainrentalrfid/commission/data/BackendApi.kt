@@ -149,5 +149,6 @@ data class AppVersionDto(
     val fileSize: Long,
     val releaseNotes: String = "",
     val minSdkVersion: Int = 30,
-    val targetSdkVersion: Int = 34
+    val targetSdkVersion: Int = 34,
+    val isCurrent: Boolean = false
 )
