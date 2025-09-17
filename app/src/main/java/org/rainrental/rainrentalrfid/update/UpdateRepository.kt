@@ -93,11 +93,12 @@ class UpdateRepository @Inject constructor(
                 logd("Version: ${version.version} (code: ${version.versionCode}, isCurrent: ${version.isCurrent})")
                 
                 // Track the version with highest versionCode (newest)
-                if (version.versionCode > highestVersionCode) {
-                    highestVersionCode = version.versionCode
+                val versionCodeInt = version.getVersionCodeAsInt()
+                if (versionCodeInt > highestVersionCode) {
+                    highestVersionCode = versionCodeInt
                     latestVersion = UpdateInfo(
                         version = version.version,
-                        versionCode = version.versionCode,
+                        versionCode = versionCodeInt,
                         downloadUrl = version.downloadUrl,
                         fileSize = version.fileSize,
                         releaseNotes = version.releaseNotes,
@@ -105,14 +106,15 @@ class UpdateRepository @Inject constructor(
                         targetSdkVersion = version.targetSdkVersion,
                         isCurrent = version.isCurrent
                     )
-                    logd("New highest version found: ${version.version} (code: ${version.versionCode})")
+                    logd("New highest version found: ${version.version} (code: $versionCodeInt)")
                 }
                 
                 // Track the version marked as current
                 if (version.isCurrent) {
+                    val versionCodeInt = version.getVersionCodeAsInt()
                     currentVersion = UpdateInfo(
                         version = version.version,
-                        versionCode = version.versionCode,
+                        versionCode = versionCodeInt,
                         downloadUrl = version.downloadUrl,
                         fileSize = version.fileSize,
                         releaseNotes = version.releaseNotes,
@@ -120,7 +122,7 @@ class UpdateRepository @Inject constructor(
                         targetSdkVersion = version.targetSdkVersion,
                         isCurrent = version.isCurrent
                     )
-                    logd("Found current version: ${version.version} (code: ${version.versionCode})")
+                    logd("Found current version: ${version.version} (code: $versionCodeInt)")
                 }
             }
             
