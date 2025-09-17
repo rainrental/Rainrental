@@ -359,7 +359,7 @@ class SettingsViewModel @Inject constructor(
                 val result = updateRepository.testConnectivity(companyId)
                 
                 if (result) {
-                    _updateStatus.value = "✅ API connectivity test PASSED (v1.0.40)\nEndpoint is reachable and responding"
+                    _updateStatus.value = "✅ API connectivity test PASSED (v1.0.41)\nEndpoint is reachable and responding"
                     logd("API connectivity test passed")
                 } else {
                     _updateStatus.value = "❌ API connectivity test FAILED\nCheck network connection and endpoint availability"
