@@ -132,7 +132,7 @@ class UpdateManager @Inject constructor(
                 logd("UPDATE MANAGER: APK file can write: ${apkFile.canWrite()}")
                 logd("UPDATE MANAGER: APK file length: ${apkFile.length()}")
                 logd("UPDATE MANAGER: Expected file size: ${updateInfo.fileSize}")
-                logd("UPDATE MANAGER: APK file permissions: ${apkFile.permissions()}")
+                logd("UPDATE MANAGER: APK file permissions: ${apkFile.canRead()}, ${apkFile.canWrite()}, ${apkFile.canExecute()}")
                 
                 if (!verifyApkFile(apkFile, updateInfo.fileSize)) {
                     loge("UPDATE MANAGER: APK file verification failed")
@@ -143,13 +143,17 @@ class UpdateManager @Inject constructor(
                     loge("  - File size: ${apkFile.length()}")
                     loge("  - Expected size: ${updateInfo.fileSize}")
                     loge("  - Size difference: ${kotlin.math.abs(apkFile.length() - updateInfo.fileSize)}")
-                    loge("  - File permissions: ${apkFile.permissions()}")
+                    loge("  - File permissions: read=${apkFile.canRead()}, write=${apkFile.canWrite()}, execute=${apkFile.canExecute()}")
                     
                     // Try to read first few bytes to see if it's a valid file
                     try {
-                        val firstBytes = apkFile.inputStream().use { it.readBytes(1024) }
-                        loge("UPDATE MANAGER: First 1024 bytes (hex): ${firstBytes.joinToString(" ") { "%02x".format(it) }}")
-                        loge("UPDATE MANAGER: First 1024 bytes (text): ${String(firstBytes, Charsets.UTF_8).replace(Regex("[^\\p{Print}]"), ".")}")
+                        val firstBytes = apkFile.inputStream().use { 
+                            val buffer = ByteArray(1024)
+                            val bytesRead = it.read(buffer)
+                            if (bytesRead > 0) buffer.copyOf(bytesRead) else ByteArray(0)
+                        }
+                        loge("UPDATE MANAGER: First ${firstBytes.size} bytes (hex): ${firstBytes.joinToString(" ") { "%02x".format(it) }}")
+                        loge("UPDATE MANAGER: First ${firstBytes.size} bytes (text): ${String(firstBytes, Charsets.UTF_8).replace(Regex("[^\\p{Print}]"), ".")}")
                     } catch (e: Exception) {
                         loge("UPDATE MANAGER: Could not read file bytes: ${e.message}")
                     }
