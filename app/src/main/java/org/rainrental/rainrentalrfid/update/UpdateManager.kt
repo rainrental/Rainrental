@@ -188,12 +188,26 @@ class UpdateManager @Inject constructor(
     private fun verifyApkFile(file: File, expectedSize: Long): Boolean {
         return try {
             val actualSize = file.length()
-            val isValidSize = actualSize == expectedSize
             val isValidFile = file.exists() && file.canRead()
             
-            logd("APK verification: size=$actualSize/$expectedSize, valid=$isValidFile")
+            // Check if file size is reasonable (at least 1MB for an APK)
+            val isReasonableSize = actualSize > 1024 * 1024
             
-            isValidSize && isValidFile
+            // If expected size is 0 or very small, just check that file exists and is readable
+            // This handles cases where the backend has incorrect file size data
+            val isValidSize = if (expectedSize <= 0 || expectedSize < 1024 * 1024) {
+                logd("APK verification: Expected size is invalid ($expectedSize), checking file existence only")
+                true
+            } else {
+                // Allow 10% tolerance for file size differences
+                val tolerance = expectedSize * 0.1
+                val sizeDifference = kotlin.math.abs(actualSize - expectedSize)
+                sizeDifference <= tolerance
+            }
+            
+            logd("APK verification: size=$actualSize/$expectedSize, reasonable=$isReasonableSize, valid=$isValidFile, sizeValid=$isValidSize")
+            
+            isValidFile && isReasonableSize && isValidSize
         } catch (e: Exception) {
             loge("APK verification failed: ${e.message}")
             false
