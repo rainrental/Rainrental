@@ -54,7 +54,8 @@ data class GetAssetByTidRequestDto(
 data class CheckInBarcodeRequestDto(
     val barcode: String,
     val companyId: String,
-    val location: String
+    val location: String,
+    val hostname: String
 )
 
 data class CheckInBarcodeResponseDto(
@@ -144,11 +145,20 @@ data class AppVersionsResponseDto(
 
 data class AppVersionDto(
     val version: String,
-    val versionCode: Int,
+    val versionCode: String, // Changed from Int to String to handle API response
     val downloadUrl: String,
     val fileSize: Long,
     val releaseNotes: String = "",
     val minSdkVersion: Int = 30,
     val targetSdkVersion: Int = 34,
     val isCurrent: Boolean = false
-)
+) {
+    // Helper function to get versionCode as Int
+    fun getVersionCodeAsInt(): Int {
+        return try {
+            versionCode.toInt()
+        } catch (e: NumberFormatException) {
+            0
+        }
+    }
+}

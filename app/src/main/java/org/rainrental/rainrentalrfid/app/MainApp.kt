@@ -362,12 +362,15 @@ fun MainApp(modifier: Modifier = Modifier) {
                         val rfidHardwareState by rfidViewModel.hardwareState.collectAsState()
                         val currentRoute by navController.currentBackStackEntryAsState()
                         val isSettingsScreen = currentRoute?.destination?.route == NavigationRoutes.Settings.route
+                        val currentFeatureName = currentRoute?.destination?.route?.let { route ->
+                            NavigationRoutes.values().find { it.route == route }?.title
+                        }
                         
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .windowInsetsPadding(WindowInsets.statusBars)
-                                .height(56.dp)
+                                .height(72.dp)
                                 .background(MaterialTheme.colorScheme.surface)
 //                                .padding(horizontal = 16.dp)
                                 ,
@@ -382,7 +385,7 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 modifier = Modifier.size(48.dp)
                             )
                             
-                            // App Title or Back Button (center)
+                            // App Title and Feature Name or Back Button (center)
                             if (isSettingsScreen) {
                                 // Back button for settings screen
                                 IconButton(
@@ -394,11 +397,23 @@ fun MainApp(modifier: Modifier = Modifier) {
                                     )
                                 }
                             } else {
-                                // App Title
-                                Text(
-                                    text = stringResource(R.string.app_name),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+                                // App Title and Feature Name
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.app_name),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    if (currentFeatureName != null) {
+                                        Text(
+                                            text = currentFeatureName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
                             }
                             
                             // Settings Button (rightmost)

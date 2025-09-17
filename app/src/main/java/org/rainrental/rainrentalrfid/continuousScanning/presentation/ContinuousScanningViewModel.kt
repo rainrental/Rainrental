@@ -306,11 +306,12 @@ class ContinuousScanningViewModel @Inject constructor(
                     val barcode = barcodeResult.data
                     logd("Barcode scanned: $barcode, location: $location")
                     
-                    // Call the checkInBarcode API with location
+                    // Call the checkInBarcode API with location and device info
                     val request = CheckInBarcodeRequestDto(
                         barcode = barcode, 
                         companyId = companyId,
-                        location = location
+                        location = location,
+                        hostname = org.rainrental.rainrentalrfid.app.deviceSerial
                     )
                     when (val checkInResult = ApiCaller()<CheckInBarcodeResponseDto> { backendApi.checkInBarcode(request) }) {
                         is Result.Error -> {
