@@ -202,17 +202,26 @@ class UpdateRepository @Inject constructor(
             val request = Request.Builder()
                 .url(downloadUrl)
                 .get()
+                .addHeader("User-Agent", "RainRental-RFID-Android/1.0")
+                .addHeader("Accept", "application/vnd.android.package-archive, */*")
+                .addHeader("Accept-Encoding", "identity") // Disable compression to get accurate file size
                 .build()
 
             val response = client.newCall(request).execute()
             
+            logd("Download response: code=${response.code}, message=${response.message}")
+            logd("Response headers: ${response.headers}")
+            
             if (!response.isSuccessful) {
                 loge("Download failed with status: ${response.code}")
+                loge("Response body: ${response.body?.string()}")
                 return@withContext null
             }
 
             val responseBody = response.body ?: return@withContext null
             val contentLength = responseBody.contentLength()
+            
+            logd("Content-Length header: $contentLength")
             
             if (contentLength <= 0) {
                 loge("Invalid content length: $contentLength")
