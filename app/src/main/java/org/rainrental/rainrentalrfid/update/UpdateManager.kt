@@ -126,8 +126,34 @@ class UpdateManager @Inject constructor(
 
                 // Verify the downloaded file
                 logd("UPDATE MANAGER: Verifying downloaded APK")
+                logd("UPDATE MANAGER: APK file path: ${apkFile.absolutePath}")
+                logd("UPDATE MANAGER: APK file exists: ${apkFile.exists()}")
+                logd("UPDATE MANAGER: APK file can read: ${apkFile.canRead()}")
+                logd("UPDATE MANAGER: APK file can write: ${apkFile.canWrite()}")
+                logd("UPDATE MANAGER: APK file length: ${apkFile.length()}")
+                logd("UPDATE MANAGER: Expected file size: ${updateInfo.fileSize}")
+                logd("UPDATE MANAGER: APK file permissions: ${apkFile.permissions()}")
+                
                 if (!verifyApkFile(apkFile, updateInfo.fileSize)) {
                     loge("UPDATE MANAGER: APK file verification failed")
+                    loge("UPDATE MANAGER: File verification details:")
+                    loge("  - File path: ${apkFile.absolutePath}")
+                    loge("  - File exists: ${apkFile.exists()}")
+                    loge("  - File readable: ${apkFile.canRead()}")
+                    loge("  - File size: ${apkFile.length()}")
+                    loge("  - Expected size: ${updateInfo.fileSize}")
+                    loge("  - Size difference: ${kotlin.math.abs(apkFile.length() - updateInfo.fileSize)}")
+                    loge("  - File permissions: ${apkFile.permissions()}")
+                    
+                    // Try to read first few bytes to see if it's a valid file
+                    try {
+                        val firstBytes = apkFile.inputStream().use { it.readBytes(1024) }
+                        loge("UPDATE MANAGER: First 1024 bytes (hex): ${firstBytes.joinToString(" ") { "%02x".format(it) }}")
+                        loge("UPDATE MANAGER: First 1024 bytes (text): ${String(firstBytes, Charsets.UTF_8).replace(Regex("[^\\p{Print}]"), ".")}")
+                    } catch (e: Exception) {
+                        loge("UPDATE MANAGER: Could not read file bytes: ${e.message}")
+                    }
+                    
                     apkFile.delete()
                     onUpdateError("Downloaded file is invalid")
                     isUpdateInProgress = false
@@ -138,6 +164,14 @@ class UpdateManager @Inject constructor(
 
                 // Install the APK
                 logd("UPDATE MANAGER: Starting APK installation")
+                logd("UPDATE MANAGER: Installation details:")
+                logd("  - APK file: ${apkFile.absolutePath}")
+                logd("  - File exists: ${apkFile.exists()}")
+                logd("  - File size: ${apkFile.length()}")
+                logd("  - File readable: ${apkFile.canRead()}")
+                logd("  - Context package name: ${context.packageName}")
+                logd("  - Android version: ${android.os.Build.VERSION.SDK_INT}")
+                
                 val installSuccess = installApk(context, apkFile)
                 
                 if (installSuccess) {
@@ -148,6 +182,13 @@ class UpdateManager @Inject constructor(
                     cleanupOldFiles()
                 } else {
                     loge("UPDATE MANAGER: Failed to initiate APK installation")
+                    loge("UPDATE MANAGER: Installation failure details:")
+                    loge("  - APK file: ${apkFile.absolutePath}")
+                    loge("  - File exists: ${apkFile.exists()}")
+                    loge("  - File size: ${apkFile.length()}")
+                    loge("  - File readable: ${apkFile.canRead()}")
+                    loge("  - Context package name: ${context.packageName}")
+                    loge("  - Android version: ${android.os.Build.VERSION.SDK_INT}")
                     onUpdateError("Failed to install update")
                 }
 
@@ -219,28 +260,58 @@ class UpdateManager @Inject constructor(
      */
     private fun installApk(context: Context, apkFile: File): Boolean {
         return try {
+            logd("INSTALL APK: Starting installation process")
+            logd("INSTALL APK: File path: ${apkFile.absolutePath}")
+            logd("INSTALL APK: File exists: ${apkFile.exists()}")
+            logd("INSTALL APK: File size: ${apkFile.length()}")
+            logd("INSTALL APK: Android version: ${Build.VERSION.SDK_INT}")
+            logd("INSTALL APK: Package name: ${context.packageName}")
+            
             val intent = Intent(Intent.ACTION_VIEW)
             val uri: Uri
             
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 // Use FileProvider for Android 7.0+
                 val authority = "${context.packageName}.fileprovider"
+                logd("INSTALL APK: Using FileProvider with authority: $authority")
                 uri = FileProvider.getUriForFile(context, authority, apkFile)
+                logd("INSTALL APK: FileProvider URI: $uri")
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                logd("INSTALL APK: Added FLAG_GRANT_READ_URI_PERMISSION")
             } else {
                 // Direct file URI for older versions
+                logd("INSTALL APK: Using direct file URI (Android < 7.0)")
                 uri = Uri.fromFile(apkFile)
+                logd("INSTALL APK: Direct file URI: $uri")
             }
             
             intent.setDataAndType(uri, "application/vnd.android.package-archive")
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             
+            logd("INSTALL APK: Intent data: ${intent.data}")
+            logd("INSTALL APK: Intent type: ${intent.type}")
+            logd("INSTALL APK: Intent flags: ${intent.flags}")
+            
+            // Check if there's an app that can handle this intent
+            val packageManager = context.packageManager
+            val resolveInfo = packageManager.queryIntentActivities(intent, 0)
+            logd("INSTALL APK: Found ${resolveInfo.size} activities that can handle the intent")
+            
+            if (resolveInfo.isEmpty()) {
+                loge("INSTALL APK: No activities found to handle APK installation intent")
+                loge("INSTALL APK: This might indicate missing package installer or security restrictions")
+                return false
+            }
+            
             context.startActivity(intent)
-            logd("APK installation intent sent")
+            logd("INSTALL APK: Installation intent sent successfully")
             true
             
         } catch (e: Exception) {
-            loge("Failed to install APK: ${e.message}")
+            loge("INSTALL APK: Failed to install APK: ${e.message}")
+            loge("INSTALL APK: Exception type: ${e.javaClass.simpleName}")
+            loge("INSTALL APK: Stack trace:")
+            e.printStackTrace()
             false
         }
     }
