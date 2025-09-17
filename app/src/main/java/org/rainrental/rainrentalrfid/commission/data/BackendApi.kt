@@ -54,7 +54,8 @@ data class GetAssetByTidRequestDto(
 data class CheckInBarcodeRequestDto(
     val barcode: String,
     val companyId: String,
-    val location: String
+    val location: String,
+    val hostname: String
 )
 
 data class CheckInBarcodeResponseDto(
