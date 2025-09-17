@@ -273,88 +273,104 @@ fun LoadedAssetView(
 @Composable
 fun AssetView(asset: AssetDetailsResponseDto, general:Boolean = false, showFull: Boolean = true, scannedEpc: String? = null) {
     Box {
-        val verticalPadding = 2.dp
-        if (!general){
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val verticalPadding = 2.dp
+            if (!general){
 
+                Row(
+                    modifier = Modifier.padding(vertical = verticalPadding),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    FieldValue(header = "BARCODE", value = asset.barcode,size = 320)
+                }
+            }
+        asset.productName?.let{ productName ->
             Row(
                 modifier = Modifier.padding(vertical = verticalPadding),
                 horizontalArrangement = Arrangement.Center
             ) {
-                FieldValue(header = "BARCODE", value = asset.barcode,size = 320)
+                FieldValue(header = "Product Name".uppercase(), value = productName,size = 320)
             }
         }
-    asset.productName?.let{ productName ->
-        Row(
-            modifier = Modifier.padding(vertical = verticalPadding),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            FieldValue(header = "Product Name".uppercase(), value = productName,size = 320)
-        }
-    }
 
-    if (!showFull) {
-        Text(
-            text = "Some fields are hidden whilst adding tags",
-            style = MaterialTheme.typography.bodySmall,
-            fontStyle = FontStyle.Italic,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            modifier = Modifier.padding(vertical = verticalPadding)
-        )
-    }
-
-    if (showFull) {
-        Row(
-            modifier = Modifier.padding(vertical = verticalPadding),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            FieldValue(header = "CATEGORY", value = asset.department, size = 160)
-            FieldValue(header = "CATEGORY ID", value = asset.departmentId.toString(), size = 160)
-        }
-        Row(
-            modifier = Modifier.padding(vertical = verticalPadding),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            FieldValue(header = "SKU", value = asset.sku, size = 160)
-            FieldValue(header = "SKU ID", value = asset.skuId.toString(), size = 160)
-        }
-        if (!general) {
-            Row(
-                modifier = Modifier.padding(vertical = verticalPadding),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                FieldValue(header = "SERIAL", value = asset.serial, size = 160)
-                FieldValue(header = "SERIAL ID", value = asset.serialId.toString(), size = 160)
-            }
-        }
-    }
-    Row(
-        modifier = Modifier.padding(vertical = verticalPadding),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        FieldValue(header = "EPC", value = asset.epc, size = 320)
-    }
-    
-    // EPC Match/Mismatch Overlay Indicator (only shown when scannedEpc is provided)
-    scannedEpc?.let { scanned ->
-        val epcMatch = scanned.equals(asset.epc, ignoreCase = true)
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(8.dp)
-                .background(
-                    color = if (epcMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(horizontal = 8.dp, vertical = 4.dp)
-        ) {
+        if (!showFull) {
             Text(
-                text = if (epcMatch) "✓" else "⚠",
+                text = "Some fields are hidden whilst adding tags",
                 style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                modifier = Modifier.padding(vertical = verticalPadding)
             )
         }
+
+        if (showFull) {
+            Row(
+                modifier = Modifier.padding(vertical = verticalPadding),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                FieldValue(header = "CATEGORY", value = asset.department, size = 160)
+                FieldValue(header = "CATEGORY ID", value = asset.departmentId.toString(), size = 160)
+            }
+            Row(
+                modifier = Modifier.padding(vertical = verticalPadding),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                FieldValue(header = "SKU", value = asset.sku, size = 160)
+                FieldValue(header = "SKU ID", value = asset.skuId.toString(), size = 160)
+            }
+            if (!general) {
+                Row(
+                    modifier = Modifier.padding(vertical = verticalPadding),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    FieldValue(header = "SERIAL", value = asset.serial, size = 160)
+                    FieldValue(header = "SERIAL ID", value = asset.serialId.toString(), size = 160)
+                }
+            }
+        }
+        Row(
+            modifier = Modifier.padding(vertical = verticalPadding),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            FieldValue(header = "EPC", value = asset.epc, size = 320)
+        }
+        }
+        
+        // EPC Match/Mismatch Overlay Indicator (only shown when scannedEpc is provided)
+        scannedEpc?.let { scanned ->
+            val epcMatch = scanned.equals(asset.epc, ignoreCase = true)
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .background(
+                        color = if (epcMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Text(
+                    text = if (epcMatch) "✓" else "⚠",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
     }
+}
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun LoadedAssetNoScannedTagsPreview() {
+    RainRentalRfidTheme {
+        LoadedAssetView(
+            asset = AssetDetailsResponseDto.example().copy(tags = emptyList()),
+            scannedTags = emptyList()
+        ) { }
     }
 }
 

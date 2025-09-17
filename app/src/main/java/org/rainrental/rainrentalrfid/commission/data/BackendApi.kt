@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.QueryMap
 import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
 
@@ -36,8 +37,8 @@ interface BackendApi {
     @POST("deleteTag")
     suspend fun deleteTag(@Body deleteTagRequest: DeleteTagRequestDto) : Response<DeleteTagResponseDto>
 
-    @POST("appVersions")
-    suspend fun getAppVersions(@Body appVersionsRequest: AppVersionsRequestDto) : Response<AppVersionsResponseDto>
+    @GET("appVersions/{companyId}")
+    suspend fun getAppVersions(@Path("companyId") companyId: String) : Response<AppVersionsResponseDto>
 }
 
 data class GetAssetRequestDto(

@@ -54,7 +54,7 @@ class UpdateRepository @Inject constructor(
             }
             
             logd("Calling backendApi.getAppVersions...")
-            val response = backendApi.getAppVersions(AppVersionsRequestDto(companyId = companyId))
+            val response = backendApi.getAppVersions(companyId)
             
             logd("Response received - Code: ${response.code()}")
             
@@ -135,7 +135,7 @@ class UpdateRepository @Inject constructor(
             logd("Testing connectivity for company: $companyId")
             
             logd("Calling backendApi.getAppVersions for connectivity test...")
-            val response = backendApi.getAppVersions(AppVersionsRequestDto(companyId = companyId))
+            val response = backendApi.getAppVersions(companyId)
             
             logd("Response received - Code: ${response.code()}")
             

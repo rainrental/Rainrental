@@ -26,6 +26,7 @@ import org.rainrental.rainrentalrfid.shared.presentation.composables.InputWithIc
 import org.rainrental.rainrentalrfid.shared.presentation.composables.LoadingWithText
 import org.rainrental.rainrentalrfid.taglookup.data.TagLookupUiFlow
 import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
+import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
 
 @Composable
 fun TagLookupScreen() {
@@ -195,7 +196,7 @@ fun TagLookupScreenPreview() {
     RainRentalRfidTheme {
         TagLookupScreen(
             modifier = Modifier,
-            uiFlow = TagLookupUiFlow.WaitingForTag
+            uiFlow = TagLookupUiFlow.AssetFound(asset = AssetDetailsResponseDto.example(), tidHex = "E2BBCCDDEEFF112233221144", scannedEpc = "E2BBCCDDEEFF112233221144")
         )
     }
 }
