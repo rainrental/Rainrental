@@ -620,26 +620,13 @@ fun UpdatesTab(
                     }
                 }
                 
-                // Update buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                // Update button
+                Button(
+                    onClick = { onCheckForUpdates(false) },
+                    enabled = !isUpdateInProgress,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Button(
-                        onClick = { onCheckForUpdates(false) },
-                        enabled = !isUpdateInProgress,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Check for Updates")
-                    }
-                    
-                    Button(
-                        onClick = { onCheckForUpdates(true) },
-                        enabled = !isUpdateInProgress,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Force Check")
-                    }
+                    Text("Check for Updates")
                 }
                 
                 

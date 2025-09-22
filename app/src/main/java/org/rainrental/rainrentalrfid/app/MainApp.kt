@@ -385,17 +385,13 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 modifier = Modifier.size(48.dp)
                             )
                             
-                            // App Title and Feature Name or Back Button (center)
+                            // App Title and Feature Name or Settings Title (center)
                             if (isSettingsScreen) {
-                                // Back button for settings screen
-                                IconButton(
-                                    onClick = { navController.popBackStack() }
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Back"
-                                    )
-                                }
+                                // Settings title for settings screen
+                                Text(
+                                    text = "Settings",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
                             } else {
                                 // App Title and Feature Name
                                 Column(
@@ -416,14 +412,15 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 }
                             }
                             
-                            // Settings Button (rightmost)
-                            if (!isSettingsScreen) {
+                            // Back Button (rightmost) - show for all screens except home
+                            val isHomeScreen = currentRoute?.destination?.route == NavigationRoutes.Home.route
+                            if (!isHomeScreen) {
                                 IconButton(
-                                    onClick = { navController.navigate(NavigationRoutes.Settings.route) }
+                                    onClick = { navController.popBackStack() }
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Settings,
-                                        contentDescription = "Settings"
+                                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                        contentDescription = "Back"
                                     )
                                 }
                             }

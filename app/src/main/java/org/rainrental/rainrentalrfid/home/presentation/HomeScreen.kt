@@ -115,6 +115,13 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
                 icon = Icons.Default.Search,
                 modifier = Modifier.height(50.dp)
             ) { onTap(NavigationRoutes.Lookup) }
+            Spacer(modifier = Modifier.height(buttonSpacing))
+            
+            AppButton(
+                text = NavigationRoutes.Settings.title.uppercase(), 
+                icon = Icons.Default.Settings,
+                modifier = Modifier.height(50.dp)
+            ) { onTap(NavigationRoutes.Settings) }
 
             // Bottom spacing for scrollable content
             Spacer(modifier = Modifier.height(32.dp))
