@@ -82,6 +82,9 @@ sealed interface InventoryFlow{
     data class InventoryAll(val withError:String? = null): InventoryFlow
     data class InventoryAllCounting(val currentCount: Int): InventoryFlow
     data class InventoryAllFinished(val count: Int): InventoryFlow
+    data class GeneralInventory(val withError:String? = null): InventoryFlow
+    data class GeneralInventoryCounting(val currentCount: Int): InventoryFlow
+    data class GeneralInventoryFinished(val count: Int): InventoryFlow
 }
 
 sealed interface InventoryEvent{
@@ -91,5 +94,6 @@ sealed interface InventoryEvent{
     data object Beep: InventoryEvent
     data object ManualEntry: InventoryEvent
     data object InventoryAll: InventoryEvent
+    data object GeneralInventory: InventoryEvent
     data class ManualBarcodeSubmitted(val barcode: String): InventoryEvent
 }

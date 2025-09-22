@@ -106,6 +106,9 @@ fun InventoryScreen(
         is InventoryFlow.InventoryAll -> InventoryAllView(uiFlow = uiFlow, onEvent = onEvent)
         is InventoryFlow.InventoryAllCounting -> InventoryAllCountingView(uiFlow = uiFlow, inventory = inventory, onEvent = onEvent)
         is InventoryFlow.InventoryAllFinished -> InventoryAllFinishedView(uiFlow = uiFlow, isInventoryEmpty = isInventoryEmpty, onEvent = onEvent)
+        is InventoryFlow.GeneralInventory -> GeneralInventoryView(uiFlow = uiFlow, onEvent = onEvent)
+        is InventoryFlow.GeneralInventoryCounting -> GeneralInventoryCountingView(uiFlow = uiFlow, inventory = inventory, onEvent = onEvent)
+        is InventoryFlow.GeneralInventoryFinished -> GeneralInventoryFinishedView(uiFlow = uiFlow, isInventoryEmpty = isInventoryEmpty, onEvent = onEvent)
     }
 
     AnimatedVisibility(saving, enter = fadeIn(), exit = fadeOut()) {
@@ -190,22 +193,17 @@ fun WaitingForBarcodeView(
                 modifier = Modifier.fillMaxWidth()
             )
             
-            Button(
-                onClick = { /* Disabled for now */ },
-                enabled = false,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
-                )
-            ) {
-                Text(
-                    text = "INVENTORY ALL (DISABLED)",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.7f)
-                )
-            }
+            AppButton(
+                text = "INVENTORY ALL",
+                onClick = { onEvent(InventoryEvent.InventoryAll) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            AppButton(
+                text = "GENERAL INVENTORY",
+                onClick = { onEvent(InventoryEvent.GeneralInventory) },
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -406,6 +404,110 @@ fun InventoryAllFinishedView(
         } else {
             AppButton(text = "Save and finish".uppercase()) { onEvent(InventoryEvent.Save) }
         }
+    }
+}
+
+@Composable
+fun GeneralInventoryView(
+    modifier: Modifier = Modifier,
+    uiFlow: InventoryFlow.GeneralInventory,
+    onEvent: (InventoryEvent) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "General Inventory",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        
+        Text(
+            text = "Scan all company assets",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+        
+        if (uiFlow.withError != null) {
+            Text(
+                text = uiFlow.withError,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
+        
+        HintText(text = "Press trigger to start scanning", modifier = Modifier.padding(vertical = 32.dp))
+    }
+}
+
+@Composable
+fun GeneralInventoryCountingView(
+    modifier: Modifier = Modifier,
+    uiFlow: InventoryFlow.GeneralInventoryCounting,
+    inventory: Int = 0,
+    onEvent: (InventoryEvent) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "General Inventory - Scanning",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        
+        Text(
+            text = "Company Assets Found: $inventory",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+        
+        Text(
+            text = "Scanning all company tags...",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+        
+        HintText(text = "Press trigger to stop scanning", modifier = Modifier.padding(vertical = 32.dp))
+    }
+}
+
+@Composable
+fun GeneralInventoryFinishedView(
+    modifier: Modifier = Modifier,
+    uiFlow: InventoryFlow.GeneralInventoryFinished,
+    isInventoryEmpty: Boolean = false,
+    onEvent: (InventoryEvent) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "General Inventory Complete",
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
+        
+        Text(
+            text = "Company Assets Found: ${uiFlow.count}",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+        
+        Text(
+            text = "All company tags have been collected and sent to backend for processing.",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(bottom = 32.dp)
+        )
+        
+        AppButton(text = "Finish".uppercase()) { onEvent(InventoryEvent.Finish) }
     }
 }
 

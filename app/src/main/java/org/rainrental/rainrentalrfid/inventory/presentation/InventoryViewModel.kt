@@ -19,6 +19,8 @@ import org.rainrental.rainrentalrfid.inventory.domain.StopInventoryUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StartInventoryAllUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StopInventoryAllUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.LogInventoryAllUseCase
+import org.rainrental.rainrentalrfid.inventory.domain.StartGeneralInventoryUseCase
+import org.rainrental.rainrentalrfid.inventory.domain.StopGeneralInventoryUseCase
 import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.result.Result
 import javax.inject.Inject
@@ -33,6 +35,8 @@ class InventoryViewModel @Inject constructor(
     private val startInventoryAllUseCase: StartInventoryAllUseCase,
     private val stopInventoryAllUseCase: StopInventoryAllUseCase,
     private val logInventoryAllUseCase: LogInventoryAllUseCase,
+    private val startGeneralInventoryUseCase: StartGeneralInventoryUseCase,
+    private val stopGeneralInventoryUseCase: StopGeneralInventoryUseCase,
     dependencies: BaseViewModelDependencies
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -85,6 +89,13 @@ class InventoryViewModel @Inject constructor(
                         stopInventoryAllUseCase()
                     }
                     is InventoryFlow.InventoryAllFinished -> {}
+                    is InventoryFlow.GeneralInventory -> viewModelScope.launch{
+                        startGeneralInventoryUseCase()
+                    }
+                    is InventoryFlow.GeneralInventoryCounting -> viewModelScope.launch{
+                        stopGeneralInventoryUseCase()
+                    }
+                    is InventoryFlow.GeneralInventoryFinished -> {}
                 }
             }
 
@@ -101,6 +112,15 @@ class InventoryViewModel @Inject constructor(
                 when (uiFlow.value){
                     is InventoryFlow.WaitingForBarcode -> viewModelScope.launch{
                         inventoryRepository.updateUiFlow(InventoryFlow.InventoryAll())
+                    }
+                    else -> {}
+                }
+            }
+
+            InventoryEvent.GeneralInventory -> {
+                when (uiFlow.value){
+                    is InventoryFlow.WaitingForBarcode -> viewModelScope.launch{
+                        inventoryRepository.updateUiFlow(InventoryFlow.GeneralInventory())
                     }
                     else -> {}
                 }
