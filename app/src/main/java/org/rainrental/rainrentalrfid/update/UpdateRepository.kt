@@ -249,6 +249,31 @@ class UpdateRepository @Inject constructor(
                 
                 outputStream.flush()
                 logd("APK download completed: ${tempFile.length()} bytes")
+                
+                // Verify the downloaded file is a valid APK by checking ZIP signature
+                try {
+                    val inputStream = tempFile.inputStream()
+                    val buffer = ByteArray(4)
+                    inputStream.read(buffer)
+                    inputStream.close()
+                    
+                    val zipSignature = (buffer[0].toInt() and 0xFF) or 
+                                     ((buffer[1].toInt() and 0xFF) shl 8) or 
+                                     ((buffer[2].toInt() and 0xFF) shl 16) or 
+                                     ((buffer[3].toInt() and 0xFF) shl 24)
+                    
+                    val isValidZip = zipSignature == 0x04034B50
+                    logd("Download verification: ZIP signature check: $isValidZip (signature: 0x${zipSignature.toString(16)})")
+                    
+                    if (!isValidZip) {
+                        loge("Downloaded file is not a valid APK/ZIP file!")
+                        return@withContext null
+                    }
+                } catch (e: Exception) {
+                    loge("Error verifying downloaded APK: ${e.message}")
+                    return@withContext null
+                }
+                
                 return@withContext tempFile
                 
             } finally {

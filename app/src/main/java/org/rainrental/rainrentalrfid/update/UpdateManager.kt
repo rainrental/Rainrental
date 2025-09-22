@@ -250,9 +250,30 @@ class UpdateManager @Inject constructor(
                 sizeDifference <= tolerance
             }
             
-            logd("APK verification: size=$actualSize/$expectedSize, reasonable=$isReasonableSize, valid=$isValidFile, sizeValid=$isValidSize")
+            // Check if file is a valid APK by reading the ZIP signature
+            val isValidApk = try {
+                val inputStream = file.inputStream()
+                val buffer = ByteArray(4)
+                inputStream.read(buffer)
+                inputStream.close()
+                
+                // APK files are ZIP files, so they should start with ZIP signature (0x504B0304)
+                val zipSignature = (buffer[0].toInt() and 0xFF) or 
+                                 ((buffer[1].toInt() and 0xFF) shl 8) or 
+                                 ((buffer[2].toInt() and 0xFF) shl 16) or 
+                                 ((buffer[3].toInt() and 0xFF) shl 24)
+                
+                val isValidZip = zipSignature == 0x04034B50 // ZIP file signature
+                logd("APK verification: ZIP signature check: $isValidZip (signature: 0x${zipSignature.toString(16)})")
+                isValidZip
+            } catch (e: Exception) {
+                loge("APK verification: Error checking ZIP signature: ${e.message}")
+                false
+            }
             
-            isValidFile && isReasonableSize && isValidSize
+            logd("APK verification: size=$actualSize/$expectedSize, reasonable=$isReasonableSize, valid=$isValidFile, sizeValid=$isValidSize, validApk=$isValidApk")
+            
+            isValidFile && isReasonableSize && isValidSize && isValidApk
         } catch (e: Exception) {
             loge("APK verification failed: ${e.message}")
             false
