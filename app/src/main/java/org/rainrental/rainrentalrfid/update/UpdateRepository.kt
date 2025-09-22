@@ -161,31 +161,6 @@ class UpdateRepository @Inject constructor(
         }
     }
 
-    /**
-     * Test API connectivity without downloading
-     */
-    suspend fun testConnectivity(companyId: String): Boolean = withContext(Dispatchers.IO) {
-        try {
-            logd("=== API CONNECTIVITY TEST ===")
-            logd("Testing connectivity for company: $companyId")
-            
-            logd("Calling backendApi.getAppVersions for connectivity test...")
-            val response = backendApi.getAppVersions(companyId)
-            
-            logd("Response received - Code: ${response.code()}")
-            
-            val isSuccessful = response.isSuccessful
-            logd("Connectivity test result: $isSuccessful")
-            return@withContext isSuccessful
-            
-        } catch (e: Exception) {
-            loge("=== API CONNECTIVITY TEST FAILED ===")
-            loge("Error testing connectivity: ${e.message}")
-            loge("Exception type: ${e.javaClass.simpleName}")
-            e.printStackTrace()
-            return@withContext false
-        }
-    }
 
     /**
      * Download APK file from URL

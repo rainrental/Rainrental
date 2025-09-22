@@ -94,8 +94,6 @@ fun SettingsScreen() {
             settingsViewModel.checkForUpdates(forceCheck)
         },
         onClearUpdateStatus = settingsViewModel::clearUpdateStatus,
-        onDebugVersion = settingsViewModel::debugCurrentVersion,
-        onTestApiConnectivity = settingsViewModel::testApiConnectivity,
         triggerState = triggerState,
         sideState = sideState,
         auxState = auxState,
@@ -126,8 +124,6 @@ fun SettingsScreen(
     onSystemVolumeChange: (Int) -> Unit = {},
     onCheckForUpdates: (Boolean) -> Unit = { _ -> },
     onClearUpdateStatus: () -> Unit = {},
-    onDebugVersion: () -> Unit = {},
-    onTestApiConnectivity: () -> Unit = {},
     triggerState: ButtonState = ButtonState.UP,
     sideState: ButtonState = ButtonState.UP,
     auxState: ButtonState = ButtonState.UP,
@@ -171,9 +167,7 @@ fun SettingsScreen(
                     isUpdateInProgress = isUpdateInProgress,
                     installedVersion = installedVersion,
                     onCheckForUpdates = onCheckForUpdates,
-                    onClearUpdateStatus = onClearUpdateStatus,
-                    onDebugVersion = onDebugVersion,
-                    onTestApiConnectivity = onTestApiConnectivity
+                    onClearUpdateStatus = onClearUpdateStatus
                 )
             }
         }
@@ -573,9 +567,7 @@ fun UpdatesTab(
     isUpdateInProgress: Boolean,
     installedVersion: String,
     onCheckForUpdates: (Boolean) -> Unit,
-    onClearUpdateStatus: () -> Unit,
-    onDebugVersion: () -> Unit,
-    onTestApiConnectivity: () -> Unit
+    onClearUpdateStatus: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -650,25 +642,6 @@ fun UpdatesTab(
                     }
                 }
                 
-                // Debug buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = onDebugVersion,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Debug Version")
-                    }
-                    
-                    Button(
-                        onClick = onTestApiConnectivity,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Test API v1.0.42")
-                    }
-                }
                 
                 if (updateStatus != null && !isUpdateInProgress) {
                     Button(

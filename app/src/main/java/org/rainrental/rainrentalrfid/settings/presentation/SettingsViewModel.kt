@@ -216,58 +216,6 @@ class SettingsViewModel @Inject constructor(
         _backendVersionData.value = null
     }
 
-    fun debugCurrentVersion() {
-        try {
-            val packageInfo = dependencies.context.packageManager.getPackageInfo(dependencies.context.packageName, 0)
-            val versionName = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                packageInfo.versionName
-            } else {
-                @Suppress("DEPRECATION")
-                packageInfo.versionName
-            }
-            val versionCode = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-                packageInfo.longVersionCode.toInt()
-            } else {
-                @Suppress("DEPRECATION")
-                packageInfo.versionCode
-            }
-            
-            logd("=== VERSION DEBUG INFO ===")
-            logd("Installed version name: $versionName")
-            logd("Installed version code: $versionCode")
-            logd("BuildConfig version name: ${org.rainrental.rainrentalrfid.BuildConfig.VERSION_NAME}")
-            logd("BuildConfig version code: ${org.rainrental.rainrentalrfid.BuildConfig.VERSION_CODE}")
-            logd("Company ID: ${dependencies.context.getString(R.string.company_id)}")
-            logd("API Base URL: ${dependencies.appConfig.Network.API_BASE_URL}")
-            
-            val backendInfo = _backendVersionData.value ?: "No backend data available (run 'Check for Updates' first)"
-            
-            val debugInfo = """
-                Local Version Info:
-                - Installed: v$versionName (code: $versionCode)
-                - BuildConfig: v${org.rainrental.rainrentalrfid.BuildConfig.VERSION_NAME} (code: ${org.rainrental.rainrentalrfid.BuildConfig.VERSION_CODE})
-                
-                Configuration:
-                - Company ID: ${dependencies.context.getString(R.string.company_id)}
-                - API Base URL: ${dependencies.appConfig.Network.API_BASE_URL}
-                - Update API URL: ${dependencies.appConfig.Network.API_BASE_URL}/api/v1/appVersions/${dependencies.context.getString(R.string.company_id)}
-                
-                Backend Version Data:
-                - $backendInfo
-                
-                Network Status:
-                - Check network connectivity and API endpoint availability
-                - Verify company ID is correct
-                - Ensure backend has versions data
-            """.trimIndent()
-            
-            _updateStatus.value = debugInfo
-            logd("Debug info displayed: $debugInfo")
-        } catch (e: Exception) {
-            loge("Error getting version info: ${e.message}")
-            _updateStatus.value = "Debug error: ${e.message}"
-        }
-    }
 
     // Button test event handlers
     override fun onTriggerDown() {
@@ -347,28 +295,4 @@ class SettingsViewModel @Inject constructor(
         return audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
     }
     
-    fun testApiConnectivity() {
-        viewModelScope.launch {
-            _updateStatus.value = "Testing API connectivity..."
-            try {
-                val companyId = dependencies.context.getString(R.string.company_id)
-                
-                logd("Testing API connectivity for company: $companyId")
-                
-                // Simple connectivity test
-                val result = updateRepository.testConnectivity(companyId)
-                
-                if (result) {
-                    _updateStatus.value = "✅ API connectivity test PASSED (v1.0.42)\nEndpoint is reachable and responding"
-                    logd("API connectivity test passed")
-                } else {
-                    _updateStatus.value = "❌ API connectivity test FAILED\nCheck network connection and endpoint availability"
-                    loge("API connectivity test failed")
-                }
-            } catch (e: Exception) {
-                _updateStatus.value = "❌ API connectivity test ERROR\n${e.message}"
-                loge("API connectivity test error: ${e.message}")
-            }
-        }
-    }
 }
