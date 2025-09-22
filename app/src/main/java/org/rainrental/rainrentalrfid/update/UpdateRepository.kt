@@ -1,5 +1,6 @@
 package org.rainrental.rainrentalrfid.update
 
+import android.content.Context
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -104,7 +105,8 @@ class UpdateRepository @Inject constructor(
                         releaseNotes = version.releaseNotes,
                         minSdkVersion = version.minSdkVersion,
                         targetSdkVersion = version.targetSdkVersion,
-                        isCurrent = version.isCurrent
+                        isCurrent = version.isCurrent,
+                        fileName = "app-${version.version}.apk"
                     )
                     logd("New highest version found: ${version.version} (code: $versionCodeInt)")
                 }
@@ -120,7 +122,8 @@ class UpdateRepository @Inject constructor(
                         releaseNotes = version.releaseNotes,
                         minSdkVersion = version.minSdkVersion,
                         targetSdkVersion = version.targetSdkVersion,
-                        isCurrent = version.isCurrent
+                        isCurrent = version.isCurrent,
+                        fileName = "app-${version.version}.apk"
                     )
                     logd("Found current version: ${version.version} (code: $versionCodeInt)")
                 }
@@ -188,12 +191,15 @@ class UpdateRepository @Inject constructor(
      * Download APK file from URL
      * @param downloadUrl URL to download the APK from
      * @param fileSize Expected file size for progress tracking
+     * @param fileName Desired filename for the downloaded APK
      * @param progressCallback Callback for download progress
      * @return Downloaded file or null if failed
      */
     suspend fun downloadApk(
+        context: Context,
         downloadUrl: String,
         fileSize: Long,
+        fileName: String,
         progressCallback: (Float) -> Unit
     ): java.io.File? = withContext(Dispatchers.IO) {
         try {
@@ -228,9 +234,13 @@ class UpdateRepository @Inject constructor(
                 return@withContext null
             }
 
-            // Create temporary file
-            val tempFile = java.io.File.createTempFile("app_update_", ".apk")
-            tempFile.deleteOnExit()
+            // Create file with proper filename in cache directory
+            val cacheDir = java.io.File(context.cacheDir, "updates")
+            if (!cacheDir.exists()) {
+                cacheDir.mkdirs()
+            }
+            val tempFile = java.io.File(cacheDir, fileName)
+            logd("Creating APK file: ${tempFile.absolutePath}")
             
             val inputStream = responseBody.byteStream()
             val outputStream = tempFile.outputStream()
@@ -302,5 +312,6 @@ data class UpdateInfo(
     val releaseNotes: String,
     val minSdkVersion: Int,
     val targetSdkVersion: Int,
-    val isCurrent: Boolean = false
+    val isCurrent: Boolean = false,
+    val fileName: String = "app-${version}.apk"
 )

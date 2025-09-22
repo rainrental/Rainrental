@@ -108,8 +108,10 @@ class UpdateManager @Inject constructor(
                 // Download the APK
                 logd("UPDATE MANAGER: Starting APK download")
                 val apkFile = updateRepository.downloadApk(
+                    context,
                     updateInfo.downloadUrl,
-                    updateInfo.fileSize
+                    updateInfo.fileSize,
+                    updateInfo.fileName
                 ) { progress ->
                     logd("UPDATE MANAGER: Download progress: ${progress.toInt()}%")
                     onUpdateProgress(progress)
