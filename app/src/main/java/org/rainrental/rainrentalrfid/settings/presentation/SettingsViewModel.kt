@@ -17,6 +17,8 @@ import org.rainrental.rainrentalrfid.settings.presentation.ButtonState
 import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
 import org.rainrental.rainrentalrfid.continuousScanning.MqttDeliveryService
+import org.rainrental.rainrentalrfid.mqtt.MqttConnectionWatchdog
+import org.rainrental.rainrentalrfid.mqtt.WatchdogState
 import android.content.Context
 import android.media.AudioManager
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -28,6 +30,7 @@ class SettingsViewModel @Inject constructor(
     private val updateManager: UpdateManager,
     private val updateRepository: UpdateRepository,
     private val mqttDeliveryService: MqttDeliveryService,
+    private val mqttWatchdog: MqttConnectionWatchdog,
     @ApplicationContext private val context: Context
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -43,6 +46,12 @@ class SettingsViewModel @Inject constructor(
     
     private val _maxSystemVolume = MutableStateFlow(15)
     val maxSystemVolume: StateFlow<Int> = _maxSystemVolume.asStateFlow()
+    
+    // MQTT Watchdog state
+    val watchdogState: StateFlow<WatchdogState> = mqttWatchdog.watchdogState
+    val consecutiveFailures: StateFlow<Int> = mqttWatchdog.consecutiveFailures
+    val lastCheckTime: StateFlow<Long> = mqttWatchdog.lastCheckTime
+    val nextCheckDelay: StateFlow<Long> = mqttWatchdog.nextCheckDelay
     
     private val audioManager: AudioManager by lazy {
         context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -294,5 +303,20 @@ class SettingsViewModel @Inject constructor(
     fun getMaxSystemVolume(): Int {
         return audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
     }
+    
+    /**
+     * Force MQTT connection check
+     */
+    fun forceMqttConnectionCheck() {
+        viewModelScope.launch {
+            logd("SettingsViewModel: Force MQTT connection check")
+            mqttWatchdog.forceConnectionCheck(context)
+        }
+    }
+    
+    /**
+     * Get MQTT connection status
+     */
+    fun getMqttConnectionStatus() = mqttWatchdog.getConnectionStatus()
     
 }

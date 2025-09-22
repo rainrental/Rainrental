@@ -16,6 +16,7 @@
     <string name="settings_general">General</string>
     <string name="settings_auth">Auth</string>
     <string name="settings_hardware">Hardware</string>
+    <string name="settings_mqtt">MQTT</string>
     <string name="settings_updates">Updates</string>
     <string name="auth_current_user">Current User</string>
     <string name="auth_location">Location</string>

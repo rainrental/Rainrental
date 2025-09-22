@@ -48,6 +48,7 @@ import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -56,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -318,12 +320,21 @@ fun MainApp(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     val authViewModel: AuthViewModel = hiltViewModel()
     val authState by authViewModel.authState.collectAsState()
     val mainAppViewModel: MainAppViewModel = hiltViewModel()
     val deliveryState by mainAppViewModel.deliveryState.collectAsState()
+    val watchdogState by mainAppViewModel.watchdogState.collectAsState()
 
     Toaster(snackbarHostState = snackbarHostState)
+    
+    // Start MQTT watchdog when authenticated
+    LaunchedEffect(authState) {
+        if (authState is AuthState.Authenticated) {
+            mainAppViewModel.startMqttWatchdog(context)
+        }
+    }
 
     // Show authentication screen if not authenticated
     when (authState) {
