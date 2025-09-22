@@ -14,6 +14,8 @@ import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.app.AppConfig
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * MQTT Connection Watchdog Service
@@ -27,8 +29,12 @@ class MqttConnectionWatchdog @Inject constructor(
     private val appConfig: AppConfig
 ) : DefaultLifecycleObserver, Logger {
     
+    // Thread safety
+    private val stateMutex = Mutex()
     private var watchdogJob: Job? = null
     private var isWatchdogActive = false
+    private var isAppInForeground = true
+    private var isLifecycleObserverRegistered = false
     
     // Watchdog configuration
     private val checkIntervalMs = 30_000L // Check every 30 seconds
@@ -49,64 +55,98 @@ class MqttConnectionWatchdog @Inject constructor(
     private val _nextCheckDelay = MutableStateFlow(checkIntervalMs)
     val nextCheckDelay: StateFlow<Long> = _nextCheckDelay.asStateFlow()
     
+    private val _isPaused = MutableStateFlow(false)
+    val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
+    
     private var lifecycleScope: CoroutineScope? = null
+    private var applicationContext: Context? = null
     
     /**
      * Start the MQTT connection watchdog
      */
-    fun startWatchdog(context: Context) {
-        if (isWatchdogActive) {
-            logd("MQTT Watchdog: Already active, ignoring start request")
-            return
-        }
-        
-        logd("MQTT Watchdog: Starting connection monitoring")
-        _watchdogState.value = WatchdogState.STARTING
-        isWatchdogActive = true
-        
-        // Register lifecycle observer
-        ProcessLifecycleOwner.get().lifecycle.addObserver(this)
-        
-        // Start monitoring coroutine
-        lifecycleScope = ProcessLifecycleOwner.get().lifecycle.coroutineScope
-        watchdogJob = lifecycleScope?.launch(Dispatchers.IO) {
-            startConnectionMonitoring(context)
+    suspend fun startWatchdog(context: Context) {
+        stateMutex.withLock {
+            if (isWatchdogActive) {
+                logd("MQTT Watchdog: Already active, ignoring start request")
+                return
+            }
+            
+            logd("MQTT Watchdog: Starting connection monitoring")
+            _watchdogState.value = WatchdogState.STARTING
+            isWatchdogActive = true
+            
+            // Store application context (use application context to avoid leaks)
+            applicationContext = context.applicationContext
+            
+            // Register lifecycle observer only once
+            if (!isLifecycleObserverRegistered) {
+                ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+                isLifecycleObserverRegistered = true
+            }
+            
+            // Start monitoring coroutine
+            lifecycleScope = ProcessLifecycleOwner.get().lifecycle.coroutineScope
+            watchdogJob = lifecycleScope?.launch(Dispatchers.IO) {
+                startConnectionMonitoring()
+            }
         }
     }
     
     /**
      * Stop the MQTT connection watchdog
      */
-    fun stopWatchdog() {
-        if (!isWatchdogActive) {
-            logd("MQTT Watchdog: Not active, ignoring stop request")
-            return
+    suspend fun stopWatchdog() {
+        stateMutex.withLock {
+            if (!isWatchdogActive) {
+                logd("MQTT Watchdog: Not active, ignoring stop request")
+                return
+            }
+            
+            logd("MQTT Watchdog: Stopping connection monitoring")
+            _watchdogState.value = WatchdogState.STOPPING
+            
+            // Cancel monitoring job
+            watchdogJob?.cancel()
+            watchdogJob?.join() // Wait for job to complete
+            watchdogJob = null
+            
+            // Remove lifecycle observer
+            if (isLifecycleObserverRegistered) {
+                ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
+                isLifecycleObserverRegistered = false
+            }
+            
+            isWatchdogActive = false
+            _watchdogState.value = WatchdogState.STOPPED
+            _isPaused.value = false
+            
+            // Clear application context to prevent leaks
+            applicationContext = null
+            
+            logd("MQTT Watchdog: Stopped successfully")
         }
-        
-        logd("MQTT Watchdog: Stopping connection monitoring")
-        _watchdogState.value = WatchdogState.STOPPING
-        
-        // Cancel monitoring job
-        watchdogJob?.cancel()
-        watchdogJob = null
-        
-        // Remove lifecycle observer
-        ProcessLifecycleOwner.get().lifecycle.removeObserver(this)
-        
-        isWatchdogActive = false
-        _watchdogState.value = WatchdogState.STOPPED
-        logd("MQTT Watchdog: Stopped successfully")
     }
     
     /**
      * Main monitoring loop
      */
-    private suspend fun startConnectionMonitoring(context: Context) {
+    private suspend fun startConnectionMonitoring() {
         _watchdogState.value = WatchdogState.RUNNING
         logd("MQTT Watchdog: Connection monitoring started")
         
         while (isActive && isWatchdogActive) {
             try {
+                // Check if app is in foreground - pause if backgrounded
+                if (!isAppInForeground) {
+                    _isPaused.value = true
+                    logd("MQTT Watchdog: Paused - app in background")
+                    delay(checkIntervalMs) // Check every 30s if we should resume
+                    continue
+                } else if (_isPaused.value) {
+                    _isPaused.value = false
+                    logd("MQTT Watchdog: Resumed - app in foreground")
+                }
+                
                 _lastCheckTime.value = System.currentTimeMillis()
                 
                 // Check MQTT connection health
@@ -121,7 +161,7 @@ class MqttConnectionWatchdog @Inject constructor(
                     }
                 } else {
                     // Connection is unhealthy, attempt reconnection
-                    handleConnectionFailure(context)
+                    handleConnectionFailure()
                 }
                 
                 // Wait for next check
@@ -135,7 +175,7 @@ class MqttConnectionWatchdog @Inject constructor(
             } catch (e: Exception) {
                 loge("MQTT Watchdog: Error during monitoring: ${e.message}")
                 _consecutiveFailures.value = _consecutiveFailures.value + 1
-                handleConnectionFailure(context)
+                handleConnectionFailure()
                 
                 // Wait before retrying
                 delay(_nextCheckDelay.value)
@@ -181,7 +221,7 @@ class MqttConnectionWatchdog @Inject constructor(
     /**
      * Handle connection failure and attempt reconnection
      */
-    private suspend fun handleConnectionFailure(context: Context) {
+    private suspend fun handleConnectionFailure() {
         val currentFailures = _consecutiveFailures.value + 1
         _consecutiveFailures.value = currentFailures
         
@@ -197,10 +237,17 @@ class MqttConnectionWatchdog @Inject constructor(
             _nextCheckDelay.value = checkIntervalMs
         }
         
-        // Attempt reconnection
+        // Attempt reconnection - use restartWithNewServer instead of reDetectAndConnect to avoid context leak
         try {
             logd("MQTT Watchdog: Attempting MQTT reconnection")
-            mqttDeliveryService.reDetectAndConnect(context, appConfig)
+            val context = applicationContext
+            if (context != null) {
+                val serverIp = appConfig.getMqttServerIp(context)
+                mqttDeliveryService.restartWithNewServer(serverIp)
+            } else {
+                loge("MQTT Watchdog: Cannot reconnect - no application context available")
+                return
+            }
             
             // Give it a moment to connect
             delay(2000)
@@ -222,13 +269,13 @@ class MqttConnectionWatchdog @Inject constructor(
     /**
      * Force a connection check (useful for manual triggers)
      */
-    suspend fun forceConnectionCheck(context: Context) {
+    suspend fun forceConnectionCheck() {
         logd("MQTT Watchdog: Force connection check requested")
         _lastCheckTime.value = System.currentTimeMillis()
         
         val isHealthy = checkConnectionHealth()
         if (!isHealthy) {
-            handleConnectionFailure(context)
+            handleConnectionFailure()
         }
     }
     
@@ -248,14 +295,16 @@ class MqttConnectionWatchdog @Inject constructor(
     // Lifecycle callbacks
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
-        logd("MQTT Watchdog: App started")
-        // Watchdog continues running when app comes to foreground
+        logd("MQTT Watchdog: App started - resuming monitoring")
+        isAppInForeground = true
+        // Watchdog will automatically resume monitoring in the next loop iteration
     }
     
     override fun onStop(owner: LifecycleOwner) {
         super.onStop(owner)
-        logd("MQTT Watchdog: App stopped")
-        // Watchdog continues running when app goes to background
+        logd("MQTT Watchdog: App stopped - pausing monitoring")
+        isAppInForeground = false
+        // Watchdog will automatically pause monitoring in the next loop iteration
     }
 }
 

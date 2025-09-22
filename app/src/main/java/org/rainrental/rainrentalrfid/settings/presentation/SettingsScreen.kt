@@ -68,6 +68,7 @@ fun SettingsScreen() {
     val consecutiveFailures by settingsViewModel.consecutiveFailures.collectAsState()
     val lastCheckTime by settingsViewModel.lastCheckTime.collectAsState()
     val nextCheckDelay by settingsViewModel.nextCheckDelay.collectAsState()
+    val isPaused by settingsViewModel.isPaused.collectAsState()
     
     // Button test states
     val triggerState by settingsViewModel.triggerState.collectAsState()
@@ -104,6 +105,7 @@ fun SettingsScreen() {
         consecutiveFailures = consecutiveFailures,
         lastCheckTime = lastCheckTime,
         nextCheckDelay = nextCheckDelay,
+        isPaused = isPaused,
         onForceMqttConnectionCheck = settingsViewModel::forceMqttConnectionCheck,
         triggerState = triggerState,
         sideState = sideState,
@@ -139,6 +141,7 @@ fun SettingsScreen(
     consecutiveFailures: Int = 0,
     lastCheckTime: Long = 0L,
     nextCheckDelay: Long = 30000L,
+    isPaused: Boolean = false,
     onForceMqttConnectionCheck: () -> Unit = {},
     triggerState: ButtonState = ButtonState.UP,
     sideState: ButtonState = ButtonState.UP,
@@ -182,6 +185,7 @@ fun SettingsScreen(
                     consecutiveFailures = consecutiveFailures,
                     lastCheckTime = lastCheckTime,
                     nextCheckDelay = nextCheckDelay,
+                    isPaused = isPaused,
                     onForceMqttConnectionCheck = onForceMqttConnectionCheck
                 )
                 SettingsTab.UPDATES -> UpdatesTab(
@@ -682,6 +686,7 @@ fun MqttTab(
     consecutiveFailures: Int,
     lastCheckTime: Long,
     nextCheckDelay: Long,
+    isPaused: Boolean,
     onForceMqttConnectionCheck: () -> Unit
 ) {
     Column(
@@ -718,11 +723,11 @@ fun MqttTab(
                         text = when (watchdogState) {
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPED -> "Stopped"
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.STARTING -> "Starting"
-                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> "Running"
+                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> if (isPaused) "Paused" else "Running"
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPING -> "Stopping"
                         },
                         color = when (watchdogState) {
-                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> Color.Green
+                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> if (isPaused) Color.Orange else Color.Green
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPED -> Color.Gray
                             else -> Color.Orange
                         }
@@ -779,7 +784,7 @@ fun MqttTab(
         
         // Information
         Text(
-            text = "The MQTT connection watchdog automatically monitors the connection and attempts reconnection when needed. It runs in the background and checks the connection every 30 seconds.",
+            text = "The MQTT connection watchdog automatically monitors the connection and attempts reconnection when needed. It pauses when the app is backgrounded to save battery and resumes when the app returns to the foreground. Checks the connection every 30 seconds when active.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp)

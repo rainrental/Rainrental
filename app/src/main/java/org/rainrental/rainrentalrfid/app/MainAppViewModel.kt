@@ -66,10 +66,10 @@ class MainAppViewModel @Inject constructor(
     /**
      * Force a connection check
      */
-    fun forceConnectionCheck(context: Context) {
+    fun forceConnectionCheck() {
         viewModelScope.launch {
             logd("MainAppViewModel: Force MQTT connection check")
-            mqttWatchdog.forceConnectionCheck(context)
+            mqttWatchdog.forceConnectionCheck()
         }
     }
     

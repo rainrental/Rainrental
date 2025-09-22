@@ -52,6 +52,7 @@ class SettingsViewModel @Inject constructor(
     val consecutiveFailures: StateFlow<Int> = mqttWatchdog.consecutiveFailures
     val lastCheckTime: StateFlow<Long> = mqttWatchdog.lastCheckTime
     val nextCheckDelay: StateFlow<Long> = mqttWatchdog.nextCheckDelay
+    val isPaused: StateFlow<Boolean> = mqttWatchdog.isPaused
     
     private val audioManager: AudioManager by lazy {
         context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -310,7 +311,7 @@ class SettingsViewModel @Inject constructor(
     fun forceMqttConnectionCheck() {
         viewModelScope.launch {
             logd("SettingsViewModel: Force MQTT connection check")
-            mqttWatchdog.forceConnectionCheck(context)
+            mqttWatchdog.forceConnectionCheck()
         }
     }
     
