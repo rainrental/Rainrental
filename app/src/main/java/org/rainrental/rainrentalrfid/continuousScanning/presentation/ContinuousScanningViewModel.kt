@@ -300,7 +300,7 @@ class ContinuousScanningViewModel @Inject constructor(
             when (val barcodeResult = scanBarcodeUseCase()) {
                 is Result.Error -> {
                     logd("Barcode scan failed: ${barcodeResult.error.name}")
-                    // Could add toast notification here if needed
+                    triggerToast("Barcode scan failed: ${barcodeResult.error.name}")
                 }
                 is Result.Success -> {
                     val barcode = barcodeResult.data
@@ -316,17 +316,20 @@ class ContinuousScanningViewModel @Inject constructor(
                     when (val checkInResult = ApiCaller()<CheckInBarcodeResponseDto> { backendApi.checkInBarcode(request) }) {
                         is Result.Error -> {
                             logd("Check-in failed: ${checkInResult.error.apiErrorType}")
-                            // Could add toast notification here if needed
+                            triggerToast("Check-in failed: ${checkInResult.error.apiErrorType}")
                         }
                         is Result.Success -> {
                             logd("Check-in successful: ${checkInResult.data.message}")
-                            // Could add toast notification here if needed
+                            // Success feedback: beep + toast
+                            successBeep()
+                            triggerToast("Check-in successful: ${checkInResult.data.message}")
                         }
                     }
                 }
             }
         } catch (e: Exception) {
             loge("Error during barcode check-in: ${e.message}")
+            triggerToast("Error during barcode check-in: ${e.message}")
         }
     }
 } 
