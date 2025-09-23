@@ -163,10 +163,8 @@ fun SettingsScreen(
         ) {
             when (selectedTab) {
                 SettingsTab.GENERAL -> GeneralTab(
-                    mqttServerIp = mqttServerIp,
                     systemVolume = systemVolume,
                     maxSystemVolume = maxSystemVolume,
-                    onMqttServerIpChange = onMqttServerIpChange,
                     onSystemVolumeChange = onSystemVolumeChange
                 )
                 SettingsTab.AUTHENTICATION -> AuthenticationTab(
@@ -181,11 +179,13 @@ fun SettingsScreen(
                     auxState = auxState
                 )
                 SettingsTab.MQTT -> MqttTab(
+                    mqttServerIp = mqttServerIp,
                     watchdogState = watchdogState,
                     consecutiveFailures = consecutiveFailures,
                     lastCheckTime = lastCheckTime,
                     nextCheckDelay = nextCheckDelay,
                     isPaused = isPaused,
+                    onMqttServerIpChange = onMqttServerIpChange,
                     onForceMqttConnectionCheck = onForceMqttConnectionCheck
                 )
                 SettingsTab.UPDATES -> UpdatesTab(
@@ -307,10 +307,8 @@ enum class ButtonState {
 
 @Composable
 fun GeneralTab(
-    mqttServerIp: String,
     systemVolume: Int,
     maxSystemVolume: Int,
-    onMqttServerIpChange: (String) -> Unit,
     onSystemVolumeChange: (Int) -> Unit
 ) {
     Column(
@@ -319,23 +317,6 @@ fun GeneralTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // MQTT Server Configuration
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = "MQTT Server",
-                style = MaterialTheme.typography.titleMedium
-            )
-            OutlinedTextField(
-                value = mqttServerIp,
-                onValueChange = onMqttServerIpChange,
-                label = { Text("Server IP/Hostname") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-        }
         
         // System Volume Control
         Column(
@@ -682,11 +663,13 @@ fun SettingsScreenPreview() {
 
 @Composable
 fun MqttTab(
+    mqttServerIp: String,
     watchdogState: org.rainrental.rainrentalrfid.mqtt.WatchdogState,
     consecutiveFailures: Int,
     lastCheckTime: Long,
     nextCheckDelay: Long,
     isPaused: Boolean,
+    onMqttServerIpChange: (String) -> Unit,
     onForceMqttConnectionCheck: () -> Unit
 ) {
     Column(
@@ -695,6 +678,24 @@ fun MqttTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // MQTT Server Configuration
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "MQTT Server Configuration",
+                style = MaterialTheme.typography.titleMedium
+            )
+            OutlinedTextField(
+                value = mqttServerIp,
+                onValueChange = onMqttServerIpChange,
+                label = { Text("Server IP/Hostname") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+        }
+        
         Text(
             text = "MQTT Connection Status",
             style = MaterialTheme.typography.titleMedium,
