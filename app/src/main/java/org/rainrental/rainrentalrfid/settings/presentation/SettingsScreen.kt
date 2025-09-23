@@ -785,7 +785,7 @@ fun MqttTab(
         
         // Information
         Text(
-            text = "The MQTT connection watchdog automatically monitors the connection and attempts reconnection when needed. It pauses when the app is backgrounded to save battery and resumes when the app returns to the foreground. Checks the connection every 30 seconds when active.",
+            text = "The MQTT watchdog monitors connection and reconnects automatically. Pauses when app is backgrounded to save battery.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 8.dp)

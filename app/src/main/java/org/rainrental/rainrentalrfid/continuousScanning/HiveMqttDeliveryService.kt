@@ -73,6 +73,23 @@ class HiveMqttDeliveryService @Inject constructor(
                 ensureActive()
                 serverUris = listOf(server)
                 quietLog("restartWithNewServer($server)")
+                
+                // Properly disconnect existing client before reconnecting
+                try {
+                    mqttClient?.let { client ->
+                        if (client.state.isConnected) {
+                            client.toBlocking().disconnect()
+                            logd("Disconnected existing MQTT client for server change")
+                        }
+                    }
+                } catch (e: Exception) {
+                    loge("Error disconnecting MQTT client: ${e.message}")
+                }
+                
+                // Reset state before reconnecting
+                _state.update { DeliveryConnectionState.DEAD }
+                _failedConnections.update { 0 }
+                
                 initMqtt()
             }
         } else {
