@@ -10,7 +10,7 @@ import javax.inject.Named
 class StartGeneralInventoryUseCase @Inject constructor(
     private val inventoryRepository: InventoryRepository,
     private val dependencies: BaseViewModelDependencies,
-    @Named("company_id") private val companyId: String
+    @Named("rain_company_id") private val rainCompanyId: Int
 ) : Logger {
 
     suspend operator fun invoke() {
@@ -21,7 +21,7 @@ class StartGeneralInventoryUseCase @Inject constructor(
         
         // Apply company-specific EPC filter (like continuous scanning does)
         // This will filter to only company tags, not all tags
-        val companyEpcFilter = createCompanyEpcFilter(companyId.toInt())
+        val companyEpcFilter = createCompanyEpcFilter(rainCompanyId)
         val success = dependencies.rfidManager.configureEpcFilter(companyEpcFilter)
         
         if (success) {
