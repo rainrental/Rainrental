@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -96,6 +97,14 @@ class AuthViewModel @Inject constructor(
                         )
                         _authState.value = authenticatedState
                         authStateService.updateAuthState(authenticatedState)
+                        
+                        // Update Crashlytics user identification
+                        val crashlytics = FirebaseCrashlytics.getInstance()
+                        crashlytics.setUserId(result.user.uid)
+                        crashlytics.setCustomKey("location_name", result.locationName ?: "unknown")
+                        crashlytics.setCustomKey("company_id", result.companyId ?: "unknown")
+                        crashlytics.setCustomKey("rsl_id", result.rslId ?: "unknown")
+                        
                         // Start automatic token refresh
                         tokenRefreshScheduler.startAutoRefresh()
                     }
@@ -146,6 +155,14 @@ class AuthViewModel @Inject constructor(
             // Stop automatic token refresh
             tokenRefreshScheduler.stopAutoRefresh()
             authService.signOut()
+            
+            // Clear Crashlytics user identification
+            val crashlytics = FirebaseCrashlytics.getInstance()
+            crashlytics.setUserId("anonymous")
+            crashlytics.setCustomKey("location_name", "unknown")
+            crashlytics.setCustomKey("company_id", "unknown")
+            crashlytics.setCustomKey("rsl_id", "unknown")
+            
             logd("AUTH VIEWMODEL: Setting auth state to NotAuthenticated")
             val notAuthenticatedState = AuthState.NotAuthenticated
             _authState.value = notAuthenticatedState

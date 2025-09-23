@@ -646,6 +646,20 @@ fun UpdatesTab(
                         Text("Clear Status")
                     }
                 }
+                
+                // Test Crash Button (for Crashlytics verification)
+                Button(
+                    onClick = {
+                        // Trigger a test crash for Crashlytics verification
+                        throw RuntimeException("Test crash for Crashlytics verification")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Test Crash (Crashlytics)")
+                }
             }
         }
     }
