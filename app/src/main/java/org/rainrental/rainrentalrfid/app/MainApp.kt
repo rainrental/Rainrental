@@ -423,9 +423,20 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 }
                             }
                             
-                            // Back Button (rightmost) - show for all screens except home
+                            // Right side button - Settings icon for home, Back arrow for others
                             val isHomeScreen = currentRoute?.destination?.route == NavigationRoutes.Home.route
-                            if (!isHomeScreen) {
+                            if (isHomeScreen) {
+                                // Settings icon for home screen
+                                IconButton(
+                                    onClick = { navController.navigate(NavigationRoutes.Settings.route) }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = "Settings"
+                                    )
+                                }
+                            } else {
+                                // Back arrow for all other screens
                                 IconButton(
                                     onClick = { navController.popBackStack() }
                                 ) {
