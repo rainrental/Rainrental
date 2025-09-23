@@ -84,6 +84,12 @@ import org.rainrental.rainrentalrfid.toast.presentation.Toaster
 import org.rainrental.rainrentalrfid.auth.presentation.AuthScreen
 import org.rainrental.rainrentalrfid.auth.AuthState
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
+import org.rainrental.rainrentalrfid.components.ui.BackConfirmationDialog
+import org.rainrental.rainrentalrfid.navigation.BackConfirmableFeature
+import org.rainrental.rainrentalrfid.inventory.presentation.InventoryViewModel
+import org.rainrental.rainrentalrfid.commission.presentation.viewmodel.CommissionTagsViewModel
+import org.rainrental.rainrentalrfid.hunt.presentation.HuntViewModel
+import org.rainrental.rainrentalrfid.continuousScanning.presentation.ContinuousScanningViewModel
 
 @Composable
 fun CompactHardwareIndicator(
@@ -326,6 +332,53 @@ fun MainApp(modifier: Modifier = Modifier) {
     val mainAppViewModel: MainAppViewModel = hiltViewModel()
     val deliveryState by mainAppViewModel.deliveryState.collectAsState()
     val watchdogState by mainAppViewModel.watchdogState.collectAsState()
+    
+    // ViewModels for back confirmation
+    val inventoryViewModel: InventoryViewModel = hiltViewModel()
+    val commissionViewModel: CommissionTagsViewModel = hiltViewModel()
+    val huntViewModel: HuntViewModel = hiltViewModel()
+    val continuousScanningViewModel: ContinuousScanningViewModel = hiltViewModel()
+    
+    // Back confirmation state
+    var showBackConfirmation by remember { mutableStateOf(false) }
+    var pendingNavigation by remember { mutableStateOf<(() -> Unit)?>(null) }
+    
+    // Helper function to get current feature
+    fun getCurrentFeature(currentRoute: String?): BackConfirmableFeature? {
+        return when (currentRoute) {
+            NavigationRoutes.Inventory.route -> inventoryViewModel
+            NavigationRoutes.Commission.route -> commissionViewModel
+            NavigationRoutes.Hunt.route -> huntViewModel
+            NavigationRoutes.ContinuousScanning.route -> continuousScanningViewModel
+            else -> null
+        }
+    }
+    
+    // Helper function to handle back press with confirmation
+    fun handleBackPress() {
+        val currentRoute = navController.currentBackStackEntry?.destination?.route
+        val currentFeature = getCurrentFeature(currentRoute)
+        
+        if (currentFeature?.hasUnsavedChanges() == true) {
+            showBackConfirmation = true
+            pendingNavigation = { 
+                currentFeature.resetState()
+                navController.popBackStack()
+            }
+        } else {
+            navController.popBackStack()
+        }
+    }
+    
+    // Helper function to handle navigation to home (reset all features)
+    fun handleNavigateToHome() {
+        // Reset all features when going to home
+        inventoryViewModel.resetState()
+        commissionViewModel.resetState()
+        huntViewModel.resetState()
+        continuousScanningViewModel.resetState()
+        navController.navigate(NavigationRoutes.Home.route)
+    }
 
     Toaster(snackbarHostState = snackbarHostState)
     
@@ -438,7 +491,7 @@ fun MainApp(modifier: Modifier = Modifier) {
                             } else {
                                 // Back arrow for all other screens
                                 IconButton(
-                                    onClick = { navController.popBackStack() }
+                                    onClick = { handleBackPress() }
                                 ) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -462,7 +515,19 @@ fun MainApp(modifier: Modifier = Modifier) {
                             navController,
                             startDestination = NavigationRoutes.Home.route
                         ) {
-                            composable(NavigationRoutes.Home.route) { HomeScreen(navController) }
+                            composable(NavigationRoutes.Home.route) { 
+                                HomeScreen(
+                                    navController = navController,
+                                    onNavigateWithReset = { destination ->
+                                        // Reset all features when navigating from home
+                                        inventoryViewModel.resetState()
+                                        commissionViewModel.resetState()
+                                        huntViewModel.resetState()
+                                        continuousScanningViewModel.resetState()
+                                        navController.navigate(destination)
+                                    }
+                                )
+                            }
                             composable(NavigationRoutes.Commission.route) { CommissionScreen() }
                             composable(NavigationRoutes.Hunt.route) { HuntScreen() }
                             composable(NavigationRoutes.Radar.route) { RfidScreen() }
@@ -501,6 +566,21 @@ fun MainApp(modifier: Modifier = Modifier) {
             }
         }
     }
+    
+    // Back confirmation dialog
+    BackConfirmationDialog(
+        isVisible = showBackConfirmation,
+        message = getCurrentFeature(navController.currentBackStackEntry?.destination?.route)?.getUnsavedChangesDescription() ?: "You have unsaved changes",
+        onConfirm = {
+            showBackConfirmation = false
+            pendingNavigation?.invoke()
+            pendingNavigation = null
+        },
+        onCancel = {
+            showBackConfirmation = false
+            pendingNavigation = null
+        }
+    )
 }
 
 @Preview

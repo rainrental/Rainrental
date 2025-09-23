@@ -22,6 +22,7 @@ import org.rainrental.rainrentalrfid.inventory.domain.LogInventoryAllUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StartGeneralInventoryUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StopGeneralInventoryUseCase
 import org.rainrental.rainrentalrfid.logging.Logger
+import org.rainrental.rainrentalrfid.navigation.BackConfirmableFeature
 import org.rainrental.rainrentalrfid.result.Result
 import javax.inject.Inject
 
@@ -38,7 +39,7 @@ class InventoryViewModel @Inject constructor(
     private val startGeneralInventoryUseCase: StartGeneralInventoryUseCase,
     private val stopGeneralInventoryUseCase: StopGeneralInventoryUseCase,
     dependencies: BaseViewModelDependencies
-) : BaseViewModel(dependencies = dependencies), Logger {
+) : BaseViewModel(dependencies = dependencies), Logger, BackConfirmableFeature {
 
     val uiFlow = inventoryRepository.uiFlow.stateIn(
         scope = viewModelScope,
@@ -194,6 +195,47 @@ class InventoryViewModel @Inject constructor(
     
     override fun onSideKeyUp() {
         onEvent(InventoryEvent.OnKeyUp)
+    }
+
+    // BackConfirmableFeature implementation
+    override fun hasUnsavedChanges(): Boolean {
+        val currentFlow = uiFlow.value
+        return when (currentFlow) {
+            is InventoryFlow.ReadyToCount,
+            is InventoryFlow.Counting,
+            is InventoryFlow.FinishedCounting,
+            is InventoryFlow.InventoryAllCounting,
+            is InventoryFlow.InventoryAllFinished,
+            is InventoryFlow.GeneralInventoryCounting,
+            is InventoryFlow.GeneralInventoryFinished -> true
+            else -> false
+        }
+    }
+
+    override fun resetState() {
+        viewModelScope.launch {
+            logd("Resetting inventory state")
+            // Stop any ongoing inventory operations
+            dependencies.rfidManager.stopInventoryScan()
+            dependencies.rfidManager.clearEpcFilter()
+            
+            // Reset to initial state
+            inventoryRepository.updateUiFlow(InventoryFlow.WaitingForBarcode())
+        }
+    }
+
+    override fun getUnsavedChangesDescription(): String {
+        val currentFlow = uiFlow.value
+        return when (currentFlow) {
+            is InventoryFlow.ReadyToCount -> "You have a product loaded and ready to count"
+            is InventoryFlow.Counting -> "You are currently counting inventory"
+            is InventoryFlow.FinishedCounting -> "You have completed counting but haven't saved"
+            is InventoryFlow.InventoryAllCounting -> "You are currently doing inventory all"
+            is InventoryFlow.InventoryAllFinished -> "You have completed inventory all but haven't saved"
+            is InventoryFlow.GeneralInventoryCounting -> "You are currently doing general inventory"
+            is InventoryFlow.GeneralInventoryFinished -> "You have completed general inventory but haven't saved"
+            else -> "You have unsaved changes"
+        }
     }
 
 }

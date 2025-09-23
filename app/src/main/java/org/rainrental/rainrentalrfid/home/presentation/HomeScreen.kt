@@ -36,9 +36,10 @@ import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
 @Composable
 fun HomeScreen(
     navController: NavController,
+    onNavigateWithReset: (String) -> Unit = { destination -> navController.navigate(destination) }
 ) {
     HomeScreen(modifier = Modifier, onTap = { destination ->
-        navController.navigate(destination.route)
+        onNavigateWithReset(destination.route)
     })
 }
 

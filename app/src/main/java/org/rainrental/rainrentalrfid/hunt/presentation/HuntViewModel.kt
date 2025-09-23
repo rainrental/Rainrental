@@ -14,6 +14,8 @@ import org.rainrental.rainrentalrfid.hunt.domain.GetBarcodeAndLookupAssetUseCase
 import org.rainrental.rainrentalrfid.hunt.domain.LookupAssetUseCase
 import org.rainrental.rainrentalrfid.hunt.domain.StartTagHuntUseCase
 import org.rainrental.rainrentalrfid.hunt.domain.StopHuntUseCase
+import org.rainrental.rainrentalrfid.logging.Logger
+import org.rainrental.rainrentalrfid.navigation.BackConfirmableFeature
 import javax.inject.Inject
 
 @HiltViewModel
@@ -24,7 +26,7 @@ class HuntViewModel @Inject constructor(
     private val startTagHuntUseCase: StartTagHuntUseCase,
     private val stopHuntUseCase: StopHuntUseCase,
     dependencies: BaseViewModelDependencies,
-) : BaseViewModel(dependencies) {
+) : BaseViewModel(dependencies), Logger, BackConfirmableFeature {
 
 
 
@@ -67,6 +69,37 @@ class HuntViewModel @Inject constructor(
     
     override fun onSideKeyUp() {
         onEvent(HuntEvent.OnKeyUp)
+    }
+
+    // BackConfirmableFeature implementation
+    override fun hasUnsavedChanges(): Boolean {
+        val currentFlow = uiFlow.value
+        return when (currentFlow) {
+            is HuntFlow.LoadedAsset,
+            is HuntFlow.Hunting -> true
+            else -> false
+        }
+    }
+
+    override fun resetState() {
+        viewModelScope.launch {
+            logd("Resetting hunt state")
+            // Stop any ongoing hunt operations
+            dependencies.rfidManager.stopTagHunt()
+            dependencies.rfidManager.clearEpcFilter()
+            
+            // Reset to initial state
+            huntRepository.updateUiFlow(HuntFlow.WaitingForBarcode())
+        }
+    }
+
+    override fun getUnsavedChangesDescription(): String {
+        val currentFlow = uiFlow.value
+        return when (currentFlow) {
+            is HuntFlow.LoadedAsset -> "You have a product loaded and ready to hunt"
+            is HuntFlow.Hunting -> "You are currently hunting for tags"
+            else -> "You have unsaved changes"
+        }
     }
 
 }

@@ -37,6 +37,7 @@ import org.rainrental.rainrentalrfid.apis.ApiCaller
 import org.rainrental.rainrentalrfid.result.ApiError
 import org.rainrental.rainrentalrfid.result.Result
 import org.rainrental.rainrentalrfid.auth.AuthStateService
+import org.rainrental.rainrentalrfid.navigation.BackConfirmableFeature
 import javax.inject.Named
 
 
@@ -51,7 +52,7 @@ class ContinuousScanningViewModel @Inject constructor(
     @Named("rain_company_id") private val rainCompanyId: Int,
     private val authStateService: AuthStateService,
     dependencies: BaseViewModelDependencies
-) : BaseViewModel(dependencies = dependencies), Logger {
+) : BaseViewModel(dependencies = dependencies), Logger, BackConfirmableFeature {
 
     companion object {
         private var instanceCount = 0
@@ -330,6 +331,30 @@ class ContinuousScanningViewModel @Inject constructor(
         } catch (e: Exception) {
             loge("Error during barcode check-in: ${e.message}")
             triggerToast("Error during barcode check-in: ${e.message}")
+        }
+    }
+
+    // BackConfirmableFeature implementation
+    override fun hasUnsavedChanges(): Boolean {
+        val currentState = continuousScanningState.value
+        return currentState.isRunning || currentState.tagCount > 0
+    }
+
+    override fun resetState() {
+        viewModelScope.launch {
+            logd("Resetting continuous scanning state")
+            // Stop any ongoing scanning operations
+            dependencies.rfidManager.stopContinuousScanning()
+            dependencies.rfidManager.clearEpcFilter()
+        }
+    }
+
+    override fun getUnsavedChangesDescription(): String {
+        val currentState = continuousScanningState.value
+        return when {
+            currentState.isRunning -> "You are currently scanning for RFID tags"
+            currentState.tagCount > 0 -> "You have scanned ${currentState.tagCount} tags"
+            else -> "You have unsaved changes"
         }
     }
 } 

@@ -18,6 +18,8 @@ import org.rainrental.rainrentalrfid.commission.presentation.model.CommissionUiF
 import org.rainrental.rainrentalrfid.commission.presentation.model.ScanningTagData
 import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.GetSingleRfidTagUseCase
 import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.WriteEpcUseCase
+import org.rainrental.rainrentalrfid.logging.Logger
+import org.rainrental.rainrentalrfid.navigation.BackConfirmableFeature
 import org.rainrental.rainrentalrfid.result.Result
 import javax.inject.Inject
 
@@ -30,7 +32,7 @@ class CommissionTagsViewModel @Inject constructor(
     private val encodeRequestUseCase: EncodeRequestUseCase,
     private val saveCommissionUseCase: SaveCommissionUseCase,
     dependencies: BaseViewModelDependencies
-): BaseViewModel(dependencies = dependencies) {
+): BaseViewModel(dependencies = dependencies), Logger, BackConfirmableFeature {
 
 
 
@@ -162,6 +164,43 @@ class CommissionTagsViewModel @Inject constructor(
     override fun onSideKeyUp() {
         viewModelScope.launch {
             onEvent(CommissionEvent.OnKeyUp)
+        }
+    }
+
+    // BackConfirmableFeature implementation
+    override fun hasUnsavedChanges(): Boolean {
+        val currentFlow = uiFlow.value
+        return when (currentFlow) {
+            is CommissionUiFlow.LoadedAsset,
+            is CommissionUiFlow.ScanningRfid,
+            is CommissionUiFlow.WritingEPC,
+            is CommissionUiFlow.CommissioningTags,
+            is CommissionUiFlow.CommissionedTags -> true
+            else -> false
+        }
+    }
+
+    override fun resetState() {
+        viewModelScope.launch {
+            logd("Resetting commission state")
+            // Stop any ongoing RFID operations
+            dependencies.rfidManager.stopInventoryScan()
+            dependencies.rfidManager.clearEpcFilter()
+            
+            // Reset to initial state
+            commissionRepository.updateUiFlow(CommissionUiFlow.WaitingForBarcodeInput())
+        }
+    }
+
+    override fun getUnsavedChangesDescription(): String {
+        val currentFlow = uiFlow.value
+        return when (currentFlow) {
+            is CommissionUiFlow.LoadedAsset -> "You have a product loaded with ${currentFlow.scannedTags.size} tags"
+            is CommissionUiFlow.ScanningRfid -> "You are currently scanning for RFID tags"
+            is CommissionUiFlow.WritingEPC -> "You are currently writing EPC data to tags"
+            is CommissionUiFlow.CommissioningTags -> "You are currently commissioning tags"
+            is CommissionUiFlow.CommissionedTags -> "You have commissioned tags but haven't saved"
+            else -> "You have unsaved changes"
         }
     }
 
