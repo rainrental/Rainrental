@@ -1,5 +1,6 @@
 package org.rainrental.rainrentalrfid.auth
 
+import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -98,12 +99,14 @@ class AuthViewModel @Inject constructor(
                         _authState.value = authenticatedState
                         authStateService.updateAuthState(authenticatedState)
                         
-                        // Update Crashlytics user identification
+                        // Update Crashlytics user identification with device serial
                         val crashlytics = FirebaseCrashlytics.getInstance()
-                        crashlytics.setUserId(result.user.uid)
+                        val deviceSerial = getDeviceSerial()
+                        crashlytics.setUserId(deviceSerial)
                         crashlytics.setCustomKey("location_name", result.locationName ?: "unknown")
                         crashlytics.setCustomKey("company_id", result.companyId ?: "unknown")
                         crashlytics.setCustomKey("rsl_id", result.rslId ?: "unknown")
+                        crashlytics.setCustomKey("firebase_uid", result.user.uid)
                         
                         // Start automatic token refresh
                         tokenRefreshScheduler.startAutoRefresh()
@@ -156,12 +159,14 @@ class AuthViewModel @Inject constructor(
             tokenRefreshScheduler.stopAutoRefresh()
             authService.signOut()
             
-            // Clear Crashlytics user identification
+            // Clear Crashlytics user identification but keep device serial
             val crashlytics = FirebaseCrashlytics.getInstance()
-            crashlytics.setUserId("anonymous")
+            val deviceSerial = getDeviceSerial()
+            crashlytics.setUserId(deviceSerial)
             crashlytics.setCustomKey("location_name", "unknown")
             crashlytics.setCustomKey("company_id", "unknown")
             crashlytics.setCustomKey("rsl_id", "unknown")
+            crashlytics.setCustomKey("firebase_uid", "unknown")
             
             logd("AUTH VIEWMODEL: Setting auth state to NotAuthenticated")
             val notAuthenticatedState = AuthState.NotAuthenticated
@@ -223,6 +228,24 @@ class AuthViewModel @Inject constructor(
                     _errorMessage.value = "Scan error: ${e.message}"
                 }
             }
+        }
+    }
+    
+    private fun getDeviceSerial(): String {
+        return try {
+            // Try to get serial number (requires READ_PHONE_STATE permission on Android 10+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Build.getSerial()
+            } else {
+                @Suppress("DEPRECATION")
+                Build.SERIAL
+            }
+        } catch (e: SecurityException) {
+            // Fallback if permission not granted
+            "unknown_serial"
+        } catch (e: Exception) {
+            // Fallback for any other error
+            "unknown_serial"
         }
     }
 } 
