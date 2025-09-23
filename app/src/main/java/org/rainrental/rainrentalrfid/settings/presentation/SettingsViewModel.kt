@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.app.BaseViewModel
 import org.rainrental.rainrentalrfid.app.BaseViewModelDependencies
@@ -36,6 +38,9 @@ class SettingsViewModel @Inject constructor(
 
     private val _mqttServerIp = MutableStateFlow("")
     val mqttServerIp: StateFlow<String> = _mqttServerIp.asStateFlow()
+    
+    // Debounced job for MQTT server IP changes
+    private var mqttServerIpChangeJob: Job? = null
 
     private val _ignoreRightSideKey = MutableStateFlow(false)
     val ignoreRightSideKey: StateFlow<Boolean> = _ignoreRightSideKey.asStateFlow()
@@ -137,7 +142,15 @@ class SettingsViewModel @Inject constructor(
 
     fun setMqttServerIp(serverIp: String) {
         _mqttServerIp.value = serverIp
-        viewModelScope.launch {
+        
+        // Cancel any existing debounced job
+        mqttServerIpChangeJob?.cancel()
+        
+        // Start a new debounced job
+        mqttServerIpChangeJob = viewModelScope.launch {
+            // Wait for 1 second of no changes before triggering reconnection
+            delay(1000)
+            
             dependencies.appConfig.setMqttServerIp(dependencies.context, serverIp)
             logd("MQTT server IP updated to: $serverIp")
             
