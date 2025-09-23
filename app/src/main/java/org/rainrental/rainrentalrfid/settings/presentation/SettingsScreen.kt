@@ -727,9 +727,9 @@ fun MqttTab(
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPING -> "Stopping"
                         },
                         color = when (watchdogState) {
-                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> if (isPaused) Color.Orange else Color.Green
+                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> if (isPaused) Color(0xFFFF9800) else Color.Green
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPED -> Color.Gray
-                            else -> Color.Orange
+                            else -> Color(0xFFFF9800)
                         }
                     )
                 }
@@ -742,7 +742,7 @@ fun MqttTab(
                         Text("Consecutive Failures:")
                         Text(
                             text = consecutiveFailures.toString(),
-                            color = if (consecutiveFailures > 3) Color.Red else Color.Orange
+                            color = if (consecutiveFailures > 3) Color.Red else Color(0xFFFF9800)
                         )
                     }
                 }

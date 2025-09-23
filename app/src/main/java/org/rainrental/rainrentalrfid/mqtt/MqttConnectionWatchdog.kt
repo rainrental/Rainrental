@@ -16,6 +16,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.math.min
 
 /**
  * MQTT Connection Watchdog Service
@@ -85,7 +86,7 @@ class MqttConnectionWatchdog @Inject constructor(
             }
             
             // Start monitoring coroutine
-            lifecycleScope = ProcessLifecycleOwner.get().lifecycle.coroutineScope
+            lifecycleScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
             watchdogJob = lifecycleScope?.launch(Dispatchers.IO) {
                 startConnectionMonitoring()
             }
@@ -134,7 +135,7 @@ class MqttConnectionWatchdog @Inject constructor(
         _watchdogState.value = WatchdogState.RUNNING
         logd("MQTT Watchdog: Connection monitoring started")
         
-        while (isActive && isWatchdogActive) {
+        while (isWatchdogActive) {
             try {
                 // Check if app is in foreground - pause if backgrounded
                 if (!isAppInForeground) {
@@ -229,8 +230,8 @@ class MqttConnectionWatchdog @Inject constructor(
         
         if (currentFailures > maxConsecutiveFailures) {
             // Too many failures, use exponential backoff
-            val backoffDelay = (checkIntervalMs * kotlin.math.pow(backoffMultiplier, (currentFailures - maxConsecutiveFailures).toDouble())).toLong()
-            _nextCheckDelay.value = kotlin.math.min(backoffDelay, maxBackoffMs)
+            val backoffDelay = (checkIntervalMs * Math.pow(backoffMultiplier, (currentFailures - maxConsecutiveFailures).toDouble())).toLong()
+            _nextCheckDelay.value = min(backoffDelay, maxBackoffMs)
             
             logd("MQTT Watchdog: Too many failures ($currentFailures), backing off for ${_nextCheckDelay.value}ms")
         } else {

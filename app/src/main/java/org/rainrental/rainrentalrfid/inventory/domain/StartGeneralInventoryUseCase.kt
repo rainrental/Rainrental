@@ -5,10 +5,12 @@ import org.rainrental.rainrentalrfid.inventory.data.InventoryRepository
 import org.rainrental.rainrentalrfid.inventory.data.InventoryFlow
 import org.rainrental.rainrentalrfid.logging.Logger
 import javax.inject.Inject
+import javax.inject.Named
 
 class StartGeneralInventoryUseCase @Inject constructor(
     private val inventoryRepository: InventoryRepository,
-    private val dependencies: BaseViewModelDependencies
+    private val dependencies: BaseViewModelDependencies,
+    @Named("company_id") private val companyId: String
 ) : Logger {
 
     suspend operator fun invoke() {
@@ -19,7 +21,7 @@ class StartGeneralInventoryUseCase @Inject constructor(
         
         // Apply company-specific EPC filter (like continuous scanning does)
         // This will filter to only company tags, not all tags
-        val companyEpcFilter = createCompanyEpcFilter(dependencies.companyId.toInt())
+        val companyEpcFilter = createCompanyEpcFilter(companyId.toInt())
         val success = dependencies.rfidManager.configureEpcFilter(companyEpcFilter)
         
         if (success) {
