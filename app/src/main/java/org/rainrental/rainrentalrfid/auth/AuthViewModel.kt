@@ -42,7 +42,8 @@ class AuthViewModel @Inject constructor(
 
     init {
         checkAuthState()
-        hardwareEventBus.registerListener(this)
+        // Hardware event registration is now handled by MainApp based on current route
+        // hardwareEventBus.registerListener(this)
     }
 
     private fun checkAuthState() {
@@ -199,7 +200,8 @@ class AuthViewModel @Inject constructor(
     
     override fun onCleared() {
         super.onCleared()
-        hardwareEventBus.unregisterListener(this)
+        // Hardware event unregistration is now handled by MainApp
+        // hardwareEventBus.unregisterListener(this)
     }
 
     override fun onTriggerUp() {

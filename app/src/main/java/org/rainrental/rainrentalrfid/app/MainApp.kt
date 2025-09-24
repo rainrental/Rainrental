@@ -87,9 +87,12 @@ import org.rainrental.rainrentalrfid.auth.AuthViewModel
 import org.rainrental.rainrentalrfid.components.ui.BackConfirmationDialog
 import org.rainrental.rainrentalrfid.navigation.BackConfirmableFeature
 import org.rainrental.rainrentalrfid.inventory.presentation.InventoryViewModel
+import org.rainrental.rainrentalrfid.hardware.HardwareEventBus
+import org.rainrental.rainrentalrfid.hardware.HardwareEventListener
 import org.rainrental.rainrentalrfid.commission.presentation.viewmodel.CommissionTagsViewModel
 import org.rainrental.rainrentalrfid.hunt.presentation.HuntViewModel
 import org.rainrental.rainrentalrfid.continuousScanning.presentation.ContinuousScanningViewModel
+import org.rainrental.rainrentalrfid.settings.presentation.SettingsViewModel
 
 @Composable
 fun CompactHardwareIndicator(
@@ -333,11 +336,15 @@ fun MainApp(modifier: Modifier = Modifier) {
     val deliveryState by mainAppViewModel.deliveryState.collectAsState()
     val watchdogState by mainAppViewModel.watchdogState.collectAsState()
     
-    // ViewModels for back confirmation
+    // ViewModels for back confirmation and hardware events
     val inventoryViewModel: InventoryViewModel = hiltViewModel()
     val commissionViewModel: CommissionTagsViewModel = hiltViewModel()
     val huntViewModel: HuntViewModel = hiltViewModel()
     val continuousScanningViewModel: ContinuousScanningViewModel = hiltViewModel()
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    
+    // Hardware event bus for managing active listener
+    val hardwareEventBus: HardwareEventBus = (context.applicationContext as RainRentalRfidApp).hardwareEventBus
     
     // Back confirmation state
     var showBackConfirmation by remember { mutableStateOf(false) }
@@ -350,6 +357,18 @@ fun MainApp(modifier: Modifier = Modifier) {
             NavigationRoutes.Commission.route -> commissionViewModel
             NavigationRoutes.Hunt.route -> huntViewModel
             NavigationRoutes.ContinuousScanning.route -> continuousScanningViewModel
+            else -> null
+        }
+    }
+    
+    // Helper function to get current hardware event listener
+    fun getCurrentHardwareListener(currentRoute: String?): HardwareEventListener? {
+        return when (currentRoute) {
+            NavigationRoutes.Inventory.route -> inventoryViewModel
+            NavigationRoutes.Commission.route -> commissionViewModel
+            NavigationRoutes.Hunt.route -> huntViewModel
+            NavigationRoutes.ContinuousScanning.route -> continuousScanningViewModel
+            NavigationRoutes.Settings.route -> settingsViewModel
             else -> null
         }
     }
@@ -387,6 +406,13 @@ fun MainApp(modifier: Modifier = Modifier) {
         if (authState is AuthState.Authenticated) {
             mainAppViewModel.startMqttWatchdog(context)
         }
+    }
+    
+    // Manage active hardware event listener based on current route
+    LaunchedEffect(navController.currentBackStackEntry) {
+        val currentRoute = navController.currentBackStackEntry?.destination?.route
+        val activeListener = getCurrentHardwareListener(currentRoute)
+        hardwareEventBus.setActiveListener(activeListener)
     }
 
     // Show authentication screen if not authenticated

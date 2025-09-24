@@ -5,9 +5,14 @@ import android.os.Build
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
 import org.rainrental.rainrentalrfid.BuildConfig
+import org.rainrental.rainrentalrfid.hardware.HardwareEventBus
+import javax.inject.Inject
 
 @HiltAndroidApp
 class RainRentalRfidApp : Application() {
+    
+    @Inject
+    lateinit var hardwareEventBus: HardwareEventBus
     
     override fun onCreate() {
         super.onCreate()
