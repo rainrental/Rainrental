@@ -16,9 +16,6 @@ import org.rainrental.rainrentalrfid.inventory.domain.GetBarcodeAndLookupAssetUs
 import org.rainrental.rainrentalrfid.inventory.domain.LogInventoryUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StartInventoryUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StopInventoryUseCase
-import org.rainrental.rainrentalrfid.inventory.domain.StartInventoryAllUseCase
-import org.rainrental.rainrentalrfid.inventory.domain.StopInventoryAllUseCase
-import org.rainrental.rainrentalrfid.inventory.domain.LogInventoryAllUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StartGeneralInventoryUseCase
 import org.rainrental.rainrentalrfid.inventory.domain.StopGeneralInventoryUseCase
 import org.rainrental.rainrentalrfid.logging.Logger
@@ -33,9 +30,6 @@ class InventoryViewModel @Inject constructor(
     private val startInventoryUseCase: StartInventoryUseCase,
     private val stopInventoryUseCase: StopInventoryUseCase,
     private val logInventoryUseCase: LogInventoryUseCase,
-    private val startInventoryAllUseCase: StartInventoryAllUseCase,
-    private val stopInventoryAllUseCase: StopInventoryAllUseCase,
-    private val logInventoryAllUseCase: LogInventoryAllUseCase,
     private val startGeneralInventoryUseCase: StartGeneralInventoryUseCase,
     private val stopGeneralInventoryUseCase: StopGeneralInventoryUseCase,
     dependencies: BaseViewModelDependencies
@@ -83,13 +77,6 @@ class InventoryViewModel @Inject constructor(
                         stopInventoryUseCase(asset = (uiFlow.value as InventoryFlow.Counting).asset)
                     }
                     is InventoryFlow.FinishedCounting -> {}
-                    is InventoryFlow.InventoryAll -> viewModelScope.launch{
-                        startInventoryAllUseCase()
-                    }
-                    is InventoryFlow.InventoryAllCounting -> viewModelScope.launch{
-                        stopInventoryAllUseCase()
-                    }
-                    is InventoryFlow.InventoryAllFinished -> {}
                     is InventoryFlow.GeneralInventory -> viewModelScope.launch{
                         startGeneralInventoryUseCase()
                     }
@@ -109,14 +96,6 @@ class InventoryViewModel @Inject constructor(
                 }
             }
 
-            InventoryEvent.InventoryAll -> {
-                when (uiFlow.value){
-                    is InventoryFlow.WaitingForBarcode -> viewModelScope.launch{
-                        inventoryRepository.updateUiFlow(InventoryFlow.InventoryAll())
-                    }
-                    else -> {}
-                }
-            }
 
             InventoryEvent.GeneralInventory -> {
                 when (uiFlow.value){
@@ -157,11 +136,6 @@ class InventoryViewModel @Inject constructor(
                         logd("Saving inventory with ${dependencies.rfidManager.inventory.value.size} items")
                         logInventoryUseCase(asset = flow.asset, inventory = dependencies.rfidManager.inventory.value.map { InventoryRecord(tidHex = it.value.tid, epcHex = it.value.epc) })
                     }
-                    is InventoryFlow.InventoryAllFinished -> viewModelScope.launch {
-                        val flow = (uiFlow.value as InventoryFlow.InventoryAllFinished)
-                        logd("Saving inventory all with ${dependencies.rfidManager.inventory.value.size} items")
-                        logInventoryAllUseCase(inventory = dependencies.rfidManager.inventory.value.map { InventoryRecord(tidHex = it.value.tid, epcHex = it.value.epc) })
-                    }
                     else -> {}
                 }
 
@@ -172,11 +146,6 @@ class InventoryViewModel @Inject constructor(
                     is InventoryFlow.FinishedCounting -> viewModelScope.launch {
                         // Return to waiting state without saving
                         logd("Finishing inventory without saving - inventory was empty")
-                        inventoryRepository.updateUiFlow(InventoryFlow.WaitingForBarcode())
-                    }
-                    is InventoryFlow.InventoryAllFinished -> viewModelScope.launch {
-                        // Return to waiting state without saving
-                        logd("Finishing inventory all without saving - inventory was empty")
                         inventoryRepository.updateUiFlow(InventoryFlow.WaitingForBarcode())
                     }
                     else -> {}
@@ -204,8 +173,6 @@ class InventoryViewModel @Inject constructor(
             is InventoryFlow.ReadyToCount,
             is InventoryFlow.Counting,
             is InventoryFlow.FinishedCounting,
-            is InventoryFlow.InventoryAllCounting,
-            is InventoryFlow.InventoryAllFinished,
             is InventoryFlow.GeneralInventoryCounting,
             is InventoryFlow.GeneralInventoryFinished -> true
             else -> false
@@ -230,8 +197,6 @@ class InventoryViewModel @Inject constructor(
             is InventoryFlow.ReadyToCount -> "You have a product loaded and ready to count"
             is InventoryFlow.Counting -> "You are currently counting inventory"
             is InventoryFlow.FinishedCounting -> "You have completed counting but haven't saved"
-            is InventoryFlow.InventoryAllCounting -> "You are currently doing inventory all"
-            is InventoryFlow.InventoryAllFinished -> "You have completed inventory all but haven't saved"
             is InventoryFlow.GeneralInventoryCounting -> "You are currently doing general inventory"
             is InventoryFlow.GeneralInventoryFinished -> "You have completed general inventory but haven't saved"
             else -> "You have unsaved changes"

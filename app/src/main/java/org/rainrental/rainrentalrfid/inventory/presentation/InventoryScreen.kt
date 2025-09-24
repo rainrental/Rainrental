@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -27,6 +28,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -103,9 +106,6 @@ fun InventoryScreen(
         is InventoryFlow.ReadyToCount -> ReadyToCountView(uiFlow = uiFlow, isInventoryEmpty = isInventoryEmpty, onEvent = onEvent)
         is InventoryFlow.Counting -> CountingView(uiFlow = uiFlow, inventory = inventory, onEvent = onEvent)
         is InventoryFlow.FinishedCounting -> FinishedCountingView(uiFlow = uiFlow, isInventoryEmpty = isInventoryEmpty, onEvent = onEvent)
-        is InventoryFlow.InventoryAll -> InventoryAllView(uiFlow = uiFlow, onEvent = onEvent)
-        is InventoryFlow.InventoryAllCounting -> InventoryAllCountingView(uiFlow = uiFlow, inventory = inventory, onEvent = onEvent)
-        is InventoryFlow.InventoryAllFinished -> InventoryAllFinishedView(uiFlow = uiFlow, isInventoryEmpty = isInventoryEmpty, onEvent = onEvent)
         is InventoryFlow.GeneralInventory -> GeneralInventoryView(uiFlow = uiFlow, onEvent = onEvent)
         is InventoryFlow.GeneralInventoryCounting -> GeneralInventoryCountingView(uiFlow = uiFlow, inventory = inventory, onEvent = onEvent)
         is InventoryFlow.GeneralInventoryFinished -> GeneralInventoryFinishedView(uiFlow = uiFlow, isInventoryEmpty = isInventoryEmpty, onEvent = onEvent)
@@ -193,17 +193,29 @@ fun WaitingForBarcodeView(
                 modifier = Modifier.fillMaxWidth()
             )
             
-            AppButton(
-                text = "INVENTORY ALL",
-                onClick = { onEvent(InventoryEvent.InventoryAll) },
-                modifier = Modifier.fillMaxWidth()
-            )
-            
-            AppButton(
-                text = "GENERAL INVENTORY",
-                onClick = { onEvent(InventoryEvent.GeneralInventory) },
-                modifier = Modifier.fillMaxWidth()
-            )
+            // Disabled General Inventory button - backend integration needed
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(65.dp)
+                    .border(
+                        width = 3.dp,
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                    )
+                    .background(
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "GENERAL INVENTORY (Coming Soon)",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
         }
     }
 }
@@ -290,122 +302,6 @@ fun FinishedCountingView(modifier: Modifier = Modifier, uiFlow: InventoryFlow.Fi
 
 }
 
-@Composable
-fun InventoryAllView(
-    modifier: Modifier = Modifier,
-    uiFlow: InventoryFlow.InventoryAll,
-    onEvent: (InventoryEvent) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Inventory All Assets",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        Text(
-            text = "This will scan for all RFID tags in range and collect their EPC and TID values.",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 32.dp),
-            textAlign = TextAlign.Center
-        )
-        
-        AppButton(
-            text = "Start Inventory All",
-            modifier = Modifier.fillMaxWidth()
-        ) { onEvent(InventoryEvent.OnKeyUp) }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        AppButton(
-            text = "Cancel",
-            modifier = Modifier.fillMaxWidth()
-        ) { 
-            onEvent(InventoryEvent.OnKeyUp) // Return to waiting state
-        }
-        
-        uiFlow.withError?.let { error ->
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = error,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-    }
-}
-
-@Composable
-fun InventoryAllCountingView(
-    modifier: Modifier = Modifier,
-    uiFlow: InventoryFlow.InventoryAllCounting,
-    inventory: Int = 0,
-    onEvent: (InventoryEvent) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Inventory All - Scanning",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        CircularProgressIndicator(modifier = Modifier.size(50.dp))
-        
-        Text(
-            text = inventory.toString(),
-            style = MaterialTheme.typography.displayMedium,
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
-        
-        Text(
-            text = "Tags Found",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 32.dp)
-        )
-        
-        HintText(text = "Press trigger to stop scanning", modifier = Modifier.padding(vertical = 32.dp))
-    }
-}
-
-@Composable
-fun InventoryAllFinishedView(
-    modifier: Modifier = Modifier,
-    uiFlow: InventoryFlow.InventoryAllFinished,
-    isInventoryEmpty: Boolean = false,
-    onEvent: (InventoryEvent) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = "Inventory All Complete",
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        Text(
-            text = "Found ${uiFlow.count} tags",
-            style = MaterialTheme.typography.displayMedium,
-            modifier = Modifier.padding(vertical = 16.dp)
-        )
-        
-        if (isInventoryEmpty) {
-            AppButton(text = "Finish".uppercase()) { onEvent(InventoryEvent.Finish) }
-        } else {
-            AppButton(text = "Save and finish".uppercase()) { onEvent(InventoryEvent.Save) }
-        }
-    }
-}
 
 @Composable
 fun GeneralInventoryView(
