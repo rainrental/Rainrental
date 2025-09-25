@@ -1,5 +1,7 @@
 package org.rainrental.rainrentalrfid.settings.presentation
 
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.State
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -88,10 +90,6 @@ class SettingsViewModel @Inject constructor(
 
     private val _auxState = MutableStateFlow(ButtonState.UP)
     val auxState: StateFlow<ButtonState> = _auxState.asStateFlow()
-    
-    // Debug counter to force UI recomposition
-    private val _buttonPressCount = MutableStateFlow(0)
-    val buttonPressCount: StateFlow<Int> = _buttonPressCount.asStateFlow()
 
     // Authentication state - will be set from outside
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -247,14 +245,8 @@ class SettingsViewModel @Inject constructor(
     // Button test event handlers
     override fun onTriggerDown() {
         logd("SettingsViewModel: onTriggerDown called")
-        logd("SettingsViewModel: Current thread: ${Thread.currentThread().name}")
-        logd("SettingsViewModel: Before setting trigger state to DOWN")
         _triggerState.value = ButtonState.DOWN
-        logd("SettingsViewModel: After setting trigger state to DOWN")
-        _buttonPressCount.value = _buttonPressCount.value + 1
-        logd("SettingsViewModel: Set trigger state to DOWN, press count: ${_buttonPressCount.value}")
-        logd("SettingsViewModel: Current trigger state: ${_triggerState.value}")
-        logd("SettingsViewModel: Current button press count: ${_buttonPressCount.value}")
+        logd("SettingsViewModel: Set trigger state to DOWN")
     }
 
     override fun onTriggerUp() {
