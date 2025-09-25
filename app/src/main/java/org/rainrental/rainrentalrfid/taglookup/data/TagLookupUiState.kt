@@ -30,10 +30,17 @@ sealed interface TagLookupUiFlow {
         val scannedEpc: String,
         val deletedFrom: String? = null
     ) : TagLookupUiFlow
+    
+    data class ClearingEpc(
+        val tidHex: String,
+        val scannedEpc: String
+    ) : TagLookupUiFlow
 }
 
 sealed interface TagLookupEvent {
     data object OnTriggerUp : TagLookupEvent
     data object OnSideKeyUp : TagLookupEvent
     data class DeleteTag(val tidHex: String) : TagLookupEvent
+    data class ConfirmDeleteTag(val tidHex: String) : TagLookupEvent
+    data object CancelDeleteTag : TagLookupEvent
 }

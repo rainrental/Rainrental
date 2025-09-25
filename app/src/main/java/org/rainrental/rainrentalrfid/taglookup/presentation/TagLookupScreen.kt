@@ -8,9 +8,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,6 +39,8 @@ import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
 fun TagLookupScreen() {
     val tagLookupViewModel: TagLookupViewModel = hiltViewModel()
     val uiFlow by tagLookupViewModel.uiFlow.collectAsState()
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var tagToDelete by remember { mutableStateOf("") }
     
     LifecycleAware(
         onPause = { tagLookupViewModel.onScreenPaused() },
@@ -43,7 +51,19 @@ fun TagLookupScreen() {
     TagLookupScreen(
         modifier = Modifier,
         uiFlow = uiFlow,
-        onDeleteTag = { tidHex -> tagLookupViewModel.onEvent(org.rainrental.rainrentalrfid.taglookup.data.TagLookupEvent.DeleteTag(tidHex)) }
+        onDeleteTag = { tidHex -> 
+            tagToDelete = tidHex
+            showDeleteConfirmation = true
+        },
+        showDeleteConfirmation = showDeleteConfirmation,
+        onConfirmDelete = { 
+            showDeleteConfirmation = false
+            tagLookupViewModel.onEvent(org.rainrental.rainrentalrfid.taglookup.data.TagLookupEvent.ConfirmDeleteTag(tagToDelete))
+        },
+        onCancelDelete = { 
+            showDeleteConfirmation = false
+            tagLookupViewModel.onEvent(org.rainrental.rainrentalrfid.taglookup.data.TagLookupEvent.CancelDeleteTag)
+        }
     )
 }
 
@@ -51,7 +71,10 @@ fun TagLookupScreen() {
 fun TagLookupScreen(
     modifier: Modifier = Modifier,
     uiFlow: TagLookupUiFlow,
-    onDeleteTag: (String) -> Unit = {}
+    onDeleteTag: (String) -> Unit = {},
+    showDeleteConfirmation: Boolean = false,
+    onConfirmDelete: () -> Unit = {},
+    onCancelDelete: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -91,13 +114,6 @@ fun TagLookupScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "Asset Found",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
                     
                     Text(
                         text = "Tag ID: ${uiFlow.tidHex}",
@@ -250,6 +266,63 @@ fun TagLookupScreen(
                     )
                 }
             }
+            
+            is TagLookupUiFlow.ClearingEpc -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Clear EPC Memory",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Text(
+                        text = "Tag ID: ${uiFlow.tidHex}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    if (uiFlow.scannedEpc.isNotEmpty()) {
+                        Text(
+                            text = "Scanned EPC: ${uiFlow.scannedEpc}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+                    
+                    Text(
+                        text = "Position the tag near the reader and press trigger to clear EPC memory",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+            }
+        }
+        
+        // Confirmation Dialog
+        if (showDeleteConfirmation) {
+            AlertDialog(
+                onDismissRequest = onCancelDelete,
+                title = { Text("Delete Tag") },
+                text = { Text("Are you sure you want to delete this tag? This will clear its EPC memory and remove it from the system.") },
+                confirmButton = {
+                    TextButton(onClick = onConfirmDelete) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onCancelDelete) {
+                        Text("Cancel")
+                    }
+                }
+            )
         }
     }
 }
@@ -261,7 +334,10 @@ fun TagLookupScreenPreview() {
         TagLookupScreen(
             modifier = Modifier,
             uiFlow = TagLookupUiFlow.AssetFound(asset = AssetDetailsResponseDto.example(), tidHex = "E2BBCCDDEEFF112233221144", scannedEpc = "E2BBCCDDEEFF112233221144"),
-            onDeleteTag = {}
+            onDeleteTag = {},
+            showDeleteConfirmation = false,
+            onConfirmDelete = {},
+            onCancelDelete = {}
         )
     }
 }

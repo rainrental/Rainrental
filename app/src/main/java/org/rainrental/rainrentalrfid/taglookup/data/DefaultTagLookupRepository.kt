@@ -1,10 +1,7 @@
 package org.rainrental.rainrentalrfid.taglookup.data
 
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.rainrental.rainrentalrfid.apis.ApiCaller
@@ -25,11 +22,11 @@ class DefaultTagLookupRepository @Inject constructor(
     private val _uiState: MutableStateFlow<TagLookupUiState> = MutableStateFlow(TagLookupUiState())
     override val uiState: StateFlow<TagLookupUiState> = _uiState.asStateFlow()
 
-    private val _uiFlow: MutableSharedFlow<TagLookupUiFlow> = MutableSharedFlow()
-    override val uiFlow: SharedFlow<TagLookupUiFlow> = _uiFlow.asSharedFlow()
+    private val _uiFlow: MutableStateFlow<TagLookupUiFlow> = MutableStateFlow(TagLookupUiFlow.WaitingForTag)
+    override val uiFlow: StateFlow<TagLookupUiFlow> = _uiFlow.asStateFlow()
 
     override suspend fun updateUiFlow(uiFlow: TagLookupUiFlow) {
-        _uiFlow.emit(uiFlow)
+        _uiFlow.value = uiFlow
     }
 
     override suspend fun setLoading(loading: Boolean) {

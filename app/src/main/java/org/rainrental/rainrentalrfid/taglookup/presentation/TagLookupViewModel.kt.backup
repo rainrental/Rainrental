@@ -3,7 +3,6 @@ package org.rainrental.rainrentalrfid.taglookup.presentation
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.rainrental.rainrentalrfid.app.BaseViewModel
@@ -22,9 +21,17 @@ class TagLookupViewModel @Inject constructor(
     dependencies: BaseViewModelDependencies,
 ) : BaseViewModel(dependencies) {
 
-    val uiFlow: StateFlow<TagLookupUiFlow> = tagLookupRepository.uiFlow
+    val uiFlow = tagLookupRepository.uiFlow.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = TagLookupUiFlow.WaitingForTag
+    )
 
-    val uiState = tagLookupRepository.uiState
+    val uiState = tagLookupRepository.uiState.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = tagLookupRepository.uiState.value
+    )
 
     fun onEvent(event: TagLookupEvent) {
         when (event) {
@@ -60,7 +67,7 @@ class TagLookupViewModel @Inject constructor(
                     is TagLookupUiFlow.ClearingEpc -> {
                         // User pressed trigger to clear EPC, start the deletion process
                         viewModelScope.launch {
-                            when (val result = deleteTagUseCase((uiFlow.value as TagLookupUiFlow.ClearingEpc).tidHex)) {
+                            when (val result = deleteTagUseCase(uiFlow.tidHex)) {
                                 is org.rainrental.rainrentalrfid.result.Result.Success -> {
                                     // Tag deleted successfully, reset to waiting state
                                     tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
@@ -88,14 +95,12 @@ class TagLookupViewModel @Inject constructor(
                 // User confirmed deletion, show EPC clearing instructions
                 val currentFlow = uiFlow.value
                 if (currentFlow is TagLookupUiFlow.AssetFound) {
-                    viewModelScope.launch {
-                        tagLookupRepository.updateUiFlow(
-                            TagLookupUiFlow.ClearingEpc(
-                                tidHex = currentFlow.tidHex,
-                                scannedEpc = currentFlow.scannedEpc
-                            )
+                    tagLookupRepository.updateUiFlow(
+                        TagLookupUiFlow.ClearingEpc(
+                            tidHex = currentFlow.tidHex,
+                            scannedEpc = currentFlow.scannedEpc
                         )
-                    }
+                    )
                 }
             }
             TagLookupEvent.CancelDeleteTag -> {
