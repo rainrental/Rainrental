@@ -19,8 +19,8 @@ android {
         applicationId = "org.rainrental.rainrentalrfid"
         minSdk = 30
         targetSdk = 34
-        versionCode = 10113
-        versionName = "1.1.13"
+        versionCode = 10114
+        versionName = "1.1.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
