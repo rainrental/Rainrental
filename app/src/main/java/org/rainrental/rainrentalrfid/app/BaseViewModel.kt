@@ -16,9 +16,7 @@ abstract class BaseViewModel(
     protected val dependencies: BaseViewModelDependencies
 ) : ViewModel(), HardwareEventListener, Logger {
 
-    init {
-        dependencies.hardwareEventBus.registerListener(this)
-    }
+    // No auto-registration - using proper single-listener pattern
 
     val hardwareState = dependencies.rfidManager.hardwareState.stateIn(
         scope = viewModelScope,
@@ -77,7 +75,7 @@ abstract class BaseViewModel(
     override fun onCleared() {
         logd("${this.javaClass.simpleName}: onCleared called")
         cancelAllScanning()
-        dependencies.hardwareEventBus.unregisterListener(this)
+        // No unregistration needed - using proper single-listener pattern
         super.onCleared()
     }
 

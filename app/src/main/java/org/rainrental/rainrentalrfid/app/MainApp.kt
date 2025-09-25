@@ -436,28 +436,16 @@ fun MainApp(modifier: Modifier = Modifier) {
         }
     }
     
+    // PROPER ANDROID NAVIGATION PATTERN: Use currentBackStackEntryAsState()
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+    
     // Manage active hardware event listener based on current route
-    LaunchedEffect(navController.currentBackStackEntry) {
-        LogUtils.logd("MainApp", "🔥 LaunchedEffect(navController.currentBackStackEntry) triggered")
-        val currentRoute = navController.currentBackStackEntry?.destination?.route
+    LaunchedEffect(currentRoute) {
+        LogUtils.logd("MainApp", "🔥 LaunchedEffect(currentRoute) triggered with route: $currentRoute")
         val activeListener = getCurrentHardwareListener(currentRoute)
         LogUtils.logd("MainApp", "🔥 Route changed to: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
         hardwareEventBus.setActiveListener(activeListener)
-    }
-    
-    // Also set initial listener when MainApp first loads
-    LaunchedEffect(Unit) {
-        LogUtils.logd("MainApp", "🔥 LaunchedEffect(Unit) triggered")
-        val currentRoute = navController.currentBackStackEntry?.destination?.route
-        val activeListener = getCurrentHardwareListener(currentRoute)
-        LogUtils.logd("MainApp", "🔥 Initial load - Route: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
-        hardwareEventBus.setActiveListener(activeListener)
-    }
-    
-    // Debug: Log current route changes
-    LaunchedEffect(navController.currentBackStackEntry) {
-        val currentRoute = navController.currentBackStackEntry?.destination?.route
-        LogUtils.logd("MainApp", "🔥 Route changed to: $currentRoute")
     }
 
     // Show authentication screen if not authenticated

@@ -42,7 +42,7 @@ class AuthViewModel @Inject constructor(
 
     init {
         checkAuthState()
-        hardwareEventBus.registerListener(this)
+        // No auto-registration - using proper single-listener pattern
     }
 
     private fun checkAuthState() {
@@ -199,7 +199,7 @@ class AuthViewModel @Inject constructor(
     
     override fun onCleared() {
         super.onCleared()
-        hardwareEventBus.unregisterListener(this)
+        // No unregistration needed - using proper single-listener pattern
     }
 
     override fun onTriggerUp() {
