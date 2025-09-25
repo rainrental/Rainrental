@@ -584,11 +584,8 @@ fun MainApp(modifier: Modifier = Modifier) {
                                 HomeScreen(
                                     navController = navController,
                                     onNavigateWithReset = { destination ->
-                                        // Reset all features when navigating from home
-                                        inventoryViewModel.resetState()
-                                        commissionViewModel.resetState()
-                                        huntViewModel.resetState()
-                                        continuousScanningViewModel.resetState()
+                                        // Only reset features when navigating away from them, not when entering them
+                                        // The destination feature should not be reset
                                         navController.navigate(destination)
                                     }
                                 )

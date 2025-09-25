@@ -48,15 +48,21 @@ class CommissionTagsViewModel @Inject constructor(
         when (event) {
             CommissionEvent.ScanTagButton -> {}
             CommissionEvent.OnKeyUp -> {
+                logd("CommissionTagsViewModel: OnKeyUp - current state: ${uiFlow.value}")
                 when (uiFlow.value) {
-                    is CommissionUiFlow.WaitingForBarcodeInput -> viewModelScope.launch { getBarcodeAndLookupAssetUseCase() }
+                    is CommissionUiFlow.WaitingForBarcodeInput -> {
+                        logd("CommissionTagsViewModel: OnKeyUp - scanning barcode (WaitingForBarcodeInput)")
+                        viewModelScope.launch { getBarcodeAndLookupAssetUseCase() }
+                    }
                     CommissionUiFlow.ScanningBarcode -> {}
                     is CommissionUiFlow.LookingUpAsset -> {}
                     is CommissionUiFlow.CommissionedTags -> {}
                     is CommissionUiFlow.CommissioningTags -> {}
                     is CommissionUiFlow.LoadedAsset -> {
+                        logd("CommissionTagsViewModel: OnKeyUp - scanning RFID (LoadedAsset)")
                         if ((uiFlow.value as CommissionUiFlow.LoadedAsset).scannedTags.none { !it.writtenEpc } ){
                             // All tags are encoded, scan another tag
+                            logd("CommissionTagsViewModel: OnKeyUp - all tags encoded, scanning new RFID tag")
                             viewModelScope.launch{
                                 when (val rfidTag = getSingleRfidTagUseCase()){
                                     is Result.Error -> triggerToast("Error getting tag ${rfidTag.error.name}")
@@ -67,6 +73,7 @@ class CommissionTagsViewModel @Inject constructor(
                                 }
                             }
                         }else{
+                            logd("CommissionTagsViewModel: OnKeyUp - some tags not encoded, writing un-encoded tag")
                             val oldFlow = uiFlow.value as CommissionUiFlow.LoadedAsset
                             // Not all tags are encoded, write the un-encoded tag
                             viewModelScope.launch {
@@ -172,7 +179,7 @@ class CommissionTagsViewModel @Inject constructor(
     // BackConfirmableFeature implementation
     override fun hasUnsavedChanges(): Boolean {
         val currentFlow = uiFlow.value
-        return when (currentFlow) {
+        val hasChanges = when (currentFlow) {
             is CommissionUiFlow.LoadedAsset,
             is CommissionUiFlow.ScanningRfid,
             is CommissionUiFlow.WritingEPC,
@@ -180,17 +187,20 @@ class CommissionTagsViewModel @Inject constructor(
             is CommissionUiFlow.CommissionedTags -> true
             else -> false
         }
+        logd("🔥 CommissionTagsViewModel: hasUnsavedChanges() called - current state: $currentFlow, hasChanges: $hasChanges")
+        return hasChanges
     }
 
     override fun resetState() {
         viewModelScope.launch {
-            logd("Resetting commission state")
+            logd("🔥 CommissionTagsViewModel: resetState() called - current state: ${uiFlow.value}")
             // Stop any ongoing RFID operations
             dependencies.rfidManager.stopInventoryScan()
             dependencies.rfidManager.clearEpcFilter()
             
             // Reset to initial state
             commissionRepository.updateUiFlow(CommissionUiFlow.WaitingForBarcodeInput())
+            logd("🔥 CommissionTagsViewModel: resetState() completed - new state: ${uiFlow.value}")
         }
     }
 

@@ -3,6 +3,7 @@ package org.rainrental.rainrentalrfid.commission.domain.use_case
 import org.rainrental.rainrentalrfid.commission.data.CommissionRepository
 import org.rainrental.rainrentalrfid.commission.presentation.model.CommissionUiFlow
 import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.ScanBarcodeUseCase
+import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.result.Result
 import org.rainrental.rainrentalrfid.shared.domain.use_case.TriggerToastUseCase
 import javax.inject.Inject
@@ -11,7 +12,7 @@ class GetBarcodeAndLookupAssetUseCase @Inject constructor(
     private val scanBarcodeUseCase: ScanBarcodeUseCase,
     private val triggerToastUseCase: TriggerToastUseCase,
     private val commissionRepository: CommissionRepository,
-) {
+) : Logger {
     suspend operator fun invoke(){
         commissionRepository.updateUiFlow(CommissionUiFlow.ScanningBarcode)
         when (val barcode = scanBarcodeUseCase()){
@@ -25,7 +26,9 @@ class GetBarcodeAndLookupAssetUseCase @Inject constructor(
                         commissionRepository.updateUiFlow(CommissionUiFlow.WaitingForBarcodeInput("Error getting asset: ${lookupResult.error.name}"))
                     }
                     is Result.Success -> {
+                        logd("🔥 GetBarcodeAndLookupAssetUseCase: Asset loaded successfully, transitioning to LoadedAsset state")
                         commissionRepository.updateUiFlow(CommissionUiFlow.LoadedAsset(asset = lookupResult.data))
+                        logd("🔥 GetBarcodeAndLookupAssetUseCase: State transition completed")
                     }
                 }
             }
