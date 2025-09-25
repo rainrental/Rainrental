@@ -194,11 +194,6 @@ class ContinuousScanningViewModel @Inject constructor(
     }
 
     override fun onTriggerDown() {
-        if (!isScreenActive) {
-            logd("Continuous Scanning Trigger Down - Ignored (screen not active)")
-            return
-        }
-        
         if (!isScanning) {
             logd("Continuous Scanning Trigger Down - Starting RFID continuous scanning")
             isScanning = true
@@ -208,10 +203,6 @@ class ContinuousScanningViewModel @Inject constructor(
     }
 
     override fun onTriggerUp() {
-        if (!isScreenActive) {
-            logd("Continuous Scanning Trigger Up - Ignored (screen not active)")
-            return
-        }
         
         if (isScanning) {
             logd("Continuous Scanning Trigger Up - Stopping RFID continuous scanning")

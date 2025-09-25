@@ -159,15 +159,13 @@ class InventoryViewModel @Inject constructor(
     }
 
     override fun onTriggerUp() {
-        logd("InventoryViewModel: onTriggerUp called - IGNORED (not on inventory screen)")
-        // Disable barcode scan when not on inventory screen
-        // onEvent(InventoryEvent.OnKeyUp)
+        logd("InventoryViewModel: onTriggerUp called")
+        onEvent(InventoryEvent.OnKeyUp)
     }
     
     override fun onSideKeyUp() {
-        logd("InventoryViewModel: onSideKeyUp called - IGNORED (not on inventory screen)")
-        // Disable barcode scan when not on inventory screen
-        // onEvent(InventoryEvent.OnKeyUp)
+        logd("InventoryViewModel: onSideKeyUp called")
+        onEvent(InventoryEvent.OnKeyUp)
     }
 
     // BackConfirmableFeature implementation

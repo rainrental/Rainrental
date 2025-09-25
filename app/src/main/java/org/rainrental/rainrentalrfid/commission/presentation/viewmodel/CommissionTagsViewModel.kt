@@ -156,19 +156,17 @@ class CommissionTagsViewModel @Inject constructor(
     }
 
     override fun onTriggerUp() {
-        logd("CommissionTagsViewModel: onTriggerUp called - IGNORED (not on commission screen)")
-        // Disable barcode scan when not on commission screen
-        // viewModelScope.launch {
-        //     onEvent(CommissionEvent.OnKeyUp)
-        // }
+        logd("CommissionTagsViewModel: onTriggerUp called")
+        viewModelScope.launch {
+            onEvent(CommissionEvent.OnKeyUp)
+        }
     }
     
     override fun onSideKeyUp() {
-        logd("CommissionTagsViewModel: onSideKeyUp called - IGNORED (not on commission screen)")
-        // Disable barcode scan when not on commission screen
-        // viewModelScope.launch {
-        //     onEvent(CommissionEvent.OnKeyUp)
-        // }
+        logd("CommissionTagsViewModel: onSideKeyUp called")
+        viewModelScope.launch {
+            onEvent(CommissionEvent.OnKeyUp)
+        }
     }
 
     // BackConfirmableFeature implementation
