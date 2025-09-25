@@ -37,11 +37,7 @@ class CommissionTagsViewModel @Inject constructor(
 
 
     val uiState = commissionRepository.uiState
-    val uiFlow : StateFlow<CommissionUiFlow> = commissionRepository.uiFlow.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = CommissionUiFlow.WaitingForBarcodeInput()
-    )
+    val uiFlow : StateFlow<CommissionUiFlow> = commissionRepository.uiFlow
 
 
     fun onEvent(event: CommissionEvent) {
@@ -164,6 +160,7 @@ class CommissionTagsViewModel @Inject constructor(
 
     override fun onTriggerUp() {
         logd("CommissionTagsViewModel: onTriggerUp called")
+        logd("🔥 CommissionTagsViewModel: onTriggerUp - uiFlow.value: ${uiFlow.value}")
         viewModelScope.launch {
             onEvent(CommissionEvent.OnKeyUp)
         }

@@ -17,7 +17,7 @@ import javax.inject.Inject
 interface CommissionRepository {
     val backendApi: BackendApi
     val uiState: StateFlow<CommissionUiState>
-    val uiFlow: SharedFlow<CommissionUiFlow>
+    val uiFlow: StateFlow<CommissionUiFlow>
     suspend fun updateUiFlow(uiFlow: CommissionUiFlow)
     suspend fun setSaving(saving:Boolean){}
     suspend fun getAsset(barcode:String): Result<AssetDetailsResponseDto,ApiError>
@@ -34,11 +34,11 @@ class DummyCommissionRepository @Inject constructor(
     private val _uiState: MutableStateFlow<CommissionUiState> = MutableStateFlow(CommissionUiState())
     override val uiState: StateFlow<CommissionUiState> = _uiState.asStateFlow()
 
-    private val _uiFlow: MutableSharedFlow<CommissionUiFlow> = MutableSharedFlow()
-    override val uiFlow: SharedFlow<CommissionUiFlow> = _uiFlow.asSharedFlow()
+    private val _uiFlow: MutableStateFlow<CommissionUiFlow> = MutableStateFlow(CommissionUiFlow.WaitingForBarcodeInput())
+    override val uiFlow: StateFlow<CommissionUiFlow> = _uiFlow.asStateFlow()
 
     override suspend fun updateUiFlow(uiFlow: CommissionUiFlow) {
-        _uiFlow.emit(uiFlow)
+        _uiFlow.value = uiFlow
     }
 
     override suspend fun getAsset(barcode: String): Result<AssetDetailsResponseDto, ApiError> {

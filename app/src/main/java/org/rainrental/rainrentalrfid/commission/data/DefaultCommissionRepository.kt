@@ -27,11 +27,11 @@ class DefaultCommissionRepository @Inject constructor(
     private val _uiState: MutableStateFlow<CommissionUiState> = MutableStateFlow(CommissionUiState())
     override val uiState: StateFlow<CommissionUiState> = _uiState.asStateFlow()
 
-    private val _uiFlow: MutableSharedFlow<CommissionUiFlow> = MutableSharedFlow()
-    override val uiFlow: SharedFlow<CommissionUiFlow> = _uiFlow.asSharedFlow()
+    private val _uiFlow: MutableStateFlow<CommissionUiFlow> = MutableStateFlow(CommissionUiFlow.WaitingForBarcodeInput())
+    override val uiFlow: StateFlow<CommissionUiFlow> = _uiFlow.asStateFlow()
 
     override suspend fun updateUiFlow(uiFlow: CommissionUiFlow) {
-        _uiFlow.emit(uiFlow)
+        _uiFlow.value = uiFlow
     }
 
     override suspend fun setSaving(saving: Boolean) {
