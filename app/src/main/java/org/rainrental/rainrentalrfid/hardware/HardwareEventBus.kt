@@ -26,7 +26,7 @@ class HardwareEventBus @Inject constructor(
         val previousListener = activeListener?.javaClass?.simpleName
         activeListener = listener
         val newListener = listener?.javaClass?.simpleName ?: "none"
-        LogUtils.logd("HardwareEventBus", "Active listener changed: $previousListener -> $newListener")
+        LogUtils.logd("HardwareEventBus", "🔥 Active listener changed: $previousListener -> $newListener")
     }
     
     /**
@@ -35,7 +35,7 @@ class HardwareEventBus @Inject constructor(
     fun getActiveListener(): HardwareEventListener? = activeListener
     
     fun onKeyDown(keyCode: Int) {
-        LogUtils.logd("HardwareEventBus", "onKeyDown called with keyCode: $keyCode, active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
+        LogUtils.logd("HardwareEventBus", "🔥 onKeyDown called with keyCode: $keyCode, active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
         
         when (keyCode) {
             TRIGGER_KEY_CODE -> {
@@ -94,7 +94,7 @@ class HardwareEventBus @Inject constructor(
     }
     
     fun onKeyUp(keyCode: Int) {
-        LogUtils.logd("HardwareEventBus", "onKeyUp called with keyCode: $keyCode, active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
+        LogUtils.logd("HardwareEventBus", "🔥 onKeyUp called with keyCode: $keyCode, active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
         
         when (keyCode) {
             TRIGGER_KEY_CODE -> {

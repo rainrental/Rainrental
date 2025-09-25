@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.provider.Settings
 import org.rainrental.rainrentalrfid.logging.LogUtils
 import android.view.KeyEvent
+import android.util.Log
 import android.view.Surface
 import android.view.WindowInsets
 import androidx.activity.ComponentActivity
@@ -110,18 +111,18 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
-//        Log.d("MainActivity", "onKeyUp called with keyCode: $keyCode")
+        Log.d("MainActivity", "🔥 onKeyUp called with keyCode: $keyCode")
         hardwareEventBus.onKeyUp(keyCode)
         return super.onKeyUp(keyCode, event)
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-//        Log.d("MainActivity", "onKeyDown called with keyCode: $keyCode")
+        Log.d("MainActivity", "🔥 onKeyDown called with keyCode: $keyCode")
         
         // Check if this is a repeated key event
         val isRepeated = (event?.repeatCount ?: 0) > 0
         if (isRepeated) {
-//            Log.d("MainActivity", "Ignoring repeated key event for keyCode: $keyCode with repeatCount: ${event?.repeatCount}")
+            Log.d("MainActivity", "Ignoring repeated key event for keyCode: $keyCode with repeatCount: ${event?.repeatCount}")
             return true // Consume the event, don't pass to super
         }
         
