@@ -156,9 +156,11 @@ class CommissionTagsViewModel @Inject constructor(
     }
 
     override fun onTriggerUp() {
-        viewModelScope.launch {
-            onEvent(CommissionEvent.OnKeyUp)
-        }
+        logd("CommissionTagsViewModel: onTriggerUp called - IGNORED (not on commission screen)")
+        // Disable barcode scan when not on commission screen
+        // viewModelScope.launch {
+        //     onEvent(CommissionEvent.OnKeyUp)
+        // }
     }
     
     override fun onSideKeyUp() {

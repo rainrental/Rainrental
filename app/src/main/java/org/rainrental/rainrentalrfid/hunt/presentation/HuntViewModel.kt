@@ -64,7 +64,9 @@ class HuntViewModel @Inject constructor(
     }
 
     override fun onTriggerUp() {
-        onEvent(HuntEvent.OnKeyUp)
+        logd("HuntViewModel: onTriggerUp called - IGNORED (not on hunt screen)")
+        // Disable barcode scan when not on hunt screen
+        // onEvent(HuntEvent.OnKeyUp)
     }
     
     override fun onSideKeyUp() {

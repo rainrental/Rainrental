@@ -159,7 +159,9 @@ class InventoryViewModel @Inject constructor(
     }
 
     override fun onTriggerUp() {
-        onEvent(InventoryEvent.OnKeyUp)
+        logd("InventoryViewModel: onTriggerUp called - IGNORED (not on inventory screen)")
+        // Disable barcode scan when not on inventory screen
+        // onEvent(InventoryEvent.OnKeyUp)
     }
     
     override fun onSideKeyUp() {
