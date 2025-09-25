@@ -327,6 +327,8 @@ fun CompactHardwareIndicator(
 
 @Composable
 fun MainApp(modifier: Modifier = Modifier) {
+    LogUtils.logd("MainApp", "🔥 MainApp composable called")
+    
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -436,14 +438,16 @@ fun MainApp(modifier: Modifier = Modifier) {
     
     // Manage active hardware event listener based on current route
     LaunchedEffect(navController.currentBackStackEntry) {
+        LogUtils.logd("MainApp", "🔥 LaunchedEffect(navController.currentBackStackEntry) triggered")
         val currentRoute = navController.currentBackStackEntry?.destination?.route
         val activeListener = getCurrentHardwareListener(currentRoute)
-        LogUtils.logd("MainApp", "Route changed to: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
+        LogUtils.logd("MainApp", "🔥 Route changed to: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
         hardwareEventBus.setActiveListener(activeListener)
     }
     
     // Also set initial listener when MainApp first loads
     LaunchedEffect(Unit) {
+        LogUtils.logd("MainApp", "🔥 LaunchedEffect(Unit) triggered")
         val currentRoute = navController.currentBackStackEntry?.destination?.route
         val activeListener = getCurrentHardwareListener(currentRoute)
         LogUtils.logd("MainApp", "🔥 Initial load - Route: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
