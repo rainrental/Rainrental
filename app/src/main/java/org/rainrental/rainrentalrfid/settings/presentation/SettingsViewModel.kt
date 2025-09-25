@@ -1,31 +1,26 @@
 package org.rainrental.rainrentalrfid.settings.presentation
 
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.State
+import android.content.Context
+import android.media.AudioManager
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.Job
 import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.app.BaseViewModel
 import org.rainrental.rainrentalrfid.app.BaseViewModelDependencies
-import org.rainrental.rainrentalrfid.logging.Logger
-import org.rainrental.rainrentalrfid.update.UpdateManager
-import org.rainrental.rainrentalrfid.update.UpdateInfo
-import org.rainrental.rainrentalrfid.update.UpdateRepository
-import org.rainrental.rainrentalrfid.settings.presentation.ButtonState
 import org.rainrental.rainrentalrfid.auth.AuthState
-import org.rainrental.rainrentalrfid.auth.AuthViewModel
 import org.rainrental.rainrentalrfid.continuousScanning.MqttDeliveryService
+import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.mqtt.MqttConnectionWatchdog
 import org.rainrental.rainrentalrfid.mqtt.WatchdogState
-import android.content.Context
-import android.media.AudioManager
-import dagger.hilt.android.qualifiers.ApplicationContext
+import org.rainrental.rainrentalrfid.update.UpdateManager
+import org.rainrental.rainrentalrfid.update.UpdateRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +30,7 @@ class SettingsViewModel @Inject constructor(
     private val updateRepository: UpdateRepository,
     private val mqttDeliveryService: MqttDeliveryService,
     private val mqttWatchdog: MqttConnectionWatchdog,
+    private val hardwareStateRepository: HardwareStateRepository,
     @ApplicationContext private val context: Context
 ) : BaseViewModel(dependencies = dependencies), Logger {
 
@@ -65,12 +61,6 @@ class SettingsViewModel @Inject constructor(
         context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     }
 
-    init {
-        // Initialize volume state
-        _maxSystemVolume.value = getMaxSystemVolume()
-        getCurrentSystemVolume()
-    }
-
     // Update-related state
     private val _updateStatus = MutableStateFlow<String?>(null)
     val updateStatus: StateFlow<String?> = _updateStatus.asStateFlow()
@@ -81,15 +71,11 @@ class SettingsViewModel @Inject constructor(
     private val _isUpdateInProgress = MutableStateFlow(false)
     val isUpdateInProgress: StateFlow<Boolean> = _isUpdateInProgress.asStateFlow()
 
-    // Button test states
-    private val _triggerState = MutableStateFlow(ButtonState.UP)
-    val triggerState: StateFlow<ButtonState> = _triggerState.asStateFlow()
-
-    private val _sideState = MutableStateFlow(ButtonState.UP)
-    val sideState: StateFlow<ButtonState> = _sideState.asStateFlow()
-
-    private val _auxState = MutableStateFlow(ButtonState.UP)
-    val auxState: StateFlow<ButtonState> = _auxState.asStateFlow()
+    // Button test states - using singleton repository
+    val triggerState: StateFlow<ButtonState> = hardwareStateRepository.triggerState
+    val sideState: StateFlow<ButtonState> = hardwareStateRepository.sideState
+    val auxState: StateFlow<ButtonState> = hardwareStateRepository.auxState
+    val testCounter: StateFlow<Int> = hardwareStateRepository.testCounter
 
     // Authentication state - will be set from outside
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -107,6 +93,10 @@ class SettingsViewModel @Inject constructor(
     val backendVersionData: StateFlow<String?> = _backendVersionData.asStateFlow()
 
     init {
+        // Initialize volume state
+        logd("Initialing SettingsViewModel")
+        _maxSystemVolume.value = getMaxSystemVolume()
+        getCurrentSystemVolume()
         loadSettings()
         loadInstalledVersion()
     }
@@ -235,6 +225,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearUpdateStatus() {
+        logd("Clearing state")
         _updateStatus.value = null
         _updateProgress.value = 0f
         _isUpdateInProgress.value = false
@@ -245,41 +236,38 @@ class SettingsViewModel @Inject constructor(
     // Button test event handlers
     override fun onTriggerDown() {
         logd("SettingsViewModel: onTriggerDown called")
-        logd("SettingsViewModel: Current thread: ${Thread.currentThread().name}")
-        logd("SettingsViewModel: Before setting trigger state to DOWN")
-        _triggerState.value = ButtonState.DOWN
-        logd("SettingsViewModel: After setting trigger state to DOWN")
-        logd("SettingsViewModel: Current trigger state: ${_triggerState.value}")
+        hardwareStateRepository.setTriggerState(ButtonState.DOWN)
+        logd("SettingsViewModel: Set trigger state to DOWN")
     }
 
     override fun onTriggerUp() {
         logd("SettingsViewModel: onTriggerUp called")
-        logd("SettingsViewModel: Current thread: ${Thread.currentThread().name}")
-        logd("SettingsViewModel: Before setting trigger state to UP")
-        _triggerState.value = ButtonState.UP
-        logd("SettingsViewModel: After setting trigger state to UP")
-        logd("SettingsViewModel: Current trigger state: ${_triggerState.value}")
+        hardwareStateRepository.setTriggerState(ButtonState.UP)
+        logd("SettingsViewModel: Set trigger state to UP")
     }
 
     override fun onSideKeyDown() {
         logd("SettingsViewModel: onSideKeyDown called")
-        _sideState.value = ButtonState.DOWN
+        hardwareStateRepository.setSideState(ButtonState.DOWN)
         logd("SettingsViewModel: Set side state to DOWN")
     }
 
     override fun onSideKeyUp() {
         logd("SettingsViewModel: onSideKeyUp called")
-        _sideState.value = ButtonState.UP
+        hardwareStateRepository.setSideState(ButtonState.UP)
+        logd("SettingsViewModel: Set side state to UP")
     }
 
     override fun onAuxKeyDown() {
         logd("SettingsViewModel: onAuxKeyDown called")
-        _auxState.value = ButtonState.DOWN
+        hardwareStateRepository.setAuxState(ButtonState.DOWN)
+        logd("SettingsViewModel: Set aux state to DOWN")
     }
 
     override fun onAuxKeyUp() {
         logd("SettingsViewModel: onAuxKeyUp called")
-        _auxState.value = ButtonState.UP
+        hardwareStateRepository.setAuxState(ButtonState.UP)
+        logd("SettingsViewModel: Set aux state to UP")
     }
 
     // Authentication functions

@@ -71,12 +71,11 @@ fun SettingsScreen() {
     val nextCheckDelay by settingsViewModel.nextCheckDelay.collectAsState()
     val isPaused by settingsViewModel.isPaused.collectAsState()
     
-    // Button test states
-    LogUtils.logd("SettingsScreen", "🔥 About to collect triggerState")
+    // Button test states - using collectAsState (guaranteed to work)
     val triggerState by settingsViewModel.triggerState.collectAsState()
-    LogUtils.logd("SettingsScreen", "🔥 Collected triggerState: $triggerState")
     val sideState by settingsViewModel.sideState.collectAsState()
     val auxState by settingsViewModel.auxState.collectAsState()
+    val testCounter by settingsViewModel.testCounter.collectAsState()
     
     // Authentication state
     val authState by authViewModel.authState.collectAsState()
@@ -113,6 +112,7 @@ fun SettingsScreen() {
         triggerState = triggerState,
         sideState = sideState,
         auxState = auxState,
+        testCounter = testCounter,
         authState = authState,
         showRevokeConfirmation = showRevokeConfirmation,
         onShowRevokeConfirmation = settingsViewModel::showRevokeConfirmation,
@@ -149,6 +149,7 @@ fun SettingsScreen(
     triggerState: ButtonState = ButtonState.UP,
     sideState: ButtonState = ButtonState.UP,
     auxState: ButtonState = ButtonState.UP,
+    testCounter: Int = 0,
     authState: AuthState = AuthState.Loading,
     showRevokeConfirmation: Boolean = false,
     onShowRevokeConfirmation: () -> Unit = {},
@@ -179,7 +180,8 @@ fun SettingsScreen(
                     onIgnoreRightSideKeyChange = onIgnoreRightSideKeyChange,
                     triggerState = triggerState,
                     sideState = sideState,
-                    auxState = auxState
+                    auxState = auxState,
+                    testCounter = testCounter
                 )
                 SettingsTab.MQTT -> MqttTab(
                     mqttServerIp = mqttServerIp,
@@ -485,7 +487,8 @@ fun HardwareTab(
     onIgnoreRightSideKeyChange: (Boolean) -> Unit,
     triggerState: ButtonState,
     sideState: ButtonState,
-    auxState: ButtonState
+    auxState: ButtonState,
+    testCounter: Int
 ) {
     Column(
         modifier = Modifier
@@ -504,6 +507,12 @@ fun HardwareTab(
             Text(
                 text = "Hardware Keys",
                 style = MaterialTheme.typography.titleMedium
+            )
+            
+            Text(
+                text = "Test Counter: $testCounter",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Red
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -676,7 +685,10 @@ fun SettingsScreenPreview() {
     SettingsScreen(
         modifier = Modifier,
         mqttServerIp = "192.168.1.100",
-        ignoreRightSideKey = true
+        ignoreRightSideKey = true,
+        triggerState = ButtonState.UP,
+        sideState = ButtonState.UP,
+        auxState = ButtonState.UP
     )
 }
 
@@ -815,5 +827,5 @@ fun MqttTab(
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HardwarePreview(){
-    HardwareTab(ignoreRightSideKey = true, onIgnoreRightSideKeyChange = {}, triggerState = ButtonState.UP, sideState = ButtonState.UP, auxState = ButtonState.UP)
+    HardwareTab(ignoreRightSideKey = true, onIgnoreRightSideKeyChange = {}, triggerState = ButtonState.UP, sideState = ButtonState.UP, auxState = ButtonState.UP, testCounter = 0)
 }
