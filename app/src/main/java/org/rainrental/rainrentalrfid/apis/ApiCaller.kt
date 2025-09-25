@@ -48,6 +48,7 @@ class ApiCaller @Inject constructor() : Logger {
                     401 -> {Result.Error(ApiCallerApiError(apiErrorType = ApiError.AuthenticationError, message = response.message(), response = response, errorJson = errorJson, errorString = responseErrorString)) }
                     404 -> Result.Error(ApiCallerApiError(apiErrorType = ApiError.ResourceNotFound, message = response.message(), response = response, errorJson = errorJson, errorString = responseErrorString))
                     409 -> Result.Error(ApiCallerApiError(apiErrorType = ApiError.Conflict409, message = response.message(), response = response, errorJson = errorJson, errorString = responseErrorString))
+                    410 -> Result.Error(ApiCallerApiError(apiErrorType = ApiError.TagDeleted, message = response.message(), response = response, errorJson = errorJson, errorString = responseErrorString))
                     else -> {
                         loge("Unknown HTTP Error ${response.code()} ${response.toString()}")
                         Result.Error(ApiCallerApiError(apiErrorType = ApiError.UnknownHttpError, message = response.message(), response = response))

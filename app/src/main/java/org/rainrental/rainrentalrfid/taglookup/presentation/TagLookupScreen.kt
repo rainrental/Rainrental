@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,14 +42,16 @@ fun TagLookupScreen() {
     
     TagLookupScreen(
         modifier = Modifier,
-        uiFlow = uiFlow
+        uiFlow = uiFlow,
+        onDeleteTag = { tidHex -> tagLookupViewModel.onEvent(org.rainrental.rainrentalrfid.taglookup.data.TagLookupEvent.DeleteTag(tidHex)) }
     )
 }
 
 @Composable
 fun TagLookupScreen(
     modifier: Modifier = Modifier,
-    uiFlow: TagLookupUiFlow
+    uiFlow: TagLookupUiFlow,
+    onDeleteTag: (String) -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -124,6 +127,13 @@ fun TagLookupScreen(
                         AssetView(asset = uiFlow.asset, scannedEpc = uiFlow.scannedEpc)
                     }
                     
+                    Button(
+                        onClick = { onDeleteTag(uiFlow.tidHex) },
+                        modifier = Modifier.padding(top = 16.dp)
+                    ) {
+                        Text("Delete Tag")
+                    }
+                    
                     Text(
                         text = "Press trigger to scan another tag",
                         style = MaterialTheme.typography.bodyMedium,
@@ -186,6 +196,60 @@ fun TagLookupScreen(
                     )
                 }
             }
+            
+            is TagLookupUiFlow.TagDeleted -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Tag Deleted",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Text(
+                        text = "Tag ID: ${uiFlow.tidHex}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    if (uiFlow.scannedEpc.isNotEmpty()) {
+                        Text(
+                            text = "Scanned EPC: ${uiFlow.scannedEpc}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                    
+                    Text(
+                        text = "This RFID tag has been deleted and cannot be reused",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    uiFlow.deletedFrom?.let { deletedFrom ->
+                        Text(
+                            text = "Previously associated with: $deletedFrom",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                    }
+                    
+                    Text(
+                        text = "Press trigger to scan another tag",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -196,7 +260,8 @@ fun TagLookupScreenPreview() {
     RainRentalRfidTheme {
         TagLookupScreen(
             modifier = Modifier,
-            uiFlow = TagLookupUiFlow.AssetFound(asset = AssetDetailsResponseDto.example(), tidHex = "E2BBCCDDEEFF112233221144", scannedEpc = "E2BBCCDDEEFF112233221144")
+            uiFlow = TagLookupUiFlow.AssetFound(asset = AssetDetailsResponseDto.example(), tidHex = "E2BBCCDDEEFF112233221144", scannedEpc = "E2BBCCDDEEFF112233221144"),
+            onDeleteTag = {}
         )
     }
 }

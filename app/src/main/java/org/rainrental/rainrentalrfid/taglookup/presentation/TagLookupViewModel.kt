@@ -17,6 +17,7 @@ import javax.inject.Inject
 class TagLookupViewModel @Inject constructor(
     private val tagLookupRepository: TagLookupRepository,
     private val scanTagAndLookupUseCase: ScanTagAndLookupUseCase,
+    private val deleteTagUseCase: org.rainrental.rainrentalrfid.taglookup.domain.DeleteTagUseCase,
     dependencies: BaseViewModelDependencies,
 ) : BaseViewModel(dependencies) {
 
@@ -57,11 +58,31 @@ class TagLookupViewModel @Inject constructor(
                             tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
                         }
                     }
+                    is TagLookupUiFlow.TagDeleted -> {
+                        // Reset to waiting state for next scan
+                        viewModelScope.launch { 
+                            tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
+                        }
+                    }
                 }
             }
             TagLookupEvent.OnSideKeyUp -> {
                 // Same as trigger up
                 onEvent(TagLookupEvent.OnTriggerUp)
+            }
+            is TagLookupEvent.DeleteTag -> {
+                viewModelScope.launch {
+                    when (val result = deleteTagUseCase(event.tidHex)) {
+                        is org.rainrental.rainrentalrfid.result.Result.Success -> {
+                            // Tag deleted successfully, reset to waiting state
+                            tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
+                        }
+                        is org.rainrental.rainrentalrfid.result.Result.Error -> {
+                            // Handle error - could show a toast or error state
+                            logd("Failed to delete tag: ${result.error}")
+                        }
+                    }
+                }
             }
         }
     }

@@ -30,13 +30,28 @@ class ScanTagAndLookupUseCase @Inject constructor(
                 
                 when (val assetResult = tagLookupRepository.getAssetByTid(tidHex)) {
                     is Result.Error -> {
-                        tagLookupRepository.updateUiFlow(
-                            TagLookupUiFlow.AssetNotFound(
-                                tidHex = tidHex,
-                                scannedEpc = scannedEpc,
-                                withError = "Failed to lookup asset: ${assetResult.error.name}"
-                            )
-                        )
+                        when (assetResult.error.apiErrorType) {
+                            org.rainrental.rainrentalrfid.result.ApiError.TagDeleted -> {
+                                // Extract deletedFrom from error response if available
+                                val deletedFrom = assetResult.error.errorJson?.get("deletedFrom")?.toString()?.trim('"')
+                                tagLookupRepository.updateUiFlow(
+                                    TagLookupUiFlow.TagDeleted(
+                                        tidHex = tidHex,
+                                        scannedEpc = scannedEpc,
+                                        deletedFrom = deletedFrom
+                                    )
+                                )
+                            }
+                            else -> {
+                                tagLookupRepository.updateUiFlow(
+                                    TagLookupUiFlow.AssetNotFound(
+                                        tidHex = tidHex,
+                                        scannedEpc = scannedEpc,
+                                        withError = "Failed to lookup asset: ${assetResult.error.apiErrorType.name}"
+                                    )
+                                )
+                            }
+                        }
                     }
                     is Result.Success -> {
                         tagLookupRepository.updateUiFlow(

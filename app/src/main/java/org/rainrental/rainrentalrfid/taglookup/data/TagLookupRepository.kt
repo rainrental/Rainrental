@@ -12,5 +12,5 @@ interface TagLookupRepository {
     
     suspend fun updateUiFlow(uiFlow: TagLookupUiFlow)
     suspend fun setLoading(loading: Boolean)
-    suspend fun getAssetByTid(tidHex: String): Result<AssetDetailsResponseDto, ApiError>
+    suspend fun getAssetByTid(tidHex: String): Result<AssetDetailsResponseDto, org.rainrental.rainrentalrfid.result.ApiCallerApiError<AssetDetailsResponseDto>>
 }

@@ -16,7 +16,8 @@ enum class ApiError : Error, GeneralError {
     CertificateError,
     Timeout,
     BadRequest,
-    Conflict409
+    Conflict409,
+    TagDeleted
 }
 
 data class ApiCallerApiError<T>(val apiErrorType: ApiError, val message: String? = null, val response: Response<T>? = null, val errorString: String? = null, val errorJson: JsonObject? = null) : Error,

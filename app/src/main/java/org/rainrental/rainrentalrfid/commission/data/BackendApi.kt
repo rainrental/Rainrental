@@ -37,6 +37,9 @@ interface BackendApi {
     @POST("deleteTag")
     suspend fun deleteTag(@Body deleteTagRequest: DeleteTagRequestDto) : Response<DeleteTagResponseDto>
 
+    @POST("deleteTagByTid")
+    suspend fun deleteTagByTid(@Body deleteTagByTidRequest: DeleteTagByTidRequestDto) : Response<DeleteTagResponseDto>
+
     @GET("appVersions/{companyId}")
     suspend fun getAppVersions(@Path("companyId") companyId: String) : Response<AppVersionsResponseDto>
 }
@@ -124,6 +127,11 @@ data class CommissionTagResponseDto(
 
 data class DeleteTagRequestDto(
     val barcode: String,
+    val tidHex: String,
+    val companyId: String
+)
+
+data class DeleteTagByTidRequestDto(
     val tidHex: String,
     val companyId: String
 )

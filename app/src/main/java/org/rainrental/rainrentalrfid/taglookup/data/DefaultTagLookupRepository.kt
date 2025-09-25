@@ -36,12 +36,12 @@ class DefaultTagLookupRepository @Inject constructor(
         _uiState.update { it.copy(loading = loading) }
     }
 
-    override suspend fun getAssetByTid(tidHex: String): Result<AssetDetailsResponseDto, ApiError> {
+    override suspend fun getAssetByTid(tidHex: String): Result<AssetDetailsResponseDto, org.rainrental.rainrentalrfid.result.ApiCallerApiError<AssetDetailsResponseDto>> {
         val request = GetAssetByTidRequestDto(tidHex = tidHex, companyId = companyId)
         return when (val result = ApiCaller()<AssetDetailsResponseDto> { backendApi.getAssetByTid(request) }) {
-            is Result.Error -> Result.Error(result.error.apiErrorType)
+            is Result.Error -> Result.Error(result.error)
             is Result.Success -> Result.Success(result.data)
-            else -> Result.Error(ApiError.UnknownException)
+            else -> Result.Error(org.rainrental.rainrentalrfid.result.ApiCallerApiError(apiErrorType = ApiError.UnknownException))
         }
     }
 }
