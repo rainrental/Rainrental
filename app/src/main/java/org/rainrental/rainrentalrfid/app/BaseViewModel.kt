@@ -77,8 +77,7 @@ abstract class BaseViewModel(
     override fun onCleared() {
         logd("${this.javaClass.simpleName}: onCleared called")
         cancelAllScanning()
-        // Hardware event unregistration is now handled by MainApp
-        // dependencies.hardwareEventBus.unregisterListener(this)
+        dependencies.hardwareEventBus.unregisterListener(this)
         super.onCleared()
     }
 

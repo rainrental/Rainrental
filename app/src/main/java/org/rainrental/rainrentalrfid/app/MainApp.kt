@@ -364,18 +364,39 @@ fun MainApp(modifier: Modifier = Modifier) {
     
     // Helper function to get current hardware event listener
     fun getCurrentHardwareListener(currentRoute: String?): HardwareEventListener? {
-        return when (currentRoute) {
-            NavigationRoutes.Home.route -> null // Home screen doesn't need hardware events
-            NavigationRoutes.Inventory.route -> inventoryViewModel
-            NavigationRoutes.Commission.route -> commissionViewModel
-            NavigationRoutes.Hunt.route -> huntViewModel
-            NavigationRoutes.ContinuousScanning.route -> continuousScanningViewModel
-            NavigationRoutes.Settings.route -> settingsViewModel
+        LogUtils.logd("MainApp", "🔥 getCurrentHardwareListener called with route: $currentRoute")
+        val result = when (currentRoute) {
+            NavigationRoutes.Home.route -> {
+                LogUtils.logd("MainApp", "🔥 Home route - no hardware listener needed")
+                null // Home screen doesn't need hardware events
+            }
+            NavigationRoutes.Inventory.route -> {
+                LogUtils.logd("MainApp", "🔥 Inventory route - returning inventoryViewModel")
+                inventoryViewModel
+            }
+            NavigationRoutes.Commission.route -> {
+                LogUtils.logd("MainApp", "🔥 Commission route - returning commissionViewModel")
+                commissionViewModel
+            }
+            NavigationRoutes.Hunt.route -> {
+                LogUtils.logd("MainApp", "🔥 Hunt route - returning huntViewModel")
+                huntViewModel
+            }
+            NavigationRoutes.ContinuousScanning.route -> {
+                LogUtils.logd("MainApp", "🔥 ContinuousScanning route - returning continuousScanningViewModel")
+                continuousScanningViewModel
+            }
+            NavigationRoutes.Settings.route -> {
+                LogUtils.logd("MainApp", "🔥 Settings route - returning settingsViewModel")
+                settingsViewModel
+            }
             else -> {
-                LogUtils.logd("MainApp", "Unknown route: $currentRoute, no hardware listener set")
+                LogUtils.logd("MainApp", "🔥 Unknown route: $currentRoute, no hardware listener set")
                 null
             }
         }
+        LogUtils.logd("MainApp", "🔥 getCurrentHardwareListener returning: ${result?.javaClass?.simpleName ?: "null"}")
+        return result
     }
     
     // Helper function to handle back press with confirmation
@@ -425,8 +446,14 @@ fun MainApp(modifier: Modifier = Modifier) {
     LaunchedEffect(Unit) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
         val activeListener = getCurrentHardwareListener(currentRoute)
-        LogUtils.logd("MainApp", "Initial load - Route: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
+        LogUtils.logd("MainApp", "🔥 Initial load - Route: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
         hardwareEventBus.setActiveListener(activeListener)
+    }
+    
+    // Debug: Log current route changes
+    LaunchedEffect(navController.currentBackStackEntry) {
+        val currentRoute = navController.currentBackStackEntry?.destination?.route
+        LogUtils.logd("MainApp", "🔥 Route changed to: $currentRoute")
     }
 
     // Show authentication screen if not authenticated

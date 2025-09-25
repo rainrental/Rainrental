@@ -199,8 +199,7 @@ class AuthViewModel @Inject constructor(
     
     override fun onCleared() {
         super.onCleared()
-        // Hardware event unregistration is now handled by MainApp
-        // hardwareEventBus.unregisterListener(this)
+        hardwareEventBus.unregisterListener(this)
     }
 
     override fun onTriggerUp() {
