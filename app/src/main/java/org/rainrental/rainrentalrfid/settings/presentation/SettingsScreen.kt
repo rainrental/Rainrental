@@ -72,7 +72,9 @@ fun SettingsScreen() {
     val isPaused by settingsViewModel.isPaused.collectAsState()
     
     // Button test states
+    LogUtils.logd("SettingsScreen", "🔥 About to collect triggerState")
     val triggerState by settingsViewModel.triggerState.collectAsState()
+    LogUtils.logd("SettingsScreen", "🔥 Collected triggerState: $triggerState")
     val sideState by settingsViewModel.sideState.collectAsState()
     val auxState by settingsViewModel.auxState.collectAsState()
     

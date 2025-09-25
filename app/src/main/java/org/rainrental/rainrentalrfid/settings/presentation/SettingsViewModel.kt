@@ -245,14 +245,20 @@ class SettingsViewModel @Inject constructor(
     // Button test event handlers
     override fun onTriggerDown() {
         logd("SettingsViewModel: onTriggerDown called")
+        logd("SettingsViewModel: Current thread: ${Thread.currentThread().name}")
+        logd("SettingsViewModel: Before setting trigger state to DOWN")
         _triggerState.value = ButtonState.DOWN
-        logd("SettingsViewModel: Set trigger state to DOWN")
+        logd("SettingsViewModel: After setting trigger state to DOWN")
+        logd("SettingsViewModel: Current trigger state: ${_triggerState.value}")
     }
 
     override fun onTriggerUp() {
         logd("SettingsViewModel: onTriggerUp called")
+        logd("SettingsViewModel: Current thread: ${Thread.currentThread().name}")
+        logd("SettingsViewModel: Before setting trigger state to UP")
         _triggerState.value = ButtonState.UP
-        logd("SettingsViewModel: Set trigger state to UP")
+        logd("SettingsViewModel: After setting trigger state to UP")
+        logd("SettingsViewModel: Current trigger state: ${_triggerState.value}")
     }
 
     override fun onSideKeyDown() {
