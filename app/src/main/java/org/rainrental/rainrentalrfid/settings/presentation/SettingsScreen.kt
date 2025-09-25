@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.auth.AuthState
+import org.rainrental.rainrentalrfid.logging.LogUtils
 import org.rainrental.rainrentalrfid.auth.AuthViewModel
 
 @Composable
@@ -257,6 +258,8 @@ private fun ButtonBox(
     state: ButtonState,
     color: Color
 ) {
+    LogUtils.logd("ButtonBox", "🔥 $title state changed to: $state")
+    
     val backgroundColor = when (state) {
         ButtonState.UP -> Color.LightGray
         ButtonState.DOWN -> color
