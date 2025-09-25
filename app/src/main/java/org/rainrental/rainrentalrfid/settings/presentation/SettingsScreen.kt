@@ -72,10 +72,13 @@ fun SettingsScreen() {
     val isPaused by settingsViewModel.isPaused.collectAsState()
     
     // Button test states
+    LogUtils.logd("SettingsScreen", "🔥 About to collect triggerState from StateFlow")
     val triggerState by settingsViewModel.triggerState.collectAsState()
+    LogUtils.logd("SettingsScreen", "🔥 Collected triggerState: $triggerState")
     val sideState by settingsViewModel.sideState.collectAsState()
     val auxState by settingsViewModel.auxState.collectAsState()
     val buttonPressCount by settingsViewModel.buttonPressCount.collectAsState()
+    LogUtils.logd("SettingsScreen", "🔥 Collected buttonPressCount: $buttonPressCount")
     
     // Authentication state
     val authState by authViewModel.authState.collectAsState()
@@ -262,6 +265,7 @@ private fun ButtonBox(
     state: ButtonState,
     color: Color
 ) {
+    LogUtils.logd("ButtonBox", "🔥 $title ButtonBox composable called with state: $state")
     LogUtils.logd("ButtonBox", "🔥 $title state changed to: $state")
     
     val backgroundColor = when (state) {

@@ -247,9 +247,14 @@ class SettingsViewModel @Inject constructor(
     // Button test event handlers
     override fun onTriggerDown() {
         logd("SettingsViewModel: onTriggerDown called")
+        logd("SettingsViewModel: Current thread: ${Thread.currentThread().name}")
+        logd("SettingsViewModel: Before setting trigger state to DOWN")
         _triggerState.value = ButtonState.DOWN
+        logd("SettingsViewModel: After setting trigger state to DOWN")
         _buttonPressCount.value = _buttonPressCount.value + 1
         logd("SettingsViewModel: Set trigger state to DOWN, press count: ${_buttonPressCount.value}")
+        logd("SettingsViewModel: Current trigger state: ${_triggerState.value}")
+        logd("SettingsViewModel: Current button press count: ${_buttonPressCount.value}")
     }
 
     override fun onTriggerUp() {
