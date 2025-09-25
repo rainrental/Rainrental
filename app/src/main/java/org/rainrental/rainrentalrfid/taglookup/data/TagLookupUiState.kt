@@ -35,6 +35,33 @@ sealed interface TagLookupUiFlow {
         val tidHex: String,
         val scannedEpc: String
     ) : TagLookupUiFlow
+    
+    data class EpcCleared(
+        val tidHex: String,
+        val scannedEpc: String
+    ) : TagLookupUiFlow
+    
+    data class DeletingTag(
+        val tidHex: String,
+        val scannedEpc: String
+    ) : TagLookupUiFlow
+    
+    data class TagDeletedSuccessfully(
+        val tidHex: String,
+        val scannedEpc: String
+    ) : TagLookupUiFlow
+    
+    data class EpcClearFailed(
+        val tidHex: String,
+        val scannedEpc: String,
+        val error: String
+    ) : TagLookupUiFlow
+    
+    data class DeleteFailed(
+        val tidHex: String,
+        val scannedEpc: String,
+        val error: String
+    ) : TagLookupUiFlow
 }
 
 sealed interface TagLookupEvent {
@@ -43,4 +70,8 @@ sealed interface TagLookupEvent {
     data class DeleteTag(val tidHex: String) : TagLookupEvent
     data class ConfirmDeleteTag(val tidHex: String) : TagLookupEvent
     data object CancelDeleteTag : TagLookupEvent
+    data object RetryEpcClear : TagLookupEvent
+    data object DeleteFromBackendOnly : TagLookupEvent
+    data object CancelDeleteProcess : TagLookupEvent
+    data object ContinueAfterSuccess : TagLookupEvent
 }

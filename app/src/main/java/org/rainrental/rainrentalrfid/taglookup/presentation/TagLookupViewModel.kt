@@ -11,14 +11,17 @@ import org.rainrental.rainrentalrfid.app.BaseViewModelDependencies
 import org.rainrental.rainrentalrfid.taglookup.data.TagLookupEvent
 import org.rainrental.rainrentalrfid.taglookup.data.TagLookupRepository
 import org.rainrental.rainrentalrfid.taglookup.data.TagLookupUiFlow
+import org.rainrental.rainrentalrfid.taglookup.domain.DeleteTagUseCase
 import org.rainrental.rainrentalrfid.taglookup.domain.ScanTagAndLookupUseCase
+import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.WriteEpcUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class TagLookupViewModel @Inject constructor(
     private val tagLookupRepository: TagLookupRepository,
     private val scanTagAndLookupUseCase: ScanTagAndLookupUseCase,
-    private val deleteTagUseCase: org.rainrental.rainrentalrfid.taglookup.domain.DeleteTagUseCase,
+    private val deleteTagUseCase: DeleteTagUseCase,
+    private val writeEpcUseCase: WriteEpcUseCase,
     dependencies: BaseViewModelDependencies,
 ) : BaseViewModel(dependencies) {
 
@@ -60,19 +63,78 @@ class TagLookupViewModel @Inject constructor(
                     is TagLookupUiFlow.ClearingEpc -> {
                         // User pressed trigger to clear EPC, start the deletion process
                         viewModelScope.launch {
-                            when (val result = deleteTagUseCase((uiFlow.value as TagLookupUiFlow.ClearingEpc).tidHex)) {
+                            val currentFlow = uiFlow.value as TagLookupUiFlow.ClearingEpc
+                            
+                            // First, try to clear the EPC
+                            when (val epcResult = writeEpcUseCase(tid = currentFlow.tidHex, epc = currentFlow.tidHex)) {
                                 is org.rainrental.rainrentalrfid.result.Result.Success -> {
-                                    // Tag deleted successfully, reset to waiting state
-                                    tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
+                                    // EPC cleared successfully, show confirmation and proceed to delete
+                                    tagLookupRepository.updateUiFlow(
+                                        TagLookupUiFlow.EpcCleared(
+                                            tidHex = currentFlow.tidHex,
+                                            scannedEpc = currentFlow.scannedEpc
+                                        )
+                                    )
                                 }
                                 is org.rainrental.rainrentalrfid.result.Result.Error -> {
-                                    // Handle error - could show a toast or error state
-                                    logd("Failed to delete tag: ${result.error}")
-                                    // Reset to waiting state on error
-                                    tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
+                                    // EPC clear failed, show error with options
+                                    tagLookupRepository.updateUiFlow(
+                                        TagLookupUiFlow.EpcClearFailed(
+                                            tidHex = currentFlow.tidHex,
+                                            scannedEpc = currentFlow.scannedEpc,
+                                            error = epcResult.error.name
+                                        )
+                                    )
                                 }
                             }
                         }
+                    }
+                    is TagLookupUiFlow.EpcCleared -> {
+                        // EPC cleared successfully, automatically proceed to delete from backend
+                        viewModelScope.launch {
+                            val currentFlow = uiFlow.value as TagLookupUiFlow.EpcCleared
+                            
+                            // Show deleting state
+                            tagLookupRepository.updateUiFlow(
+                                TagLookupUiFlow.DeletingTag(
+                                    tidHex = currentFlow.tidHex,
+                                    scannedEpc = currentFlow.scannedEpc
+                                )
+                            )
+                            
+                            // Delete from backend
+                            when (val result = deleteTagUseCase.deleteFromBackendOnly(currentFlow.tidHex)) {
+                                is org.rainrental.rainrentalrfid.result.Result.Success -> {
+                                    tagLookupRepository.updateUiFlow(
+                                        TagLookupUiFlow.TagDeletedSuccessfully(
+                                            tidHex = currentFlow.tidHex,
+                                            scannedEpc = currentFlow.scannedEpc
+                                        )
+                                    )
+                                }
+                                is org.rainrental.rainrentalrfid.result.Result.Error -> {
+                                    tagLookupRepository.updateUiFlow(
+                                        TagLookupUiFlow.DeleteFailed(
+                                            tidHex = currentFlow.tidHex,
+                                            scannedEpc = currentFlow.scannedEpc,
+                                            error = result.error.name
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    is TagLookupUiFlow.DeletingTag -> {
+                        // Already in deleting state, do nothing
+                    }
+                    is TagLookupUiFlow.TagDeletedSuccessfully -> {
+                        // Success state, do nothing
+                    }
+                    is TagLookupUiFlow.EpcClearFailed -> {
+                        // Error state, do nothing
+                    }
+                    is TagLookupUiFlow.DeleteFailed -> {
+                        // Error state, do nothing
                     }
                 }
             }
@@ -101,6 +163,66 @@ class TagLookupViewModel @Inject constructor(
             TagLookupEvent.CancelDeleteTag -> {
                 // User cancelled deletion, stay on current screen
                 // No action needed - UI will handle dismissing the dialog
+            }
+            TagLookupEvent.RetryEpcClear -> {
+                // User wants to retry EPC clearing
+                val currentFlow = uiFlow.value
+                if (currentFlow is TagLookupUiFlow.EpcClearFailed) {
+                    viewModelScope.launch {
+                        tagLookupRepository.updateUiFlow(
+                            TagLookupUiFlow.ClearingEpc(
+                                tidHex = currentFlow.tidHex,
+                                scannedEpc = currentFlow.scannedEpc
+                            )
+                        )
+                    }
+                }
+            }
+            TagLookupEvent.DeleteFromBackendOnly -> {
+                // User wants to skip EPC clearing and just delete from backend
+                val currentFlow = uiFlow.value
+                if (currentFlow is TagLookupUiFlow.EpcClearFailed) {
+                    viewModelScope.launch {
+                        tagLookupRepository.updateUiFlow(
+                            TagLookupUiFlow.DeletingTag(
+                                tidHex = currentFlow.tidHex,
+                                scannedEpc = currentFlow.scannedEpc
+                            )
+                        )
+                        
+                        when (val result = deleteTagUseCase.deleteFromBackendOnly(currentFlow.tidHex)) {
+                            is org.rainrental.rainrentalrfid.result.Result.Success -> {
+                                tagLookupRepository.updateUiFlow(
+                                    TagLookupUiFlow.TagDeletedSuccessfully(
+                                        tidHex = currentFlow.tidHex,
+                                        scannedEpc = currentFlow.scannedEpc
+                                    )
+                                )
+                            }
+                            is org.rainrental.rainrentalrfid.result.Result.Error -> {
+                                tagLookupRepository.updateUiFlow(
+                                    TagLookupUiFlow.DeleteFailed(
+                                        tidHex = currentFlow.tidHex,
+                                        scannedEpc = currentFlow.scannedEpc,
+                                        error = result.error.name
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            TagLookupEvent.CancelDeleteProcess -> {
+                // User wants to cancel the entire delete process
+                viewModelScope.launch {
+                    tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
+                }
+            }
+            TagLookupEvent.ContinueAfterSuccess -> {
+                // User acknowledged the success, return to waiting state
+                viewModelScope.launch {
+                    tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
+                }
             }
         }
     }

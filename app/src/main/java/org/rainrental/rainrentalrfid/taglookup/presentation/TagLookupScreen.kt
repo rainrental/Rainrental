@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +32,7 @@ import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.commission.presentation.composable.AssetView
 import org.rainrental.rainrentalrfid.shared.presentation.composables.InputWithIcon
 import org.rainrental.rainrentalrfid.shared.presentation.composables.LoadingWithText
+import org.rainrental.rainrentalrfid.taglookup.data.TagLookupEvent
 import org.rainrental.rainrentalrfid.taglookup.data.TagLookupUiFlow
 import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
 import org.rainrental.rainrentalrfid.unified.data.AssetDetailsResponseDto
@@ -63,7 +65,8 @@ fun TagLookupScreen() {
         onCancelDelete = { 
             showDeleteConfirmation = false
             tagLookupViewModel.onEvent(org.rainrental.rainrentalrfid.taglookup.data.TagLookupEvent.CancelDeleteTag)
-        }
+        },
+        onEvent = tagLookupViewModel::onEvent
     )
 }
 
@@ -74,7 +77,8 @@ fun TagLookupScreen(
     onDeleteTag: (String) -> Unit = {},
     showDeleteConfirmation: Boolean = false,
     onConfirmDelete: () -> Unit = {},
-    onCancelDelete: () -> Unit = {}
+    onCancelDelete: () -> Unit = {},
+    onEvent: (TagLookupEvent) -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -302,6 +306,207 @@ fun TagLookupScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
+                }
+            }
+            
+            is TagLookupUiFlow.EpcCleared -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "✓ EPC Cleared Successfully",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Text(
+                        text = "Tag ID: ${uiFlow.tidHex}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Text(
+                        text = "Deleting tag from backend...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+            }
+            
+            is TagLookupUiFlow.DeletingTag -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Text(
+                        text = "Deleting Tag",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Text(
+                        text = "Tag ID: ${uiFlow.tidHex}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Text(
+                        text = "Removing tag from backend...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                }
+            }
+            
+            is TagLookupUiFlow.TagDeletedSuccessfully -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "✓ Tag Deleted Successfully",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Text(
+                        text = "Tag ID: ${uiFlow.tidHex}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Text(
+                        text = "The tag has been removed from the system",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                    
+                    Button(
+                        onClick = { onEvent(TagLookupEvent.ContinueAfterSuccess) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Continue")
+                    }
+                }
+            }
+            
+            is TagLookupUiFlow.EpcClearFailed -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "EPC Clear Failed",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Text(
+                        text = "Tag ID: ${uiFlow.tidHex}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Text(
+                        text = "Could not clear EPC memory:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Text(
+                        text = uiFlow.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                    
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { onEvent(TagLookupEvent.RetryEpcClear) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Retry EPC Clear")
+                        }
+                        Button(
+                            onClick = { onEvent(TagLookupEvent.DeleteFromBackendOnly) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Delete from Backend Only")
+                        }
+                        TextButton(
+                            onClick = { onEvent(TagLookupEvent.CancelDeleteProcess) },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Cancel")
+                        }
+                    }
+                }
+            }
+            
+            is TagLookupUiFlow.DeleteFailed -> {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Delete Failed",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 16.dp)
+                    )
+                    
+                    Text(
+                        text = "Tag ID: ${uiFlow.tidHex}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Text(
+                        text = "Could not delete tag from backend:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    
+                    Text(
+                        text = uiFlow.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(bottom = 24.dp)
+                    )
+                    
+                    Button(
+                        onClick = { onEvent(TagLookupEvent.CancelDeleteProcess) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Continue")
+                    }
                 }
             }
         }
