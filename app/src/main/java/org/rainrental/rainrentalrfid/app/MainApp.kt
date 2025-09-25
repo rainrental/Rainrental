@@ -93,6 +93,7 @@ import org.rainrental.rainrentalrfid.commission.presentation.viewmodel.Commissio
 import org.rainrental.rainrentalrfid.hunt.presentation.HuntViewModel
 import org.rainrental.rainrentalrfid.continuousScanning.presentation.ContinuousScanningViewModel
 import org.rainrental.rainrentalrfid.settings.presentation.SettingsViewModel
+import org.rainrental.rainrentalrfid.logging.LogUtils
 
 @Composable
 fun CompactHardwareIndicator(
@@ -364,12 +365,16 @@ fun MainApp(modifier: Modifier = Modifier) {
     // Helper function to get current hardware event listener
     fun getCurrentHardwareListener(currentRoute: String?): HardwareEventListener? {
         return when (currentRoute) {
+            NavigationRoutes.Home.route -> null // Home screen doesn't need hardware events
             NavigationRoutes.Inventory.route -> inventoryViewModel
             NavigationRoutes.Commission.route -> commissionViewModel
             NavigationRoutes.Hunt.route -> huntViewModel
             NavigationRoutes.ContinuousScanning.route -> continuousScanningViewModel
             NavigationRoutes.Settings.route -> settingsViewModel
-            else -> null
+            else -> {
+                LogUtils.logd("MainApp", "Unknown route: $currentRoute, no hardware listener set")
+                null
+            }
         }
     }
     
@@ -412,6 +417,15 @@ fun MainApp(modifier: Modifier = Modifier) {
     LaunchedEffect(navController.currentBackStackEntry) {
         val currentRoute = navController.currentBackStackEntry?.destination?.route
         val activeListener = getCurrentHardwareListener(currentRoute)
+        LogUtils.logd("MainApp", "Route changed to: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
+        hardwareEventBus.setActiveListener(activeListener)
+    }
+    
+    // Also set initial listener when MainApp first loads
+    LaunchedEffect(Unit) {
+        val currentRoute = navController.currentBackStackEntry?.destination?.route
+        val activeListener = getCurrentHardwareListener(currentRoute)
+        LogUtils.logd("MainApp", "Initial load - Route: $currentRoute, setting active listener: ${activeListener?.javaClass?.simpleName ?: "none"}")
         hardwareEventBus.setActiveListener(activeListener)
     }
 
