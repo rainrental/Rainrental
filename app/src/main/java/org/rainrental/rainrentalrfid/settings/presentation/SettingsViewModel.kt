@@ -244,11 +244,13 @@ class SettingsViewModel @Inject constructor(
     override fun onTriggerDown() {
         logd("SettingsViewModel: onTriggerDown called")
         _triggerState.value = ButtonState.DOWN
+        logd("SettingsViewModel: Set trigger state to DOWN")
     }
 
     override fun onTriggerUp() {
         logd("SettingsViewModel: onTriggerUp called")
         _triggerState.value = ButtonState.UP
+        logd("SettingsViewModel: Set trigger state to UP")
     }
 
     override fun onSideKeyDown() {
