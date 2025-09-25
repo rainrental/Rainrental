@@ -42,8 +42,7 @@ class AuthViewModel @Inject constructor(
 
     init {
         checkAuthState()
-        // Hardware event registration is now handled by MainApp based on current route
-        // hardwareEventBus.registerListener(this)
+        hardwareEventBus.registerListener(this)
     }
 
     private fun checkAuthState() {

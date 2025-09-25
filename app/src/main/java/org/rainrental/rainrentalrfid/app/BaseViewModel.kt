@@ -16,10 +16,9 @@ abstract class BaseViewModel(
     protected val dependencies: BaseViewModelDependencies
 ) : ViewModel(), HardwareEventListener, Logger {
 
-    // Hardware event registration is now handled by MainApp based on current route
-    // init {
-    //     dependencies.hardwareEventBus.registerListener(this)
-    // }
+    init {
+        dependencies.hardwareEventBus.registerListener(this)
+    }
 
     val hardwareState = dependencies.rfidManager.hardwareState.stateIn(
         scope = viewModelScope,
