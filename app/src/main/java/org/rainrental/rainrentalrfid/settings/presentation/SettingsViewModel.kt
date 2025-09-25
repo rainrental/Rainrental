@@ -88,6 +88,10 @@ class SettingsViewModel @Inject constructor(
 
     private val _auxState = MutableStateFlow(ButtonState.UP)
     val auxState: StateFlow<ButtonState> = _auxState.asStateFlow()
+    
+    // Debug counter to force UI recomposition
+    private val _buttonPressCount = MutableStateFlow(0)
+    val buttonPressCount: StateFlow<Int> = _buttonPressCount.asStateFlow()
 
     // Authentication state - will be set from outside
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -244,7 +248,8 @@ class SettingsViewModel @Inject constructor(
     override fun onTriggerDown() {
         logd("SettingsViewModel: onTriggerDown called")
         _triggerState.value = ButtonState.DOWN
-        logd("SettingsViewModel: Set trigger state to DOWN")
+        _buttonPressCount.value = _buttonPressCount.value + 1
+        logd("SettingsViewModel: Set trigger state to DOWN, press count: ${_buttonPressCount.value}")
     }
 
     override fun onTriggerUp() {
@@ -256,6 +261,7 @@ class SettingsViewModel @Inject constructor(
     override fun onSideKeyDown() {
         logd("SettingsViewModel: onSideKeyDown called")
         _sideState.value = ButtonState.DOWN
+        logd("SettingsViewModel: Set side state to DOWN")
     }
 
     override fun onSideKeyUp() {

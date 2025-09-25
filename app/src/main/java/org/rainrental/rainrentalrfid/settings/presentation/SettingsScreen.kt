@@ -75,6 +75,7 @@ fun SettingsScreen() {
     val triggerState by settingsViewModel.triggerState.collectAsState()
     val sideState by settingsViewModel.sideState.collectAsState()
     val auxState by settingsViewModel.auxState.collectAsState()
+    val buttonPressCount by settingsViewModel.buttonPressCount.collectAsState()
     
     // Authentication state
     val authState by authViewModel.authState.collectAsState()
@@ -111,6 +112,7 @@ fun SettingsScreen() {
         triggerState = triggerState,
         sideState = sideState,
         auxState = auxState,
+        buttonPressCount = buttonPressCount,
         authState = authState,
         showRevokeConfirmation = showRevokeConfirmation,
         onShowRevokeConfirmation = settingsViewModel::showRevokeConfirmation,
@@ -147,6 +149,7 @@ fun SettingsScreen(
     triggerState: ButtonState = ButtonState.UP,
     sideState: ButtonState = ButtonState.UP,
     auxState: ButtonState = ButtonState.UP,
+    buttonPressCount: Int = 0,
     authState: AuthState = AuthState.Loading,
     showRevokeConfirmation: Boolean = false,
     onShowRevokeConfirmation: () -> Unit = {},
@@ -177,7 +180,8 @@ fun SettingsScreen(
                     onIgnoreRightSideKeyChange = onIgnoreRightSideKeyChange,
                     triggerState = triggerState,
                     sideState = sideState,
-                    auxState = auxState
+                    auxState = auxState,
+                    buttonPressCount = buttonPressCount
                 )
                 SettingsTab.MQTT -> MqttTab(
                     mqttServerIp = mqttServerIp,
@@ -483,7 +487,8 @@ fun HardwareTab(
     onIgnoreRightSideKeyChange: (Boolean) -> Unit,
     triggerState: ButtonState,
     sideState: ButtonState,
-    auxState: ButtonState
+    auxState: ButtonState,
+    buttonPressCount: Int
 ) {
     Column(
         modifier = Modifier
@@ -502,6 +507,12 @@ fun HardwareTab(
             Text(
                 text = "Hardware Keys",
                 style = MaterialTheme.typography.titleMedium
+            )
+            
+            Text(
+                text = "Button Press Count: $buttonPressCount",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Red
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -813,5 +824,5 @@ fun MqttTab(
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HardwarePreview(){
-    HardwareTab(ignoreRightSideKey = true, onIgnoreRightSideKeyChange = {}, triggerState = ButtonState.UP, sideState = ButtonState.UP, auxState = ButtonState.UP)
+    HardwareTab(ignoreRightSideKey = true, onIgnoreRightSideKeyChange = {}, triggerState = ButtonState.UP, sideState = ButtonState.UP, auxState = ButtonState.UP, buttonPressCount = 0)
 }
