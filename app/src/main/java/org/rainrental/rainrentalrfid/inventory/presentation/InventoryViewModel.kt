@@ -165,7 +165,9 @@ class InventoryViewModel @Inject constructor(
     }
     
     override fun onSideKeyUp() {
-        onEvent(InventoryEvent.OnKeyUp)
+        logd("InventoryViewModel: onSideKeyUp called - IGNORED (not on inventory screen)")
+        // Disable barcode scan when not on inventory screen
+        // onEvent(InventoryEvent.OnKeyUp)
     }
 
     // BackConfirmableFeature implementation

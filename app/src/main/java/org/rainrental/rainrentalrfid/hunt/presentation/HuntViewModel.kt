@@ -70,7 +70,9 @@ class HuntViewModel @Inject constructor(
     }
     
     override fun onSideKeyUp() {
-        onEvent(HuntEvent.OnKeyUp)
+        logd("HuntViewModel: onSideKeyUp called - IGNORED (not on hunt screen)")
+        // Disable barcode scan when not on hunt screen
+        // onEvent(HuntEvent.OnKeyUp)
     }
 
     // BackConfirmableFeature implementation
