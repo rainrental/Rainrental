@@ -93,6 +93,7 @@ import org.rainrental.rainrentalrfid.commission.presentation.viewmodel.Commissio
 import org.rainrental.rainrentalrfid.hunt.presentation.HuntViewModel
 import org.rainrental.rainrentalrfid.continuousScanning.presentation.ContinuousScanningViewModel
 import org.rainrental.rainrentalrfid.settings.presentation.SettingsViewModel
+import org.rainrental.rainrentalrfid.taglookup.presentation.TagLookupViewModel
 import org.rainrental.rainrentalrfid.logging.LogUtils
 
 @Composable
@@ -345,6 +346,7 @@ fun MainApp(modifier: Modifier = Modifier) {
     val huntViewModel: HuntViewModel = hiltViewModel()
     val continuousScanningViewModel: ContinuousScanningViewModel = hiltViewModel()
     val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val tagLookupViewModel: TagLookupViewModel = hiltViewModel()
     
     // Hardware event bus for managing active listener
     val hardwareEventBus: HardwareEventBus = (context.applicationContext as RainRentalRfidApp).hardwareEventBus
@@ -391,6 +393,10 @@ fun MainApp(modifier: Modifier = Modifier) {
             NavigationRoutes.Settings.route -> {
                 LogUtils.logd("MainApp", "🔥 Settings route - returning settingsViewModel")
                 settingsViewModel
+            }
+            NavigationRoutes.Lookup.route -> {
+                LogUtils.logd("MainApp", "🔥 Lookup route - returning tagLookupViewModel")
+                tagLookupViewModel
             }
             else -> {
                 LogUtils.logd("MainApp", "🔥 Unknown route: $currentRoute, no hardware listener set")
