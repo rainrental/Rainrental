@@ -3,6 +3,7 @@ package org.rainrental.rainrentalrfid.hunt.presentation
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.rainrental.rainrentalrfid.app.BaseViewModel
@@ -30,11 +31,7 @@ class HuntViewModel @Inject constructor(
 
 
 
-    val uiFlow = huntRepository.uiFlow.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = HuntFlow.WaitingForBarcode()
-    )
+    val uiFlow: StateFlow<HuntFlow> = huntRepository.uiFlow
 
     val huntResults = dependencies.rfidManager.huntResults.stateIn(
         scope = viewModelScope,

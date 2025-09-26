@@ -1,9 +1,8 @@
 package org.rainrental.rainrentalrfid.hunt.data
 
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.rainrental.rainrentalrfid.apis.ApiCaller
 import org.rainrental.rainrentalrfid.commission.data.BackendApi
 import org.rainrental.rainrentalrfid.commission.data.GetAssetRequestDto
@@ -16,7 +15,7 @@ import javax.inject.Named
 
 interface HuntRepository : Logger {
     val backendApi : BackendApi
-    val uiFlow: SharedFlow<HuntFlow>
+    val uiFlow: StateFlow<HuntFlow>
     suspend fun updateUiFlow(flow:HuntFlow)
     suspend fun getAsset(barcode:String): Result<AssetDetailsResponseDto, ApiError>
 }
@@ -26,10 +25,10 @@ class DefaultHuntRepository @Inject constructor(
     @Named("company_id") private val companyId: String
 ) : HuntRepository{
 
-    private val _uiFlow : MutableSharedFlow<HuntFlow> = MutableSharedFlow()
-    override val uiFlow: SharedFlow<HuntFlow> = _uiFlow.asSharedFlow()
+    private val _uiFlow : MutableStateFlow<HuntFlow> = MutableStateFlow(HuntFlow.WaitingForBarcode())
+    override val uiFlow: StateFlow<HuntFlow> = _uiFlow.asStateFlow()
     override suspend fun updateUiFlow(flow: HuntFlow) {
-        _uiFlow.emit(flow)
+        _uiFlow.value = flow
     }
     override suspend fun getAsset(barcode: String): Result<AssetDetailsResponseDto, ApiError> {
         val request = GetAssetRequestDto(barcode = barcode, companyId = companyId)

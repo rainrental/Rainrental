@@ -3,6 +3,7 @@ package org.rainrental.rainrentalrfid.inventory.presentation
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -35,11 +36,7 @@ class InventoryViewModel @Inject constructor(
     dependencies: BaseViewModelDependencies
 ) : BaseViewModel(dependencies = dependencies), Logger, BackConfirmableFeature {
 
-    val uiFlow = inventoryRepository.uiFlow.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = InventoryFlow.WaitingForBarcode()
-    )
+    val uiFlow: StateFlow<InventoryFlow> = inventoryRepository.uiFlow
 
     val inventory = dependencies.rfidManager.inventoryCount.stateIn(
         scope = viewModelScope,

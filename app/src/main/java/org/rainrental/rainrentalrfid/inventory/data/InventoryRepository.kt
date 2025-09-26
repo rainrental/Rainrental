@@ -1,10 +1,7 @@
 package org.rainrental.rainrentalrfid.inventory.data
 
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.rainrental.rainrentalrfid.apis.ApiCaller
@@ -20,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Named
 
 interface InventoryRepository : Logger{
-    val uiFlow: SharedFlow<InventoryFlow>
+    val uiFlow: StateFlow<InventoryFlow>
     val saving: StateFlow<Boolean>
     suspend fun getAsset(barcode:String) : Result<AssetDetailsResponseDto,ApiError>
     suspend fun updateUiFlow(uiFlow: InventoryFlow)
@@ -33,16 +30,12 @@ class DefaultInventoryRepository @Inject constructor(
     @Named("company_id") private val companyId: String
 ) : InventoryRepository {
 
-    private val _uiFlow: MutableSharedFlow<InventoryFlow> = MutableSharedFlow(replay = 1)
-    override val uiFlow: SharedFlow<InventoryFlow> = _uiFlow.asSharedFlow()
+    private val _uiFlow: MutableStateFlow<InventoryFlow> = MutableStateFlow(InventoryFlow.WaitingForBarcode())
+    override val uiFlow: StateFlow<InventoryFlow> = _uiFlow.asStateFlow()
 
     private val _saving: MutableStateFlow<Boolean> = MutableStateFlow(false)
     override val saving: StateFlow<Boolean> = _saving.asStateFlow()
 
-    init {
-        // Initialize with WaitingForBarcode state
-        _uiFlow.tryEmit(InventoryFlow.WaitingForBarcode())
-    }
 
     override suspend fun getAsset(barcode: String) : Result<AssetDetailsResponseDto,ApiError> {
         val request = GetAssetRequestDto(barcode = barcode, companyId = companyId)
@@ -53,7 +46,7 @@ class DefaultInventoryRepository @Inject constructor(
     }
 
     override suspend fun updateUiFlow(uiFlow: InventoryFlow) {
-        _uiFlow.emit(uiFlow)
+        _uiFlow.value = uiFlow
     }
 
     override suspend fun logInventory(logInventoryRequestDto: LogInventoryRequestDto): Result<LogInventoryResponseDto, ApiError> {
