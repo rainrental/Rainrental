@@ -90,7 +90,37 @@ fun ContinuousScanningScreen(
     onToggleFilter: () -> Unit = {}
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center){
-        AnimatedVisibility(state == RfidHardwareState.Ready,enter = fadeIn(), exit = fadeOut()) {
+        // Show "Not connected" message when delivery server is not connected
+        AnimatedVisibility(
+            state == RfidHardwareState.Ready && deliveryState != DeliveryConnectionState.CONNECTED,
+            enter = fadeIn(), 
+            exit = fadeOut()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(), 
+                horizontalAlignment = Alignment.CenterHorizontally, 
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Not connected to delivery server",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = "Press left side button for barcode check-in", 
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+        
+        // Show normal ready state when connected to delivery server
+        AnimatedVisibility(
+            state == RfidHardwareState.Ready && deliveryState == DeliveryConnectionState.CONNECTED,
+            enter = fadeIn(), 
+            exit = fadeOut()
+        ) {
             Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                 Text("Press and hold trigger for RFID scanning")
                 Text("Press left side button for barcode check-in", style = MaterialTheme.typography.bodySmall)

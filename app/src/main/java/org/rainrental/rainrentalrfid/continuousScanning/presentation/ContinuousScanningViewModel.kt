@@ -16,6 +16,7 @@ import org.rainrental.rainrentalrfid.logging.Logger
 import org.rainrental.rainrentalrfid.continuousScanning.MqttDeliveryService
 import org.rainrental.rainrentalrfid.continuousScanning.data.MqttTagMessage
 import org.rainrental.rainrentalrfid.continuousScanning.data.ContinuousScanningState
+import org.rainrental.rainrentalrfid.continuousScanning.data.DeliveryConnectionState
 import org.rainrental.rainrentalrfid.continuousScanning.data.TagEvent
 import org.rainrental.rainrentalrfid.continuousScanning.data.TagInventoryEvent
 import org.rainrental.rainrentalrfid.continuousScanning.data.convertToJsonString
@@ -195,10 +196,15 @@ class ContinuousScanningViewModel @Inject constructor(
 
     override fun onTriggerDown() {
         if (!isScanning) {
-            logd("Continuous Scanning Trigger Down - Starting RFID continuous scanning")
-            isScanning = true
-            dependencies.scanningLifecycleManager.setScanningState(true)
-            dependencies.rfidManager.startContinuousScanning()
+            // Check if connected to delivery server before starting RFID scanning
+            if (deliverState.value == DeliveryConnectionState.CONNECTED) {
+                logd("Continuous Scanning Trigger Down - Starting RFID continuous scanning")
+                isScanning = true
+                dependencies.scanningLifecycleManager.setScanningState(true)
+                dependencies.rfidManager.startContinuousScanning()
+            } else {
+                logd("Continuous Scanning Trigger Down - Ignored (not connected to delivery server)")
+            }
         }
     }
 
