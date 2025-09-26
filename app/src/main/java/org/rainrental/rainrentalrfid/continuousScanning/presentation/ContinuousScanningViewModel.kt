@@ -197,7 +197,7 @@ class ContinuousScanningViewModel @Inject constructor(
     override fun onTriggerDown() {
         if (!isScanning) {
             // Check if connected to delivery server before starting RFID scanning
-            if (deliverState.value == DeliveryConnectionState.CONNECTED) {
+            if (mqttDeliveryService.isConnected()) {
                 logd("Continuous Scanning Trigger Down - Starting RFID continuous scanning")
                 isScanning = true
                 dependencies.scanningLifecycleManager.setScanningState(true)
