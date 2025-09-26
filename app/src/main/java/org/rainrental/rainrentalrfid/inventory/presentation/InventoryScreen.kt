@@ -194,28 +194,28 @@ fun WaitingForBarcodeView(
             )
             
             // Disabled General Inventory button - backend integration needed
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(65.dp)
-                    .border(
-                        width = 3.dp,
-                        shape = RoundedCornerShape(8.dp),
-                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
-                    )
-                    .background(
-                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "GENERAL INVENTORY (Coming Soon)",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(65.dp)
+//                    .border(
+//                        width = 3.dp,
+//                        shape = RoundedCornerShape(8.dp),
+//                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+//                    )
+//                    .background(
+//                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+//                        shape = RoundedCornerShape(8.dp)
+//                    ),
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.Center
+//            ) {
+//                Text(
+//                    text = "GENERAL INVENTORY (Coming Soon)",
+//                    style = MaterialTheme.typography.titleMedium,
+//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+//                )
+//            }
         }
     }
 }
