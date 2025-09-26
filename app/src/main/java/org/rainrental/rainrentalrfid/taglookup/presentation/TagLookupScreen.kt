@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.rainrental.rainrentalrfid.R
+import org.rainrental.rainrentalrfid.app.BackHandlerWithCleanup
 import org.rainrental.rainrentalrfid.app.LifecycleAware
 import org.rainrental.rainrentalrfid.commission.presentation.composable.AssetView
 import org.rainrental.rainrentalrfid.shared.presentation.composables.InputWithIcon
@@ -44,6 +45,9 @@ fun TagLookupScreen() {
     val uiFlow by tagLookupViewModel.uiFlow.collectAsState()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var tagToDelete by remember { mutableStateOf("") }
+    
+    // Handle back navigation and lifecycle events
+    BackHandlerWithCleanup(tagLookupViewModel, preventDefaultNavigation = false)
     
     LifecycleAware(
         onPause = { tagLookupViewModel.onScreenPaused() },

@@ -362,6 +362,7 @@ fun MainApp(modifier: Modifier = Modifier) {
             NavigationRoutes.Commission.route -> commissionViewModel
             NavigationRoutes.Hunt.route -> huntViewModel
             NavigationRoutes.ContinuousScanning.route -> continuousScanningViewModel
+            NavigationRoutes.Lookup.route -> tagLookupViewModel
             else -> null
         }
     }

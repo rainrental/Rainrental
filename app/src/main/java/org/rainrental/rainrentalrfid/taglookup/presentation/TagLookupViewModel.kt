@@ -14,6 +14,8 @@ import org.rainrental.rainrentalrfid.taglookup.data.TagLookupUiFlow
 import org.rainrental.rainrentalrfid.taglookup.domain.DeleteTagUseCase
 import org.rainrental.rainrentalrfid.taglookup.domain.ScanTagAndLookupUseCase
 import org.rainrental.rainrentalrfid.inputmanager.domain.use_case.WriteEpcUseCase
+import org.rainrental.rainrentalrfid.navigation.BackConfirmableFeature
+import org.rainrental.rainrentalrfid.logging.Logger
 import javax.inject.Inject
 
 @HiltViewModel
@@ -23,7 +25,7 @@ class TagLookupViewModel @Inject constructor(
     private val deleteTagUseCase: DeleteTagUseCase,
     private val writeEpcUseCase: WriteEpcUseCase,
     dependencies: BaseViewModelDependencies,
-) : BaseViewModel(dependencies) {
+) : BaseViewModel(dependencies), Logger, BackConfirmableFeature {
 
     val uiFlow: StateFlow<TagLookupUiFlow> = tagLookupRepository.uiFlow
 
@@ -233,5 +235,49 @@ class TagLookupViewModel @Inject constructor(
     
     override fun onSideKeyUp() {
         onEvent(TagLookupEvent.OnSideKeyUp)
+    }
+
+    // BackConfirmableFeature implementation
+    override fun hasUnsavedChanges(): Boolean {
+        val currentFlow = uiFlow.value
+        val hasChanges = when (currentFlow) {
+            is TagLookupUiFlow.AssetFound,
+            is TagLookupUiFlow.AssetNotFound,
+            is TagLookupUiFlow.TagDeleted,
+            is TagLookupUiFlow.ClearingEpc,
+            is TagLookupUiFlow.EpcCleared,
+            is TagLookupUiFlow.DeletingTag,
+            is TagLookupUiFlow.TagDeletedSuccessfully,
+            is TagLookupUiFlow.EpcClearFailed,
+            is TagLookupUiFlow.DeleteFailed -> true
+            else -> false
+        }
+        logd("🔥 TagLookupViewModel: hasUnsavedChanges() called - current state: $currentFlow, hasChanges: $hasChanges")
+        return hasChanges
+    }
+
+    override fun resetState() {
+        viewModelScope.launch {
+            logd("🔥 TagLookupViewModel: resetState() called - current state: ${uiFlow.value}")
+            // Reset to initial state
+            tagLookupRepository.updateUiFlow(TagLookupUiFlow.WaitingForTag)
+            logd("🔥 TagLookupViewModel: resetState() completed - new state: ${uiFlow.value}")
+        }
+    }
+
+    override fun getUnsavedChangesDescription(): String {
+        val currentFlow = uiFlow.value
+        return when (currentFlow) {
+            is TagLookupUiFlow.AssetFound -> "You have a loaded asset that will be lost"
+            is TagLookupUiFlow.AssetNotFound -> "You have scanned a tag that will be lost"
+            is TagLookupUiFlow.TagDeleted -> "You have viewed a deleted tag that will be lost"
+            is TagLookupUiFlow.ClearingEpc -> "You are in the process of clearing EPC memory"
+            is TagLookupUiFlow.EpcCleared -> "You have cleared EPC memory and are deleting the tag"
+            is TagLookupUiFlow.DeletingTag -> "You are in the process of deleting a tag"
+            is TagLookupUiFlow.TagDeletedSuccessfully -> "You have successfully deleted a tag"
+            is TagLookupUiFlow.EpcClearFailed -> "You have an EPC clear failure that needs attention"
+            is TagLookupUiFlow.DeleteFailed -> "You have a delete failure that needs attention"
+            else -> "You have unsaved changes that will be lost"
+        }
     }
 }
