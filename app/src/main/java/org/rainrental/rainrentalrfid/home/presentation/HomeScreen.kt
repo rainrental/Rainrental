@@ -18,6 +18,9 @@ import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Radar
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tag
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Label
 import androidx.compose.material.icons.filled.SmartButton
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
@@ -88,7 +91,7 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
             // Primary action - Commission Tags (most commonly used)
             MaterialMenuButton(
                 text = NavigationRoutes.Commission.title,
-                icon = Icons.Default.Tag,
+                icon = Icons.Default.Label,
                 description = "Commission RFID tags to assets",
                 isPrimary = true
             ) { onTap(NavigationRoutes.Commission) }
