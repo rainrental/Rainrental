@@ -31,6 +31,7 @@ import androidx.navigation.NavController
 import org.rainrental.rainrentalrfid.R
 import org.rainrental.rainrentalrfid.app.NavigationRoutes
 import org.rainrental.rainrentalrfid.shared.presentation.composables.AppButton
+import org.rainrental.rainrentalrfid.shared.presentation.composables.MaterialMenuButton
 import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
 
 @Composable
@@ -71,50 +72,46 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        // Scrollable menu content
+        // Scrollable menu content with Material Design
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Menu buttons with reduced spacing
-            val buttonSpacing = 12.dp
-            
-            AppButton(
-                text = NavigationRoutes.Commission.title.uppercase(), 
+            // Primary action - Commission Tags (most commonly used)
+            MaterialMenuButton(
+                text = NavigationRoutes.Commission.title,
                 icon = Icons.Default.Tag,
-                modifier = Modifier.height(50.dp)
+                description = "Commission RFID tags to assets",
+                isPrimary = true
             ) { onTap(NavigationRoutes.Commission) }
-            Spacer(modifier = Modifier.height(buttonSpacing))
             
-            AppButton(
-                text = NavigationRoutes.Inventory.title.uppercase(), 
+            // Secondary actions
+            MaterialMenuButton(
+                text = NavigationRoutes.Inventory.title,
                 icon = Icons.Default.Numbers,
-                modifier = Modifier.height(50.dp)
+                description = "Perform inventory operations"
             ) { onTap(NavigationRoutes.Inventory) }
-            Spacer(modifier = Modifier.height(buttonSpacing))
             
-            AppButton(
-                text = NavigationRoutes.Hunt.title.uppercase(), 
+            MaterialMenuButton(
+                text = NavigationRoutes.Hunt.title,
                 icon = Icons.Default.Radar,
-                modifier = Modifier.height(50.dp)
+                description = "Hunt for specific tags"
             ) { onTap(NavigationRoutes.Hunt) }
-            Spacer(modifier = Modifier.height(buttonSpacing))
             
-            AppButton(
-                text = NavigationRoutes.ContinuousScanning.title.uppercase(), 
+            MaterialMenuButton(
+                text = NavigationRoutes.ContinuousScanning.title,
                 icon = Icons.Default.Search,
-                modifier = Modifier.height(50.dp)
+                description = "Continuous RFID scanning"
             ) { onTap(NavigationRoutes.ContinuousScanning) }
-            Spacer(modifier = Modifier.height(buttonSpacing))
             
-            AppButton(
-                text = NavigationRoutes.Lookup.title.uppercase(), 
+            MaterialMenuButton(
+                text = NavigationRoutes.Lookup.title,
                 icon = Icons.Default.Search,
-                modifier = Modifier.height(50.dp)
+                description = "Lookup tag information"
             ) { onTap(NavigationRoutes.Lookup) }
 
             // Bottom spacing for scrollable content

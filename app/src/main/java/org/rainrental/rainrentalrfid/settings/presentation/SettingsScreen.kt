@@ -509,11 +509,7 @@ fun HardwareTab(
                 style = MaterialTheme.typography.titleMedium
             )
             
-            Text(
-                text = "Test Counter: $testCounter",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.Red
-            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -538,11 +534,23 @@ fun HardwareTab(
             Column(
                 modifier = Modifier.padding(8.dp)
             ) {
-                Text(
-                    text = "Button Test",
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Button Test",
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier
+                    )
+                    Text(
+                        text = "$testCounter clicks",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Red
+                    )
+                }
+
                 
                 // Trigger Button
                 ButtonBox(
@@ -815,12 +823,12 @@ fun MqttTab(
         }
         
         // Information
-        Text(
-            text = "The MQTT watchdog monitors connection and reconnects automatically. Pauses when app is backgrounded to save battery.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp)
-        )
+//        Text(
+//            text = "The MQTT watchdog monitors connection and reconnects automatically. Pauses when app is backgrounded to save battery.",
+//            style = MaterialTheme.typography.bodySmall,
+//            color = MaterialTheme.colorScheme.onSurfaceVariant,
+//            modifier = Modifier.padding(top = 8.dp)
+//        )
     }
 }
 
