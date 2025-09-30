@@ -89,30 +89,9 @@ private fun HomeScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Animated logo header
+        // Animated logo header - only show if animation is active
         if (showLogoAnimation) {
             AnimatedLogoHeader(logoAnimationComplete = logoAnimationComplete)
-        } else {
-            // Static header when animation is not shown
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Top spacing to account for navigation bar
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // Company logo (smaller when not animating)
-                Image( 
-                    painter = painterResource(R.drawable.companylogo), 
-                    contentDescription = null,
-                    modifier = Modifier.size(width = 120.dp, height = 40.dp)
-                )
-
-                // Space between logo and scrollable content
-                Spacer(modifier = Modifier.height(16.dp))
-            }
         }
 
         // Scrollable menu content with Material Design
@@ -169,6 +148,13 @@ private fun HomeScreen(
 
 @Composable
 private fun AnimatedLogoHeader(logoAnimationComplete: Boolean) {
+    // Animate container height to collapse completely
+    val containerHeight by animateDpAsState(
+        targetValue = if (logoAnimationComplete) 0.dp else 136.dp, // 32dp top + 80dp logo + 24dp bottom
+        animationSpec = tween(durationMillis = 1000),
+        label = "containerHeight"
+    )
+    
     // Animate logo size and position
     val logoSize by animateDpAsState(
         targetValue = if (logoAnimationComplete) 120.dp else 240.dp,
@@ -194,27 +180,31 @@ private fun AnimatedLogoHeader(logoAnimationComplete: Boolean) {
         label = "logoAlpha"
     )
     
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        // Top spacing to account for navigation bar
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        // Animated company logo
-        Image( 
-            painter = painterResource(R.drawable.companylogo), 
-            contentDescription = null,
+    // Only render if container has height
+    if (containerHeight > 0.dp) {
+        Column(
             modifier = Modifier
-                .size(width = logoSize, height = logoHeight)
-                .offset(y = logoOffsetY)
-                .alpha(logoAlpha)
-        )
+                .fillMaxWidth()
+                .height(containerHeight)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Top spacing to account for navigation bar
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Animated company logo
+            Image( 
+                painter = painterResource(R.drawable.companylogo), 
+                contentDescription = null,
+                modifier = Modifier
+                    .size(width = logoSize, height = logoHeight)
+                    .offset(y = logoOffsetY)
+                    .alpha(logoAlpha)
+            )
 
-        // Space between logo and scrollable content
-        Spacer(modifier = Modifier.height(if (logoAnimationComplete) 16.dp else 24.dp))
+            // Space between logo and scrollable content
+            Spacer(modifier = Modifier.height(if (logoAnimationComplete) 16.dp else 24.dp))
+        }
     }
 }
 
