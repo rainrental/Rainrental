@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.TrackChanges
 import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.RadioButtonChecked
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -111,8 +113,8 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
             
             MaterialMenuButton(
                 text = NavigationRoutes.ContinuousScanning.title,
-                icon = Icons.Default.QrCodeScanner,
-                description = "Continuous RFID scanning"
+                icon = Icons.Default.Send,
+                description = "Report all detected tags to server via MQTT"
             ) { onTap(NavigationRoutes.ContinuousScanning) }
             
             MaterialMenuButton(

@@ -19,7 +19,7 @@ enum class NavigationRoutes(val route: String, val title: String){
     ),
     ContinuousScanning(
         route = "route_continuous_scanning",
-        title = "Continuous Scanning"
+        title = "Reporting"
     ),
     Inventory(
         route = "route_inventory",
