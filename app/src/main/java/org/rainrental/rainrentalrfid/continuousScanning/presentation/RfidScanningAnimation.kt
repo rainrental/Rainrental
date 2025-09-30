@@ -38,7 +38,14 @@ import androidx.compose.ui.unit.sp
 import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
 
 @Composable
-fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: String? = null) {
+fun RfidScanningAnimation(
+    text: String, 
+    rssi: Double, 
+    completion: Float, 
+    tid: String? = null,
+    epcFilter: String? = null,
+    receivedEpc: String? = null
+) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
     
     // Animate the scanning pulse - made faster (reduced from 1500ms to 800ms)
@@ -163,6 +170,34 @@ fun RfidScanningAnimation(text: String, rssi: Double, completion: Float, tid: St
                 overflow = TextOverflow.Ellipsis
             )
         }
+        
+        // EPC Filter display if available
+        epcFilter?.let { filter ->
+            Text(
+                text = "Filter: $filter",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary,
+                fontWeight = FontWeight.Medium,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        
+        // Received EPC display if available - shown underneath filter in different color
+        receivedEpc?.let { epc ->
+            Text(
+                text = "EPC: $epc",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+                fontWeight = FontWeight.Medium,
+                fontFamily = FontFamily.Monospace,
+                fontSize = 12.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
@@ -174,7 +209,9 @@ fun RfidScanningAnimationPreview() {
             text = "42",
             rssi = -45.5,
             completion = 0.75f,
-            tid = "E2003412010200000000000001"
+            tid = "E2003412010200000000000001",
+            epcFilter = "11110000000000001100",
+            receivedEpc = "111100000000000011001234567890ABCD"
         )
     }
 }

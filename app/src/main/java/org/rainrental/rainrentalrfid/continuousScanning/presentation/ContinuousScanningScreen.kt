@@ -34,6 +34,7 @@ import org.rainrental.rainrentalrfid.chainway.data.RfidHardwareState
 import org.rainrental.rainrentalrfid.continuousScanning.data.DeliveryConnectionState
 import org.rainrental.rainrentalrfid.continuousScanning.data.ContinuousScanningState
 import org.rainrental.rainrentalrfid.continuousScanning.presentation.RfidScanningAnimation
+import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
 
 @Composable
 fun ContinuousScanningScreen() {
@@ -132,78 +133,53 @@ fun ContinuousScanningScreen(
                     text = continuousScanningState.uniqueCount.toString(),
                     rssi = continuousScanningState.lastRssi,
                     completion = 0f,
-                    tid = continuousScanningState.lastTagEvent?.tid
+                    tid = continuousScanningState.lastTagEvent?.tid,
+                    epcFilter = if (epcFilterEnabled) currentEpcFilter else null,
+                    receivedEpc = continuousScanningState.lastTagEvent?.epc
                 )
             }
         }
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(bottom = 32.dp, start = 16.dp, end = 16.dp),
-//            contentAlignment = Alignment.BottomCenter
-//        ){
-//            Column(
-//                horizontalAlignment = Alignment.CenterHorizontally,
-//                verticalArrangement = Arrangement.spacedBy(4.dp)
-//            ) {
-//                // Last scanned tag information
-//                continuousScanningState.lastTagEvent?.let { lastTag ->
-//                    Text(
-//                        text = "Last Tag TID: ${lastTag.tid}",
-//                        style = MaterialTheme.typography.labelSmall,
-//                        color = MaterialTheme.colorScheme.tertiary,
-//                        textDecoration = TextDecoration.Underline,
-//                        textAlign = TextAlign.Center,
-//                        maxLines = 2,
-//                        overflow = TextOverflow.Ellipsis
-//                    )
-//                    Text(
-//                        text = "Last Tag EPC: ${lastTag.epc}",
-//                        style = MaterialTheme.typography.labelSmall,
-//                        color = MaterialTheme.colorScheme.tertiary,
-//                        textDecoration = TextDecoration.Underline,
-//                        textAlign = TextAlign.Center,
-//                        maxLines = 2,
-//                        overflow = TextOverflow.Ellipsis
-//                    )
-//                }
-//
-//                Text(
-//                    text = "EPC Filter: ${if (epcFilterEnabled) currentEpcFilter else "DISABLED"}",
-//                    style = MaterialTheme.typography.labelSmall,
-//                    color = if (epcFilterEnabled) MaterialTheme.colorScheme.secondary else Color.Red,
-//                    textDecoration = TextDecoration.Underline,
-//                    textAlign = TextAlign.Center,
-//                    maxLines = 1,
-//                    overflow = TextOverflow.Ellipsis
-//                )
-//            }
-//        }
     }
 }
 
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ContinuousScanningScreenPreviewStopped() {
-    ContinuousScanningScreen(
-        modifier = Modifier,
-        state = RfidHardwareState.Ready, 
-        continuousScanningState = ContinuousScanningState(),
-        currentEpcFilter = "11110000000000001100",
-        rainCompanyId = 12,
-        epcFilterEnabled = true
-    )
+    RainRentalRfidTheme {
+        ContinuousScanningScreen(
+            modifier = Modifier,
+            state = RfidHardwareState.Ready,
+            continuousScanningState = ContinuousScanningState(),
+            currentEpcFilter = "11110000000000001100",
+            rainCompanyId = 12,
+            epcFilterEnabled = true
+        )
+    }
 }
 
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun ContinuousScanningScreenPreview() {
-    ContinuousScanningScreen(
-        modifier = Modifier,
-        state = RfidHardwareState.Scanning, 
-        continuousScanningState = ContinuousScanningState(),
-        currentEpcFilter = "11110000000000001100",
-        rainCompanyId = 12,
-        epcFilterEnabled = true
-    )
+    RainRentalRfidTheme {
+        ContinuousScanningScreen(
+            modifier = Modifier,
+            state = RfidHardwareState.Scanning,
+            continuousScanningState = ContinuousScanningState(
+                uniqueCount = 5,
+                lastRssi = -45.5,
+                lastTagEvent = org.rainrental.rainrentalrfid.continuousScanning.data.TagEvent(
+                    tid = "E2003412010200000000000001",
+                    epc = "111100000000000011001234567890ABCD",
+                    rssi = -45.5,
+                    seen = 1,
+                    roundId = 0,
+                    frequency = 920.0f,
+                    power = 30
+                )
+            ),
+            currentEpcFilter = "11110000000000001100",
+            rainCompanyId = 12,
+            epcFilterEnabled = true
+        )
+    }
 } 

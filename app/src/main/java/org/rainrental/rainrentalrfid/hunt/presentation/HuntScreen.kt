@@ -21,6 +21,7 @@ import org.rainrental.rainrentalrfid.chainway.data.TagWithOrientation
 import org.rainrental.rainrentalrfid.commission.presentation.composable.AssetView
 import org.rainrental.rainrentalrfid.hunt.data.HuntEvent
 import org.rainrental.rainrentalrfid.hunt.data.HuntFlow
+import org.rainrental.rainrentalrfid.ui.theme.RainRentalRfidTheme
 
 @Composable
 fun HuntScreen() {
@@ -131,17 +132,22 @@ fun HuntScreen(
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HuntScreenPreview() {
-    HuntScreen(
-        modifier = Modifier,
-        uiFlow = HuntFlow.WaitingForBarcode()
-    )
+    RainRentalRfidTheme {
+
+        HuntScreen(
+            modifier = Modifier,
+            uiFlow = HuntFlow.WaitingForBarcode()
+        )
+    }
 }
 
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HuntScreenPreviewWithResults() {
-    HuntScreen(
-        modifier = Modifier,
-        uiFlow = HuntFlow.WaitingForBarcode(previousHuntResults = 5)
-    )
+    RainRentalRfidTheme {
+        HuntScreen(
+            modifier = Modifier,
+            uiFlow = HuntFlow.WaitingForBarcode(previousHuntResults = 5)
+        )
+    }
 }
