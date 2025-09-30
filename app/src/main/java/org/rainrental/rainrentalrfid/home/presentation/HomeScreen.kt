@@ -117,6 +117,9 @@ private fun HomeScreen(
         // Animated logo header - only show if animation is active
         if (showLogoAnimation) {
             AnimatedLogoHeader(logoAnimationComplete = logoAnimationComplete)
+        } else {
+            // Add top spacing when logo animation is not shown
+            Spacer(modifier = Modifier.height(32.dp))
         }
 
         // Scrollable menu content with Material Design
