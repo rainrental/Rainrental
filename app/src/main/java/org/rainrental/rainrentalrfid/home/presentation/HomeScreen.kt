@@ -103,7 +103,7 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
                 text = NavigationRoutes.Inventory.title,
                 icon = Icons.Default.Storage,
                 description = "Perform inventory operations",
-                subtitle = "Scan and manage inventory"
+                subtitle = "Enter a barcode, count that SKU"
             ) { onTap(NavigationRoutes.Inventory) }
             
             MaterialMenuButton(
