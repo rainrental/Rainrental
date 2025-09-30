@@ -20,6 +20,10 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.SmartButton
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.TrackChanges
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -92,25 +96,25 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
             // Secondary actions
             MaterialMenuButton(
                 text = NavigationRoutes.Inventory.title,
-                icon = Icons.Default.Numbers,
+                icon = Icons.Default.Storage,
                 description = "Perform inventory operations"
             ) { onTap(NavigationRoutes.Inventory) }
             
             MaterialMenuButton(
                 text = NavigationRoutes.Hunt.title,
-                icon = Icons.Default.Radar,
+                icon = Icons.Default.TrackChanges,
                 description = "Hunt for specific tags"
             ) { onTap(NavigationRoutes.Hunt) }
             
             MaterialMenuButton(
                 text = NavigationRoutes.ContinuousScanning.title,
-                icon = Icons.Default.Search,
+                icon = Icons.Default.QrCodeScanner,
                 description = "Continuous RFID scanning"
             ) { onTap(NavigationRoutes.ContinuousScanning) }
             
             MaterialMenuButton(
                 text = NavigationRoutes.Lookup.title,
-                icon = Icons.Default.Search,
+                icon = Icons.Default.Info,
                 description = "Lookup tag information"
             ) { onTap(NavigationRoutes.Lookup) }
 
