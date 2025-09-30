@@ -40,7 +40,7 @@ fun MaterialMenuButton(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (subtitle != null) 88.dp else if (isPrimary) 80.dp else 72.dp),
+            .height(if (subtitle != null) 80.dp else if (isPrimary) 72.dp else 64.dp),
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -56,7 +56,7 @@ fun MaterialMenuButton(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
+                .padding(horizontal = 20.dp, vertical = 12.dp),
             horizontalArrangement = Arrangement.Start,
             verticalAlignment = Alignment.CenterVertically
         ) {
