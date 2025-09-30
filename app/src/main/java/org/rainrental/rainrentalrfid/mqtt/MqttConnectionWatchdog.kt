@@ -154,9 +154,9 @@ class MqttConnectionWatchdog @Inject constructor(
                 val isHealthy = checkConnectionHealth()
                 
                 if (isHealthy) {
-                    // Connection is healthy, reset failure count
+                    // Connection is healthy, reset failure count immediately
                     if (_consecutiveFailures.value > 0) {
-                        logd("MQTT Watchdog: Connection restored after ${_consecutiveFailures.value} failures")
+                        logd("MQTT Watchdog: Connection restored after ${_consecutiveFailures.value} failures - resetting immediately")
                         _consecutiveFailures.value = 0
                         _nextCheckDelay.value = checkIntervalMs
                     }
@@ -255,7 +255,7 @@ class MqttConnectionWatchdog @Inject constructor(
             
             // Check if reconnection was successful
             if (mqttDeliveryService.isConnected()) {
-                logd("MQTT Watchdog: Reconnection successful")
+                logd("MQTT Watchdog: Reconnection successful - resetting failure count immediately")
                 _consecutiveFailures.value = 0
                 _nextCheckDelay.value = checkIntervalMs
             } else {

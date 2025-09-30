@@ -18,6 +18,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -265,12 +266,12 @@ private fun ButtonBox(
     LogUtils.logd("ButtonBox", "🔥 $title state changed to: $state")
     
     val backgroundColor = when (state) {
-        ButtonState.UP -> Color.LightGray
+        ButtonState.UP -> MaterialTheme.colorScheme.surface
         ButtonState.DOWN -> color
     }
 
     val borderColor = when (state) {
-        ButtonState.UP -> Color.Gray
+        ButtonState.UP -> MaterialTheme.colorScheme.outline
         ButtonState.DOWN -> color
     }
 
@@ -281,12 +282,12 @@ private fun ButtonBox(
             .height(50.dp)
             .background(
                 color = backgroundColor,
-                shape = RoundedCornerShape(6.dp)
+                shape = RoundedCornerShape(8.dp) // Less rounded for Material Design
             )
             .border(
                 width = 1.dp,
                 color = borderColor,
-                shape = RoundedCornerShape(6.dp)
+                shape = RoundedCornerShape(8.dp)
             )
             .padding(8.dp),
         verticalArrangement = Arrangement.Center
@@ -295,7 +296,7 @@ private fun ButtonBox(
             text = title,
             fontSize = 14.sp,
             fontWeight = FontWeight.Bold,
-            color = if (state == ButtonState.DOWN) Color.White else Color.Black
+            color = if (state == ButtonState.DOWN) Color.White else MaterialTheme.colorScheme.onSurface
         )
         
         Spacer(modifier = Modifier.height(2.dp))
@@ -303,7 +304,7 @@ private fun ButtonBox(
         Text(
             text = state.name,
             fontSize = 10.sp,
-            color = if (state == ButtonState.DOWN) Color.White else Color.Black
+            color = if (state == ButtonState.DOWN) Color.White else MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -326,13 +327,23 @@ fun GeneralTab(
     ) {
         
         // System Volume Control
-        Column(
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = "System Volume",
-                style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "Controls all system volumes (Media, Ring, Alarm, Notification, Call)",
@@ -346,24 +357,33 @@ fun GeneralTab(
             ) {
                 Text(
                     text = "0",
-                    style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Slider(
                     value = systemVolume.toFloat(),
                     onValueChange = { onSystemVolumeChange(it.toInt()) },
                     valueRange = 0f..maxSystemVolume.toFloat(),
-                    modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        colors = androidx.compose.material3.SliderDefaults.colors(
+                            thumbColor = MaterialTheme.colorScheme.primary,
+                            activeTrackColor = MaterialTheme.colorScheme.primary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.outline
+                        )
                 )
                 Text(
                     text = maxSystemVolume.toString(),
-                    style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Text(
                 text = "Current Volume: $systemVolume",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
             )
+            }
         }
     }
 }
@@ -380,7 +400,11 @@ fun AuthenticationTab(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Card(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier.padding(16.dp),
@@ -388,7 +412,8 @@ fun AuthenticationTab(
             ) {
                 Text(
                     text = stringResource(R.string.settings_auth),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
                 when (authState) {
@@ -498,15 +523,20 @@ fun HardwareTab(
     ) {
         // Hardware Key Configuration
         Card(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = "Hardware Keys",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
 
@@ -529,25 +559,31 @@ fun HardwareTab(
         
         // Button Test Section
         Card(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Button Test",
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier
+            ) {
+                Text(
+                    text = "Button Test",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = "$testCounter clicks",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Red
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
                     )
                 }
 
@@ -651,12 +687,12 @@ fun UpdatesTab(
                 }
                 
                 // Update button
-                Button(
-                    onClick = { onCheckForUpdates(false) },
-                    enabled = !isUpdateInProgress,
+                    Button(
+                        onClick = { onCheckForUpdates(false) },
+                        enabled = !isUpdateInProgress,
                     modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Check for Updates")
+                    ) {
+                        Text("Check for Updates")
                 }
                 
                 
@@ -718,21 +754,35 @@ fun MqttTab(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // MQTT Server Configuration
-        Column(
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         ) {
-            Text(
-                text = "MQTT Server Configuration",
-                style = MaterialTheme.typography.titleMedium
-            )
-            OutlinedTextField(
-                value = mqttServerIp,
-                onValueChange = onMqttServerIpChange,
-                label = { Text("Server IP/Hostname") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "MQTT Server Configuration",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedTextField(
+                    value = mqttServerIp,
+                    onValueChange = onMqttServerIpChange,
+                    label = { Text("Server IP/Hostname") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline
+                    )
+                )
+            }
         }
         
         Text(
@@ -743,22 +793,33 @@ fun MqttTab(
         
         // Watchdog Status
         Card(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = "Connection Watchdog",
                     style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Medium
                 )
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Status:")
+                    Text(
+                        text = "Status:",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Text(
                         text = when (watchdogState) {
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPED -> "Stopped"
@@ -766,10 +827,12 @@ fun MqttTab(
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> if (isPaused) "Paused" else "Running"
                             org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPING -> "Stopping"
                         },
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
                         color = when (watchdogState) {
-                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> if (isPaused) Color(0xFFFF9800) else Color.Green
-                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPED -> Color.Gray
-                            else -> Color(0xFFFF9800)
+                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING -> if (isPaused) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
+                            org.rainrental.rainrentalrfid.mqtt.WatchdogState.STOPPED -> MaterialTheme.colorScheme.onSurfaceVariant
+                            else -> MaterialTheme.colorScheme.tertiary
                         }
                     )
                 }
@@ -777,12 +840,19 @@ fun MqttTab(
                 if (consecutiveFailures > 0) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Consecutive Failures:")
+                        Text(
+                            text = "Consecutive Failures:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Text(
                             text = consecutiveFailures.toString(),
-                            color = if (consecutiveFailures > 3) Color.Red else Color(0xFFFF9800)
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                            color = if (consecutiveFailures > 3) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary
                         )
                     }
                 }
@@ -790,12 +860,20 @@ fun MqttTab(
                 if (lastCheckTime > 0) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Last Check:")
+                        Text(
+                            text = "Last Check:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Text(
                             text = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault())
-                                .format(java.util.Date(lastCheckTime))
+                                .format(java.util.Date(lastCheckTime)),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -803,23 +881,34 @@ fun MqttTab(
                 if (nextCheckDelay > 0) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Next Check:")
                         Text(
-                            text = "${nextCheckDelay / 1000}s"
+                            text = "Next Check:",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "${nextCheckDelay / 1000}s",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
         }
         
-        // Force Check Button
-        Button(
-            onClick = onForceMqttConnectionCheck,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Force Connection Check")
+        // Force Check Button - only show when not running
+        if (watchdogState != org.rainrental.rainrentalrfid.mqtt.WatchdogState.RUNNING || isPaused) {
+            Button(
+                onClick = onForceMqttConnectionCheck,
+                modifier = Modifier.fillMaxWidth(),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp) // Less rounded
+            ) {
+                Text("Force Connection Check")
+            }
         }
         
         // Information
