@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -33,8 +34,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -51,37 +63,56 @@ fun HomeScreen(
     navController: NavController,
     onNavigateWithReset: (String) -> Unit = { destination -> navController.navigate(destination) }
 ) {
-    HomeScreen(modifier = Modifier, onTap = { destination ->
-        onNavigateWithReset(destination.route)
-    })
+    val homeViewModel: HomeViewModel = hiltViewModel()
+    val showLogoAnimation by homeViewModel.showLogoAnimation.collectAsState()
+    val logoAnimationComplete by homeViewModel.logoAnimationComplete.collectAsState()
+    
+    HomeScreen(
+        modifier = Modifier, 
+        onTap = { destination ->
+            onNavigateWithReset(destination.route)
+        },
+        showLogoAnimation = showLogoAnimation,
+        logoAnimationComplete = logoAnimationComplete
+    )
 }
 
 @Composable
-private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) -> Unit) {
+private fun HomeScreen(
+    modifier: Modifier = Modifier,
+    onTap: (NavigationRoutes) -> Unit,
+    showLogoAnimation: Boolean = false,
+    logoAnimationComplete: Boolean = true
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Fixed header with logo
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Top spacing to account for navigation bar
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            // Company logo
-            Image( 
-                painter = painterResource(R.drawable.companylogo), 
-                contentDescription = null,
-                modifier = Modifier.size(width = 240.dp, height = 80.dp)
-            )
+        // Animated logo header
+        if (showLogoAnimation) {
+            AnimatedLogoHeader(logoAnimationComplete = logoAnimationComplete)
+        } else {
+            // Static header when animation is not shown
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Top spacing to account for navigation bar
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                // Company logo (smaller when not animating)
+                Image( 
+                    painter = painterResource(R.drawable.companylogo), 
+                    contentDescription = null,
+                    modifier = Modifier.size(width = 120.dp, height = 40.dp)
+                )
 
-            // Space between logo and scrollable content
-            Spacer(modifier = Modifier.height(24.dp))
+                // Space between logo and scrollable content
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
 
         // Scrollable menu content with Material Design
@@ -136,13 +167,66 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
     }
 }
 
+@Composable
+private fun AnimatedLogoHeader(logoAnimationComplete: Boolean) {
+    // Animate logo size and position
+    val logoSize by animateDpAsState(
+        targetValue = if (logoAnimationComplete) 120.dp else 240.dp,
+        animationSpec = tween(durationMillis = 1000),
+        label = "logoSize"
+    )
+    
+    val logoHeight by animateDpAsState(
+        targetValue = if (logoAnimationComplete) 40.dp else 80.dp,
+        animationSpec = tween(durationMillis = 1000),
+        label = "logoHeight"
+    )
+    
+    val logoOffsetY by animateDpAsState(
+        targetValue = if (logoAnimationComplete) (-200).dp else 0.dp,
+        animationSpec = tween(durationMillis = 1000),
+        label = "logoOffsetY"
+    )
+    
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (logoAnimationComplete) 0f else 1f,
+        animationSpec = tween(durationMillis = 1000),
+        label = "logoAlpha"
+    )
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Top spacing to account for navigation bar
+        Spacer(modifier = Modifier.height(32.dp))
+        
+        // Animated company logo
+        Image( 
+            painter = painterResource(R.drawable.companylogo), 
+            contentDescription = null,
+            modifier = Modifier
+                .size(width = logoSize, height = logoHeight)
+                .offset(y = logoOffsetY)
+                .alpha(logoAlpha)
+        )
+
+        // Space between logo and scrollable content
+        Spacer(modifier = Modifier.height(if (logoAnimationComplete) 16.dp else 24.dp))
+    }
+}
+
 @Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HomeScreenPreview() {
     RainRentalRfidTheme {
         HomeScreen(
             modifier = Modifier,
-            onTap = {}
+            onTap = {},
+            showLogoAnimation = false,
+            logoAnimationComplete = true
         )
     }
 }
@@ -153,7 +237,9 @@ fun HomeScreenLightPreview() {
     RainRentalRfidTheme(darkTheme = false) {
         HomeScreen(
             modifier = Modifier,
-            onTap = {}
+            onTap = {},
+            showLogoAnimation = false,
+            logoAnimationComplete = true
         )
     }
 }
@@ -179,7 +265,9 @@ fun HomeScreenBlueThemePreview() {
     ) {
         HomeScreen(
             modifier = Modifier,
-            onTap = {}
+            onTap = {},
+            showLogoAnimation = false,
+            logoAnimationComplete = true
         )
     }
 }
@@ -205,7 +293,9 @@ fun HomeScreenGreenThemePreview() {
     ) {
         HomeScreen(
             modifier = Modifier,
-            onTap = {}
+            onTap = {},
+            showLogoAnimation = false,
+            logoAnimationComplete = true
         )
     }
 }
@@ -231,7 +321,9 @@ fun HomeScreenPurpleThemePreview() {
     ) {
         HomeScreen(
             modifier = Modifier,
-            onTap = {}
+            onTap = {},
+            showLogoAnimation = false,
+            logoAnimationComplete = true
         )
     }
 }
@@ -257,7 +349,9 @@ fun HomeScreenOrangeThemePreview() {
     ) {
         HomeScreen(
             modifier = Modifier,
-            onTap = {}
+            onTap = {},
+            showLogoAnimation = false,
+            logoAnimationComplete = true
         )
     }
 }
@@ -283,7 +377,9 @@ fun HomeScreenLightBluePreview() {
     ) {
         HomeScreen(
             modifier = Modifier,
-            onTap = {}
+            onTap = {},
+            showLogoAnimation = false,
+            logoAnimationComplete = true
         )
     }
 }

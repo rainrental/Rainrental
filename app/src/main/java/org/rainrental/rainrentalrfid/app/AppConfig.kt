@@ -70,6 +70,22 @@ class AppConfig @Inject constructor() {
         HardwareKeys.IGNORE_RIGHT_SIDE_KEY = persistedValue
         return persistedValue
     }
+    
+    /**
+     * Sets whether the logo animation has been shown in this app session
+     * @param shown true if logo animation has been shown, false otherwise
+     */
+    fun setLogoAnimationShown(context: Context, shown: Boolean) {
+        getSharedPreferences(context).edit().putBoolean("logo_animation_shown", shown).apply()
+    }
+    
+    /**
+     * Gets whether the logo animation has been shown in this app session
+     * @return true if logo animation has been shown, false otherwise
+     */
+    fun isLogoAnimationShown(context: Context): Boolean {
+        return getSharedPreferences(context).getBoolean("logo_animation_shown", false)
+    }
 }
 
 data class RfidConfig(
