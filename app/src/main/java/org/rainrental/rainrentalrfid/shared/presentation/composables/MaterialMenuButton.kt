@@ -33,13 +33,14 @@ fun MaterialMenuButton(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     description: String? = null,
+    subtitle: String? = null,
     isPrimary: Boolean = false,
     onClick: () -> Unit,
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (isPrimary) 80.dp else 72.dp),
+            .height(if (subtitle != null) 88.dp else if (isPrimary) 80.dp else 72.dp),
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -86,6 +87,17 @@ fun MaterialMenuButton(
                     else 
                         MaterialTheme.colorScheme.onSurface
                 )
+                
+                subtitle?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isPrimary) 
+                            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
+                        else 
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
             }
         }
     }
@@ -102,6 +114,7 @@ fun MaterialMenuButtonPreview() {
             MaterialMenuButton(
                 text = "Commission Tags",
                 icon = Icons.Default.Tag,
+                subtitle = "Attach RFID tags to assets",
                 isPrimary = true,
                 onClick = {}
             )
@@ -109,12 +122,14 @@ fun MaterialMenuButtonPreview() {
             MaterialMenuButton(
                 text = "Inventory",
                 icon = Icons.Default.Tag,
+                subtitle = "Manage and track inventory",
                 onClick = {}
             )
             
             MaterialMenuButton(
                 text = "Hunt Tags",
                 icon = Icons.Default.Tag,
+                subtitle = "Find specific RFID tags",
                 onClick = {}
             )
         }

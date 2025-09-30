@@ -94,32 +94,37 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
             MaterialMenuButton(
                 text = NavigationRoutes.Commission.title,
                 icon = Icons.Default.Label,
-                description = "Commission RFID tags to assets"
+                description = "Commission RFID tags to assets",
+                subtitle = "Attach RFID tags to assets"
             ) { onTap(NavigationRoutes.Commission) }
             
             // Other features
             MaterialMenuButton(
                 text = NavigationRoutes.Inventory.title,
                 icon = Icons.Default.Storage,
-                description = "Perform inventory operations"
+                description = "Perform inventory operations",
+                subtitle = "Scan and manage inventory"
             ) { onTap(NavigationRoutes.Inventory) }
             
             MaterialMenuButton(
                 text = NavigationRoutes.Hunt.title,
                 icon = Icons.Default.TrackChanges,
-                description = "Hunt for specific tags"
+                description = "Hunt for specific tags",
+                subtitle = "Find specific RFID tags"
             ) { onTap(NavigationRoutes.Hunt) }
             
             MaterialMenuButton(
                 text = NavigationRoutes.ContinuousScanning.title,
                 icon = Icons.Default.Send,
-                description = "Report all detected tags to server via MQTT"
+                description = "Report all detected tags to server via MQTT",
+                subtitle = "Report all tags to server"
             ) { onTap(NavigationRoutes.ContinuousScanning) }
             
             MaterialMenuButton(
                 text = NavigationRoutes.Lookup.title,
                 icon = Icons.Default.Info,
-                description = "Lookup tag information"
+                description = "Lookup tag information",
+                subtitle = "Get tag details and status"
             ) { onTap(NavigationRoutes.Lookup) }
 
             // Bottom spacing for scrollable content
