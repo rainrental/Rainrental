@@ -1,6 +1,13 @@
 package org.rainrental.rainrentalrfid.app
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateValue
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -179,16 +186,33 @@ fun CompactHardwareIndicator(
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(12.dp)
                 )
-                // Status dot
+                // Status dot with pulsing animation when connecting
+                val isConnecting = deliveryState in listOf(
+                    DeliveryConnectionState.CONNECTING, 
+                    DeliveryConnectionState.INIT, 
+                    DeliveryConnectionState.WAITING_FOR_IP
+                )
+                
+                val infiniteTransition = rememberInfiniteTransition(label = "mqttPulse")
+                val pulseAlpha by infiniteTransition.animateValue(
+                    initialValue = 0.3f,
+                    targetValue = 1.0f,
+                    typeConverter = Float.VectorConverter,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(800, easing = FastOutLinearInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ), label = "mqttPulse"
+                )
+                
                 Box(
                     modifier = Modifier
                         .size(6.dp)
                         .background(
                             color = when (deliveryState) {
                                 DeliveryConnectionState.CONNECTED -> Color.Green
-                                DeliveryConnectionState.CONNECTING, DeliveryConnectionState.INIT -> Color.Yellow
+                                DeliveryConnectionState.CONNECTING, DeliveryConnectionState.INIT -> Color.Yellow.copy(alpha = if (isConnecting) pulseAlpha else 1f)
                                 DeliveryConnectionState.ERROR, DeliveryConnectionState.DEAD -> Color.Red
-                                DeliveryConnectionState.WAITING_FOR_IP -> Color.Yellow
+                                DeliveryConnectionState.WAITING_FOR_IP -> Color.Yellow.copy(alpha = if (isConnecting) pulseAlpha else 1f)
                             },
                             shape = CircleShape
                         )
