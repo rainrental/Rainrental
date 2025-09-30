@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Radar
@@ -73,7 +75,8 @@ fun HomeScreen(
             onNavigateWithReset(destination.route)
         },
         showLogoAnimation = showLogoAnimation,
-        logoAnimationComplete = logoAnimationComplete
+        logoAnimationComplete = logoAnimationComplete,
+        onResetLogoAnimation = { homeViewModel.resetLogoAnimation() }
     )
 }
 
@@ -82,12 +85,34 @@ private fun HomeScreen(
     modifier: Modifier = Modifier,
     onTap: (NavigationRoutes) -> Unit,
     showLogoAnimation: Boolean = false,
-    logoAnimationComplete: Boolean = true
+    logoAnimationComplete: Boolean = true,
+    onResetLogoAnimation: () -> Unit = {}
 ) {
+    var pullOffset by remember { mutableStateOf(0f) }
+    val scrollState = rememberScrollState()
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .pointerInput(Unit) {
+                detectDragGestures(
+                    onDragStart = { /* drag started */ },
+                    onDragEnd = { 
+                        // Reset logo animation if user pulled down significantly
+                        if (pullOffset > 100f && scrollState.value == 0) {
+                            onResetLogoAnimation()
+                        }
+                        pullOffset = 0f
+                    },
+                    onDrag = { _, dragAmount ->
+                        // Only allow pull down when at top of scroll
+                        if (scrollState.value == 0 && dragAmount.y > 0) {
+                            pullOffset += dragAmount.y
+                        }
+                    }
+                )
+            }
     ) {
         // Animated logo header - only show if animation is active
         if (showLogoAnimation) {
@@ -99,7 +124,8 @@ private fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
+                .offset(y = (pullOffset * 0.3f).dp) // Slight visual feedback
+                .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -216,7 +242,8 @@ fun HomeScreenPreview() {
             modifier = Modifier,
             onTap = {},
             showLogoAnimation = false,
-            logoAnimationComplete = true
+            logoAnimationComplete = true,
+            onResetLogoAnimation = {}
         )
     }
 }
@@ -229,7 +256,8 @@ fun HomeScreenLightPreview() {
             modifier = Modifier,
             onTap = {},
             showLogoAnimation = false,
-            logoAnimationComplete = true
+            logoAnimationComplete = true,
+            onResetLogoAnimation = {}
         )
     }
 }
@@ -257,7 +285,8 @@ fun HomeScreenBlueThemePreview() {
             modifier = Modifier,
             onTap = {},
             showLogoAnimation = false,
-            logoAnimationComplete = true
+            logoAnimationComplete = true,
+            onResetLogoAnimation = {}
         )
     }
 }
@@ -285,7 +314,8 @@ fun HomeScreenGreenThemePreview() {
             modifier = Modifier,
             onTap = {},
             showLogoAnimation = false,
-            logoAnimationComplete = true
+            logoAnimationComplete = true,
+            onResetLogoAnimation = {}
         )
     }
 }
@@ -313,7 +343,8 @@ fun HomeScreenPurpleThemePreview() {
             modifier = Modifier,
             onTap = {},
             showLogoAnimation = false,
-            logoAnimationComplete = true
+            logoAnimationComplete = true,
+            onResetLogoAnimation = {}
         )
     }
 }
@@ -341,7 +372,8 @@ fun HomeScreenOrangeThemePreview() {
             modifier = Modifier,
             onTap = {},
             showLogoAnimation = false,
-            logoAnimationComplete = true
+            logoAnimationComplete = true,
+            onResetLogoAnimation = {}
         )
     }
 }
@@ -369,7 +401,8 @@ fun HomeScreenLightBluePreview() {
             modifier = Modifier,
             onTap = {},
             showLogoAnimation = false,
-            logoAnimationComplete = true
+            logoAnimationComplete = true,
+            onResetLogoAnimation = {}
         )
     }
 }
