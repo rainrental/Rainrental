@@ -30,9 +30,12 @@ import androidx.compose.material.icons.filled.RadioButtonChecked
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -137,6 +140,147 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
 @Composable
 fun HomeScreenPreview() {
     RainRentalRfidTheme {
+        HomeScreen(
+            modifier = Modifier,
+            onTap = {}
+        )
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+fun HomeScreenLightPreview() {
+    RainRentalRfidTheme(darkTheme = false) {
+        HomeScreen(
+            modifier = Modifier,
+            onTap = {}
+        )
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HomeScreenBlueThemePreview() {
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            primary = Color(0xFF2196F3),
+            primaryContainer = Color(0xFF1976D2),
+            secondary = Color(0xFF03DAC6),
+            tertiary = Color(0xFFBB86FC),
+            background = Color(0xFF121212),
+            surface = Color(0xFF1E1E1E),
+            onPrimary = Color.White,
+            onPrimaryContainer = Color.White,
+            onSecondary = Color.Black,
+            onTertiary = Color.Black,
+            onBackground = Color.White,
+            onSurface = Color.White
+        )
+    ) {
+        HomeScreen(
+            modifier = Modifier,
+            onTap = {}
+        )
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HomeScreenGreenThemePreview() {
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            primary = Color(0xFF4CAF50),
+            primaryContainer = Color(0xFF388E3C),
+            secondary = Color(0xFF8BC34A),
+            tertiary = Color(0xFFCDDC39),
+            background = Color(0xFF0D1B0D),
+            surface = Color(0xFF1A2E1A),
+            onPrimary = Color.White,
+            onPrimaryContainer = Color.White,
+            onSecondary = Color.Black,
+            onTertiary = Color.Black,
+            onBackground = Color.White,
+            onSurface = Color.White
+        )
+    ) {
+        HomeScreen(
+            modifier = Modifier,
+            onTap = {}
+        )
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HomeScreenPurpleThemePreview() {
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            primary = Color(0xFF9C27B0),
+            primaryContainer = Color(0xFF7B1FA2),
+            secondary = Color(0xFFE91E63),
+            tertiary = Color(0xFFFF9800),
+            background = Color(0xFF1A0D1A),
+            surface = Color(0xFF2E1A2E),
+            onPrimary = Color.White,
+            onPrimaryContainer = Color.White,
+            onSecondary = Color.White,
+            onTertiary = Color.Black,
+            onBackground = Color.White,
+            onSurface = Color.White
+        )
+    ) {
+        HomeScreen(
+            modifier = Modifier,
+            onTap = {}
+        )
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HomeScreenOrangeThemePreview() {
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            primary = Color(0xFFFF9800),
+            primaryContainer = Color(0xFFF57C00),
+            secondary = Color(0xFFFF5722),
+            tertiary = Color(0xFFE91E63),
+            background = Color(0xFF1A0D0D),
+            surface = Color(0xFF2E1A1A),
+            onPrimary = Color.Black,
+            onPrimaryContainer = Color.Black,
+            onSecondary = Color.White,
+            onTertiary = Color.White,
+            onBackground = Color.White,
+            onSurface = Color.White
+        )
+    ) {
+        HomeScreen(
+            modifier = Modifier,
+            onTap = {}
+        )
+    }
+}
+
+@Preview(widthDp = 360, heightDp = 640, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+fun HomeScreenLightBluePreview() {
+    MaterialTheme(
+        colorScheme = lightColorScheme(
+            primary = Color(0xFF1976D2),
+            primaryContainer = Color(0xFFBBDEFB),
+            secondary = Color(0xFF03DAC6),
+            tertiary = Color(0xFFBB86FC),
+            background = Color(0xFFF5F5F5),
+            surface = Color.White,
+            onPrimary = Color.White,
+            onPrimaryContainer = Color(0xFF0D47A1),
+            onSecondary = Color.Black,
+            onTertiary = Color.Black,
+            onBackground = Color.Black,
+            onSurface = Color.Black
+        )
+    ) {
         HomeScreen(
             modifier = Modifier,
             onTap = {}
