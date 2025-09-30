@@ -90,15 +90,14 @@ private fun HomeScreen(modifier: Modifier = Modifier,onTap:(NavigationRoutes) ->
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Primary action - Commission Tags (most commonly used)
+            // Commission Tags
             MaterialMenuButton(
                 text = NavigationRoutes.Commission.title,
                 icon = Icons.Default.Label,
-                description = "Commission RFID tags to assets",
-                isPrimary = true
+                description = "Commission RFID tags to assets"
             ) { onTap(NavigationRoutes.Commission) }
             
-            // Secondary actions
+            // Other features
             MaterialMenuButton(
                 text = NavigationRoutes.Inventory.title,
                 icon = Icons.Default.Storage,
